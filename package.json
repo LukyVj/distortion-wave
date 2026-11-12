@@ -1,0 +1,39 @@
+{
+  "name": "distortion-wave",
+  "version": "0.1.0",
+  "description": "A distortion-wave transition for any DOM element. Snapshot, update, and let one WebGL2 pass carry the old state into the new one.",
+  "type": "module",
+  "main": "./dist/distortion-wave.js",
+  "module": "./dist/distortion-wave.js",
+  "types": "./types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./dist/distortion-wave.js"
+    },
+    "./src/*": "./src/*"
+  },
+  "unpkg": "./dist/distortion-wave.iife.min.js",
+  "jsdelivr": "./dist/distortion-wave.iife.min.js",
+  "files": ["dist", "src", "types", "README.md", "LICENSE"],
+  "sideEffects": false,
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test test/*.test.js",
+    "test:browser": "node scripts/browser-test.mjs",
+    "lint": "eslint src test scripts",
+    "demo": "npm run build && npx --yes serve ."
+  },
+  "keywords": ["webgl", "webgl2", "transition", "view-transitions", "shader", "distortion", "animation", "dom", "creative-coding"],
+  "author": "Lucas Bonomi (https://lucasbonomi.com)",
+  "license": "MIT",
+  "private": true,
+  "repository": { "type": "git", "url": "git+https://github.com/LukyVj/distortion-wave.git" },
+  "engines": { "node": ">=18" },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "eslint": "^9.0.0",
+    "globals": "^15.0.0",
+    "playwright": "^1.48.0"
+  }
+}

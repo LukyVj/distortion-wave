@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>distortion-wave — any DOM element</title>
+<style>
+  #app {
+    --bg:#09090b; --panel:#131316; --panel2:#1a1a1e; --line:#26262c; --text:#ececf1; --muted:#8e8e98; --accent:#8fa8ff; --ok:#30D158;
+    min-height:100vh; background:var(--bg); color:var(--text); font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  #app[data-theme="light"] { --bg:#f3f2ef; --panel:#ffffff; --panel2:#f2f1ee; --line:#e2e0dc; --text:#17171a; --muted:#6c6b73; --accent:#3d5bd9; }
+  * { box-sizing:border-box; }
+  body { margin:0; }
+  header { display:flex; align-items:center; gap:18px; padding:20px 32px; border-bottom:1px solid var(--line); flex-wrap:wrap; }
+  header h1 { font-size:16px; margin:0; font-weight:650; letter-spacing:-.01em; flex:1; min-width:240px; }
+  header h1 small { display:block; font-size:12.5px; font-weight:450; color:var(--muted); }
+  .chips { display:flex; gap:6px; align-items:center; }
+  .chip { width:22px; height:22px; border-radius:50%; border:2px solid transparent; padding:0; cursor:pointer; }
+  .chip[aria-pressed="true"] { border-color:var(--text); }
+  .btn { appearance:none; background:var(--panel2); color:var(--text); border:1px solid var(--line); border-radius:10px; padding:7px 12px; font:inherit; font-size:13px; cursor:pointer; }
+  .btn[aria-pressed="true"] { border-color:var(--accent); color:var(--accent); }
+  .switch { position:relative; width:52px; height:30px; border-radius:999px; border:0; padding:0; background:#2c2c33; cursor:pointer; }
+  .switch::after { content:""; position:absolute; top:3px; left:3px; width:24px; height:24px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.35); transition:transform .2s; }
+  .switch[aria-checked="false"] { background:#d9d7d2; }
+  .switch[aria-checked="false"]::after { transform:translateX(22px); }
+  .switch:focus-visible, .btn:focus-visible, .cta:focus-visible, .sub:focus-visible, .tab:focus-visible, .next:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+  .theme { display:flex; gap:8px; align-items:center; font-size:13px; color:var(--muted); }
+
+  main { display:grid; grid-template-columns:auto minmax(320px, 420px); gap:28px; padding:28px 32px 40px; justify-content:center; align-items:start; }
+  .col { display:grid; gap:22px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:22px; padding:18px; }
+  .card > h2 { font-size:12px; margin:0 0 4px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); font-weight:600; }
+  .card > p.hint { margin:0 0 14px; font-size:12.5px; color:var(--muted); }
+  .log { font:11.5px ui-monospace,SFMono-Regular,Menlo,monospace; color:var(--muted); margin-top:10px; min-height:1.4em; }
+
+  /* 1 · payment screen (real DOM) */
+  .phone { position:relative; width:300px; height:620px; border-radius:42px; background:#0e0e10; color:#f3f3f6; overflow:hidden;
+           box-shadow:0 0 0 9px #1b1b1f, 0 0 0 10px #2b2b31, 0 30px 70px rgba(0,0,0,.45); display:flex; flex-direction:column; padding:14px 18px 22px; }
+  .status { display:flex; justify-content:space-between; align-items:center; font-weight:600; font-size:13px; height:30px; padding:0 10px; }
+  .island { width:96px; height:28px; border-radius:16px; background:#000; }
+  .back { width:30px; height:30px; border-radius:50%; background:#1f1f24; border:0; color:#e6e6ea; display:grid; place-items:center; margin:10px 0 0; }
+  .head { text-align:center; margin-top:34px; }
+  .token { width:58px; height:58px; border-radius:50%; margin:0 auto 14px; display:grid; place-items:center; overflow:hidden; }
+  .token img { width:100%; height:100%; display:block; }
+  .token.ok { background:var(--ok); }
+  .to { margin:0; font-size:12.5px; color:#8f8f97; }
+  .amount { margin:6px 0 0; font-size:36px; font-weight:650; letter-spacing:-.02em; }
+  .phone[data-state="sent"] .amount { font-size:26px; }
+  .rows { margin:26px 0 0; background:#18181c; border-radius:18px; padding:2px 16px; }
+  .rows div { display:flex; justify-content:space-between; padding:12px 0; font-size:13px; border-top:1px solid #26262b; }
+  .rows div:first-child { border-top:0; }
+  .rows dt { color:#8b8b93; } .rows dd { margin:0; font-weight:600; }
+  .cta { margin-top:auto; height:50px; border-radius:999px; border:0; font:inherit; font-size:15px; font-weight:650; background:#f5f5f7; color:#111; cursor:pointer; }
+  .phone[data-state="sent"] .cta { background:#232328; color:#f5f5f7; }
+
+  /* 2 · a single button */
+  .sub { position:relative; display:inline-flex; align-items:center; gap:10px; height:56px; padding:0 28px; border-radius:999px; border:1px solid transparent; cursor:pointer;
+         font:inherit; font-size:16px; font-weight:650; color:#fff; background:linear-gradient(#1c1c22,#1c1c22) padding-box, linear-gradient(120deg,#ff4fd8,#5b7cff,#38d9ff) border-box; }
+  .sub .dot { width:9px; height:9px; border-radius:50%; background:#ff4fd8; box-shadow:0 0 10px #ff4fd8; }
+  .sub[aria-pressed="true"] { background:linear-gradient(#123a24,#123a24) padding-box, linear-gradient(120deg,#30d158,#b6ff5c) border-box; }
+  .sub[aria-pressed="true"] .dot { background:#30d158; box-shadow:0 0 10px #30d158; }
+  .sub .count { font-weight:500; color:rgba(255,255,255,.6); font-size:13px; }
+
+  /* 3 · card + tabs */
+  .tabs { display:flex; gap:4px; background:var(--panel2); border-radius:12px; padding:4px; margin-bottom:12px; }
+  .tab { flex:1; border:0; background:transparent; color:var(--muted); border-radius:9px; padding:7px 0; font:inherit; font-size:13px; font-weight:600; cursor:pointer; }
+  .tab[aria-selected="true"] { background:var(--panel); color:var(--text); box-shadow:0 1px 3px rgba(0,0,0,.25); }
+  .stats { border-radius:16px; background:var(--panel2); padding:16px; }
+  .kpi { display:flex; align-items:baseline; gap:10px; }
+  .kpi b { font-size:30px; letter-spacing:-.02em; }
+  .delta { font-size:12px; font-weight:600; padding:2px 8px; border-radius:999px; background:rgba(48,209,88,.15); color:#30d158; }
+  .delta.down { background:rgba(255,90,60,.15); color:#ff6a4d; }
+  .bars { display:flex; align-items:flex-end; gap:8px; height:110px; margin-top:14px; }
+  .bars span { flex:1; border-radius:6px 6px 3px 3px; background:linear-gradient(var(--accent), color-mix(in oklab, var(--accent) 35%, transparent)); }
+  .legend { display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin-top:6px; }
+
+  /* 4 · media card */
+  .weather { position:relative; height:190px; border-radius:20px; overflow:hidden; color:#fff; padding:18px 20px; display:flex; flex-direction:column; justify-content:space-between; }
+  .weather svg.art { position:absolute; right:58px; top:16px; width:120px; height:120px; }
+  .weather .city { font-size:13px; font-weight:600; opacity:.85; }
+  .weather .temp { font-size:52px; font-weight:300; letter-spacing:-.04em; line-height:1; }
+  .weather .cond { font-size:13px; opacity:.85; }
+  .next { position:absolute; right:12px; top:50%; translate:0 -50%; width:38px; height:38px; border-radius:50%; border:0; background:rgba(255,255,255,.18); color:#fff; font-size:20px; cursor:pointer; display:grid; place-items:center; backdrop-filter:blur(6px); }
+
+  /* 5 · an element that changes size */
+  .notif { display:grid; grid-template-columns:40px 1fr; gap:4px 12px; align-items:center; background:var(--panel2); border-radius:16px; padding:14px; }
+  .notif .ic { width:40px; height:40px; border-radius:12px; display:grid; place-items:center; background:linear-gradient(135deg,#7c5cff,#38d9ff); grid-row:span 2; color:#fff; font-weight:700; }
+  .notif b { font-size:14px; } .notif small { color:var(--muted); font-size:12.5px; }
+  .notif .more { grid-column:1 / -1; margin-top:10px; font-size:13px; color:var(--muted); line-height:1.55; }
+  .notif .more ul { margin:6px 0 0; padding-left:18px; }
+  .toggle { grid-column:1 / -1; justify-self:start; margin-top:10px; }
+  .rm { display:none; color:#c9b37a; font-size:12.5px; padding:0 32px; }
+  @media (max-width: 860px) { main { grid-template-columns:1fr; justify-items:center; } }
+</style>
+</head>
+<body>
+<div id="app" data-theme="dark">
+  <header>
+    <h1>distortion-wave — any DOM element<small>DOM → texture, one WebGL2 pass. Every block below is plain HTML/CSS.</small></h1>
+    <div class="chips" id="chips" aria-label="Palette"></div>
+    <button class="btn" id="slow" aria-pressed="false">Slow-mo ×0.3</button>
+    <div class="theme"><span>Theme</span><button class="switch" id="theme" role="switch" aria-checked="true" aria-label="Dark theme"></button></div>
+  </header>
+  <p class="log" id="log0" style="padding:0 32px;margin:10px 0 0"></p>
+  <p class="rm" id="rm">prefers-reduced-motion is on: transitions become crossfades.</p>
+  <main>
+    <section class="card">
+      <h2>1 · A whole screen</h2>
+      <p class="hint">Target: the screen. Source: the button. Tap its left or right side.</p>
+      <div class="phone" id="phone" data-state="review"></div>
+      <div class="log" id="log1"></div>
+    </section>
+    <div class="col">
+      <section class="card">
+        <h2>2 · A single button</h2>
+        <p class="hint">Target = source = the button: a ring from the touch point.</p>
+        <button class="sub" id="sub" aria-pressed="false"><span class="dot"></span><span class="label">Subscribe</span><span class="count">12.4k</span></button>
+        <div class="log" id="log2"></div>
+      </section>
+      <section class="card">
+        <h2>3 · A card, from a tab</h2>
+        <p class="hint">Target: the panel. Source: the clicked tab (the wave goes down).</p>
+        <div class="tabs" role="tablist" id="tabs">
+          <button class="tab" role="tab" aria-selected="false" data-p="day">Day</button>
+          <button class="tab" role="tab" aria-selected="true" data-p="week">Week</button>
+          <button class="tab" role="tab" aria-selected="false" data-p="month">Month</button>
+        </div>
+        <div class="stats" id="stats" role="tabpanel"></div>
+        <div class="log" id="log3"></div>
+      </section>
+      <section class="card">
+        <h2>5 · An element that changes size</h2>
+        <p class="hint">The shape follows the wave from the old box to the new one.</p>
+        <div class="notif" id="notif"></div>
+        <div class="log" id="log5"></div>
+      </section>
+      <section class="card">
+        <h2>4 · A media card, horizontal</h2>
+        <p class="hint">Source: the arrow on the right. The wave travels left.</p>
+        <div class="weather" id="weather"></div>
+        <div class="log" id="log4"></div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script type="module">
+import { distortionWave, prepareWave, warmupWave, snapshotElement, PALETTES } from '../src/index.js';
+// @@DEMO-START
+const $ = (s, r = document) => r.querySelector(s);
+const state = { palette: 'aurora', speed: 1 };
+const fmt = (m) => m ? `capture ${m.captureBefore ?? '–'} + ${m.captureAfter ?? '–'} ms · upload ${m.upload ?? '–'} ms · worst frame ${Math.round(m.worstFrame || 0)} ms` : '';
+const opts = (log, extra = {}) => ({ palette: state.palette, speed: state.speed, onEnd: (m) => { $(log).textContent = fmt(m); }, ...extra });
+(window.requestIdleCallback || setTimeout)(() => warmupWave());           // compile shaders before the first interaction
+if (matchMedia('(prefers-reduced-motion: reduce)').matches) $('#rm').style.display = 'block';
+
+// ── Palette & speed (global) ──
+for (const [name, cols] of Object.entries(PALETTES)) {
+  const b = document.createElement('button');
+  b.className = 'chip'; b.title = name; b.setAttribute('aria-label', `Palette ${name}`);
+  b.style.background = `conic-gradient(${cols.join(',')},${cols[0]})`;
+  b.setAttribute('aria-pressed', name === state.palette);
+  b.onclick = () => { state.palette = name; document.querySelectorAll('.chip').forEach((c) => c.setAttribute('aria-pressed', c === b)); };
+  $('#chips').appendChild(b);
+}
+$('#slow').onclick = (e) => { const on = e.currentTarget.getAttribute('aria-pressed') !== 'true'; e.currentTarget.setAttribute('aria-pressed', on); state.speed = on ? 0.3 : 1; };
+
+// ── 0 · The whole UI: theme switch ──
+const app = $('#app'), sw = $('#theme');
+sw.addEventListener('pointerenter', () => prepareWave(app));
+sw.addEventListener('click', (e) => {
+  const dark = sw.getAttribute('aria-checked') !== 'true';
+  distortionWave(app, () => {
+    app.dataset.theme = dark ? 'dark' : 'light';
+    sw.setAttribute('aria-checked', dark); sw.setAttribute('aria-label', dark ? 'Dark theme' : 'Light theme');
+  }, opts('#log0', { source: sw, focus: e }));
+});
+
+// ── 1 · Payment screen ──
+const AVATAR = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 58 58"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFB88A"/><stop offset="1" stop-color="#C86BFA"/></linearGradient></defs><rect width="58" height="58" fill="url(#g)"/><text x="29" y="36" font-family="system-ui,sans-serif" font-size="20" font-weight="700" fill="#fff" text-anchor="middle">CD</text></svg>');
+const phone = $('#phone');
+function renderPhone(sent) {
+  phone.dataset.state = sent ? 'sent' : 'review';
+  const rows = sent
+    ? [['From', 'Everyday ·· 4821'], ['Status', 'Sent'], ['Fee', 'Free'], ['Reference', 'Studio rent'], ['Transaction', 'TX-7Q2·9F4']]
+    : [['From', 'Everyday ·· 4821'], ['Arrives', 'Instantly'], ['Fee', 'Free'], ['Reference', 'Studio rent'], ['Note', 'November']];
+  phone.innerHTML = `
+    <div class="status"><span>9:41</span><i class="island"></i><span>100 %</span></div>
+    <button class="back" aria-label="Back"><svg width="10" height="16" viewBox="0 0 10 16"><path d="M8 2 2 8l6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="head">
+      ${sent ? `<div class="token ok"><svg width="30" height="30" viewBox="0 0 30 30"><path d="M8 15.5l4.5 4.5L22 10" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`
+             : `<div class="token"><img alt="" src="${AVATAR}"></div>`}
+      ${sent ? `<p class="amount">$1,250.00</p><p class="to">sent to Camille Durand</p>`
+             : `<p class="to">Sending to Camille Durand</p><p class="amount">$1,250.00</p>`}
+    </div>
+    <dl class="rows">${rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>
+    <button class="cta">${sent ? 'Done' : 'Confirm'}</button>`;
+}
+renderPhone(false);
+phone.addEventListener('pointerover', (e) => { if (e.target.closest('.cta')) prepareWave(phone); });
+phone.addEventListener('click', (e) => {
+  const cta = e.target.closest('.cta'); if (!cta) return;
+  const sent = phone.dataset.state !== 'sent';
+  distortionWave(phone, () => renderPhone(sent), opts('#log1', { source: cta, focus: e, palette: sent ? state.palette : 'ocean' }));
+});
+
+// ── 2 · A single button ──
+const sub = $('#sub');
+sub.addEventListener('click', (e) => {
+  const on = sub.getAttribute('aria-pressed') !== 'true';
+  distortionWave(sub, () => {
+    sub.setAttribute('aria-pressed', on);
+    sub.querySelector('.label').textContent = on ? 'Subscribed' : 'Subscribe';
+    sub.querySelector('.count').textContent = on ? '12.4k + you' : '12.4k';
+  }, opts('#log2', { focus: e, palette: on ? 'mint' : state.palette }));
+});
+
+// ── 3 · Card + tabs ──
+const DATA = {
+  day: { v: '1,284', d: '+4.2%', up: true, bars: [30, 55, 42, 70, 64, 88, 52], lg: ['0h', '4h', '8h', '12h', '16h', '20h', '24h'] },
+  week: { v: '9,870', d: '+12.8%', up: true, bars: [62, 48, 75, 58, 90, 72, 40], lg: ['M', 'T', 'W', 'T', 'F', 'S', 'S'] },
+  month: { v: '41,302', d: '−3.1%', up: false, bars: [80, 66, 72, 54, 60, 48, 58], lg: ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7'] },
+};
+const stats = $('#stats');
+function renderStats(p) {
+  const d = DATA[p];
+  stats.innerHTML = `<div class="kpi"><b>${d.v}</b><span class="delta ${d.up ? '' : 'down'}">${d.d}</span></div>
+    <div class="bars">${d.bars.map((h) => `<span style="height:${h}%"></span>`).join('')}</div>
+    <div class="legend">${d.lg.map((l) => `<span>${l}</span>`).join('')}</div>`;
+  document.querySelectorAll('.tab').forEach((t) => t.setAttribute('aria-selected', t.dataset.p === p));
+}
+renderStats('week');
+$('#tabs').addEventListener('click', (e) => {
+  const tab = e.target.closest('.tab'); if (!tab || tab.getAttribute('aria-selected') === 'true') return;
+  distortionWave(stats, () => renderStats(tab.dataset.p), opts('#log3', { source: tab, focus: e }));
+});
+
+// ── 4 · Media card ──
+const SUN = '<svg class="art" viewBox="0 0 120 120"><g stroke="#FFE07A" stroke-width="5" stroke-linecap="round">' + Array.from({ length: 8 }, (_, i) => { const a = i * Math.PI / 4; return `<line x1="${60 + Math.cos(a) * 38}" y1="${60 + Math.sin(a) * 38}" x2="${60 + Math.cos(a) * 50}" y2="${60 + Math.sin(a) * 50}"/>`; }).join('') + '</g><circle cx="60" cy="60" r="26" fill="#FFD36B"/></svg>';
+const RAIN = '<svg class="art" viewBox="0 0 120 120"><path d="M34 70a18 18 0 0 1 4-35 26 26 0 0 1 49 6 16 16 0 0 1-2 32H38z" fill="#dfe8ff"/><g stroke="#7fb2ff" stroke-width="4" stroke-linecap="round"><line x1="44" y1="84" x2="40" y2="96"/><line x1="60" y1="84" x2="56" y2="100"/><line x1="76" y1="84" x2="72" y2="96"/></g></svg>';
+const MOON = '<svg class="art" viewBox="0 0 120 120"><path d="M74 24a38 38 0 1 0 26 58A32 32 0 0 1 74 24z" fill="#f4f1ff"/><g fill="#fff"><circle cx="30" cy="30" r="2"/><circle cx="96" cy="24" r="1.6"/><circle cx="20" cy="70" r="1.4"/></g></svg>';
+const CITIES = [
+  { c: 'Paris', t: '14°', d: 'Sunny', art: SUN, bg: 'linear-gradient(135deg,#ff9a5a,#ff5a8a 55%,#7a5cff)' },
+  { c: 'Lisbon', t: '17°', d: 'Showers', art: RAIN, bg: 'linear-gradient(135deg,#3a7bff,#2ec4d6)' },
+  { c: 'Reykjavik', t: '−2°', d: 'Clear night', art: MOON, bg: 'linear-gradient(135deg,#141a3a,#3b2a6b 60%,#6b3fa0)' },
+];
+let ci = 0;
+const weather = $('#weather');
+function renderWeather(i) {
+  const w = CITIES[i];
+  weather.style.background = w.bg;
+  weather.innerHTML = `${w.art}<span class="city">${w.c}</span><div><div class="temp">${w.t}</div><div class="cond">${w.d}</div></div>
+    <button class="next" aria-label="Next city">›</button>`;
+}
+renderWeather(0);
+weather.addEventListener('click', (e) => {
+  const next = e.target.closest('.next'); if (!next) return;
+  ci = (ci + 1) % CITIES.length;
+  distortionWave(weather, () => renderWeather(ci), opts('#log4', { source: next, focus: e, variant: 'horizontal' }));
+});
+// ── 5 · Element that changes size ──
+const notif = $('#notif');
+function renderNotif(open) {
+  notif.innerHTML = `<div class="ic">D</div><b>Deploy finished</b><small>prod · 2 min ago</small>
+    ${open ? `<div class="more">Build <code>#4821</code> promoted to production.<ul><li>12 files changed</li><li>Tests: 248/248</li><li>Duration: 3 min 12 s</li></ul></div>` : ''}
+    <button class="btn toggle" aria-expanded="${open}">${open ? 'Hide' : 'Details'}</button>`;
+}
+renderNotif(false);
+notif.addEventListener('click', (e) => {
+  const b = e.target.closest('.toggle'); if (!b) return;
+  const open = b.getAttribute('aria-expanded') !== 'true';
+  distortionWave(notif, () => renderNotif(open), opts('#log5', { source: b, focus: e, palette: 'ocean' }));
+});
+window.__dw = { snapshotElement, distortionWave };                                          // for debugging from the console
+document.body.dataset.ready = '1';
+// @@DEMO-END
+</script>
+</body>
+</html>
