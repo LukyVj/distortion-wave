@@ -1,6 +1,6 @@
 {
   "name": "distortion-wave",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A distortion-wave transition for any DOM element. Snapshot, update, and let one WebGL2 pass carry the old state into the new one.",
   "type": "module",
   "main": "./dist/distortion-wave.js",
@@ -29,7 +29,8 @@
     "test:browser": "node scripts/browser-test.mjs",
     "lint": "eslint src test scripts",
     "demo": "npm run build && npx --yes serve .",
-    "prepublishOnly": "npm run build && npm test"
+    "prepublishOnly": "npm run build && npm test",
+    "test:ui-kit": "node scripts/ui-kit-test.mjs"
   },
   "keywords": [
     "webgl",

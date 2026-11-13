@@ -232,7 +232,9 @@ function cloneTree(src, parentCS, isRoot, ctx) {
   // form control state (properties are not attributes)
   if (tag === 'input') {
     if (src.type === 'checkbox' || src.type === 'radio') { if (src.checked) clone.setAttribute('checked', ''); else clone.removeAttribute('checked'); }
-    else if (src.type !== 'file' && src.type !== 'password') clone.setAttribute('value', src.value);
+    // password: same number of characters, never the real value (the browser masks them anyway)
+    else if (src.type === 'password') clone.setAttribute('value', '•'.repeat(src.value.length));
+    else if (src.type !== 'file') clone.setAttribute('value', src.value);
   }
   if (tag === 'textarea') { clone.textContent = src.value; return clone; }
   if (tag === 'canvas' || tag === 'video' || tag === 'iframe' || tag === 'embed' || tag === 'object') return clone;

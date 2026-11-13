@@ -4,7 +4,7 @@
       <span class="logo" aria-hidden="true"></span>
       <div>
         <h1>distortion-wave</h1>
-        <p>Click anything. Every element is plain HTML/CSS.</p>
+        <p>Click anything. Every element is plain HTML/CSS, the wave works on any of them.</p>
       </div>
     </div>
     <div class="top-actions">
@@ -14,35 +14,65 @@
   </header>
 
   <main class="grid">
-    <!-- Like -->
+    <!-- ───────────── Buttons ───────────── -->
+    <h3 class="sec">Buttons</h3>
+
     <section class="cell">
       <h2>Like</h2>
       <button class="like" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span class="n">128</span></button>
     </section>
 
-    <!-- Follow -->
     <section class="cell">
       <h2>Follow</h2>
       <div class="profile">
         <span class="avatar" aria-hidden="true">LB</span>
-        <div><b>Lucas Bonomi</b><small>@LukyVj</small></div>
+        <div class="who"><b>Lucas Bonomi</b><small>@LukyVj</small></div>
         <button class="btn follow">Follow</button>
       </div>
     </section>
 
-    <!-- Status pill -->
     <section class="cell">
-      <h2>Status</h2>
-      <button class="pill" data-i="0"><i></i><span>Online</span></button>
+      <h2>Bookmark</h2>
+      <button class="btn bookmark" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10a1 1 0 0 1 1 1v15l-6-4-6 4V5a1 1 0 0 1 1-1z"/></svg><span>Save</span></button>
     </section>
 
-    <!-- Copy -->
+    <section class="cell">
+      <h2>Vote</h2>
+      <div class="vote" id="vote" data-v="0">
+        <button class="up" aria-label="Upvote"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6l7 9H5z"/></svg></button>
+        <b>42</b>
+        <button class="down" aria-label="Downvote"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 18L5 9h14z"/></svg></button>
+      </div>
+    </section>
+
+    <section class="cell">
+      <h2>Download</h2>
+      <button class="btn primary download" data-state="idle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14"/></svg><span>Download</span></button>
+    </section>
+
     <section class="cell">
       <h2>Copy</h2>
       <div class="code"><code>npm i distortion-wave</code><button class="btn ghost copy">Copy</button></div>
     </section>
 
-    <!-- Chips -->
+    <section class="cell">
+      <h2>Delete · Undo</h2>
+      <div class="file-row" id="file"></div>
+    </section>
+
+    <section class="cell">
+      <h2>Mute</h2>
+      <button class="icon-btn mute" aria-pressed="false" aria-label="Mute"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M4 9h4l5-4v14l-5-4H4z"/><path class="on" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/><path class="off" d="M16 9l5 6m0-6l-5 6"/></svg></button>
+    </section>
+
+    <!-- ───────────── Toggles & selection ───────────── -->
+    <h3 class="sec">Toggles &amp; selection</h3>
+
+    <section class="cell">
+      <h2>Status</h2>
+      <button class="pill" data-i="0"><i></i><span>Online</span></button>
+    </section>
+
     <section class="cell">
       <h2>Filters</h2>
       <div class="chips">
@@ -53,7 +83,6 @@
       </div>
     </section>
 
-    <!-- Settings row -->
     <section class="cell">
       <h2>Settings</h2>
       <div class="setting" id="notif">
@@ -62,7 +91,66 @@
       </div>
     </section>
 
-    <!-- Product card -->
+    <section class="cell">
+      <h2>Checklist</h2>
+      <ul class="todos">
+        <li><button class="todo" aria-pressed="true"><i></i>Publish on npm</button></li>
+        <li><button class="todo" aria-pressed="false"><i></i>Make a CodePen</button></li>
+        <li><button class="todo" aria-pressed="false"><i></i>Test on Safari</button></li>
+      </ul>
+    </section>
+
+    <section class="cell span2">
+      <h2>Plan</h2>
+      <div class="radios" role="radiogroup" id="radios">
+        <button class="radio-card" role="radio" aria-checked="true"><b>Starter</b><small>Free</small></button>
+        <button class="radio-card" role="radio" aria-checked="false"><b>Pro</b><small>$12/mo</small></button>
+        <button class="radio-card" role="radio" aria-checked="false"><b>Team</b><small>$40/mo</small></button>
+      </div>
+    </section>
+
+    <section class="cell">
+      <h2>Rating</h2>
+      <div class="rating" id="rating">
+        <div class="stars"><button aria-label="1 star">★</button><button aria-label="2 stars">★</button><button aria-label="3 stars">★</button><button aria-label="4 stars">★</button><button aria-label="5 stars">★</button></div>
+        <small>Tap to rate</small>
+      </div>
+    </section>
+
+    <section class="cell">
+      <h2>Colour</h2>
+      <div class="swatch-demo">
+        <div class="tee" id="tee" style="--c:#8b7bff"><svg viewBox="0 0 64 56" aria-hidden="true"><path d="M20 4l-14 8 6 11 6-3v32h28V20l6 3 6-11-14-8c-2 5-6 7-12 7S22 9 20 4z"/></svg><small>Violet</small></div>
+        <div class="swatches">
+          <button style="--c:#8b7bff" aria-pressed="true" aria-label="Violet"></button>
+          <button style="--c:#ff5a7a" aria-pressed="false" aria-label="Coral"></button>
+          <button style="--c:#2ec4d6" aria-pressed="false" aria-label="Lagoon"></button>
+          <button style="--c:#ffc53d" aria-pressed="false" aria-label="Sun"></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="cell">
+      <h2>Text align</h2>
+      <div class="segmented icons" id="align">
+        <button aria-pressed="true" data-a="left" aria-label="Align left"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 10h10M4 14h16M4 18h10"/></svg></button>
+        <button aria-pressed="false" data-a="center" aria-label="Align center"><svg viewBox="0 0 24 24"><path d="M4 6h16M7 10h10M4 14h16M7 18h10"/></svg></button>
+        <button aria-pressed="false" data-a="right" aria-label="Align right"><svg viewBox="0 0 24 24"><path d="M4 6h16M10 10h10M4 14h16M10 18h10"/></svg></button>
+      </div>
+      <p class="align-text" id="alignText">The wave starts from the button you pressed and leans toward your finger.</p>
+    </section>
+
+    <section class="cell">
+      <h2>Units</h2>
+      <div class="temp-card">
+        <div id="temp"><b>21°</b><small>Paris · Sunny</small></div>
+        <button class="btn unit" data-u="c">°C</button>
+      </div>
+    </section>
+
+    <!-- ───────────── Commerce ───────────── -->
+    <h3 class="sec">Commerce</h3>
+
     <section class="cell span2">
       <h2>Add to cart</h2>
       <article class="product" id="product">
@@ -76,23 +164,123 @@
       </article>
     </section>
 
-    <!-- Pricing -->
+    <section class="cell">
+      <h2>Quantity</h2>
+      <div class="stepper" id="qty"><button class="minus" aria-label="Less">−</button><output>1</output><button class="plus" aria-label="More">+</button></div>
+    </section>
+
+    <section class="cell">
+      <h2>Wishlist</h2>
+      <div class="thumb" id="thumb">
+        <div class="img" aria-hidden="true"></div>
+        <div class="meta"><b>Lounge chair</b><small>$320</small></div>
+        <button class="heart" aria-pressed="false" aria-label="Add to wishlist"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></button>
+      </div>
+    </section>
+
+    <section class="cell span2">
+      <h2>Currency</h2>
+      <div class="currency">
+        <div class="segmented" id="cur"><button aria-pressed="true" data-c="usd">$ USD</button><button aria-pressed="false" data-c="eur">€ EUR</button><button aria-pressed="false" data-c="jpy">¥ JPY</button></div>
+        <ul class="prices" id="prices"></ul>
+      </div>
+    </section>
+
+    <!-- ───────────── Navigation & content ───────────── -->
+    <h3 class="sec">Navigation &amp; content</h3>
+
     <section class="cell span2">
       <h2>Pricing</h2>
-      <div class="segmented" role="tablist">
+      <div class="segmented" role="tablist" id="planTabs">
         <button role="tab" aria-selected="true" data-plan="monthly">Monthly</button>
         <button role="tab" aria-selected="false" data-plan="yearly">Yearly</button>
       </div>
       <div class="plan" id="plan"></div>
     </section>
 
-    <!-- Newsletter -->
+    <section class="cell span2">
+      <h2>Install</h2>
+      <div class="pm">
+        <div class="pm-tabs" role="tablist" id="pmTabs">
+          <button role="tab" aria-selected="true">npm</button><button role="tab" aria-selected="false">pnpm</button><button role="tab" aria-selected="false">yarn</button><button role="tab" aria-selected="false">bun</button>
+        </div>
+        <pre class="pm-code" id="pmCode"><code>npm i distortion-wave</code></pre>
+      </div>
+    </section>
+
+    <section class="cell">
+      <h2>Pagination</h2>
+      <ul class="list" id="list"></ul>
+      <div class="pages" id="pages"><button aria-current="page">1</button><button>2</button><button>3</button></div>
+    </section>
+
+    <section class="cell">
+      <h2>Accordion</h2>
+      <div class="accordion" id="acc">
+        <button class="acc-head" aria-expanded="false">What is distortion-wave?<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+        <div class="acc-body" hidden>A tiny library that turns any DOM update into a lensed, colourful wave. One WebGL2 pass, zero dependencies.</div>
+      </div>
+    </section>
+
+    <section class="cell">
+      <h2>Flashcard</h2>
+      <div class="flash" id="flash"></div>
+    </section>
+
+    <section class="cell">
+      <h2>Language</h2>
+      <div class="hello" id="hello"><b>Hello, world</b><small>English</small></div>
+      <button class="btn lang">Switch language</button>
+    </section>
+
+    <!-- ───────────── Forms & feedback ───────────── -->
+    <h3 class="sec">Forms &amp; feedback</h3>
+
     <section class="cell span2">
       <h2>Newsletter</h2>
       <form class="newsletter" id="newsletter">
         <input type="email" name="email" placeholder="you@example.com" aria-label="Email" required>
         <button class="btn primary">Subscribe</button>
       </form>
+    </section>
+
+    <section class="cell">
+      <h2>Password</h2>
+      <div class="pw" id="pw"><input type="password" value="correct-horse-battery" aria-label="Password"><button class="eye" aria-label="Show password" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+    </section>
+
+    <section class="cell">
+      <h2>Order</h2>
+      <div class="order" id="order" data-step="1"></div>
+      <button class="btn next-step">Next step</button>
+    </section>
+
+    <section class="cell span2">
+      <h2>Notifications</h2>
+      <ul class="notifs" id="notifs">
+        <li class="unread"><i></i><div><b>Jakub starred distortion-wave</b><small>2 min ago</small></div></li>
+        <li class="unread"><i></i><div><b>New issue: Safari support</b><small>1 h ago</small></div></li>
+        <li><i></i><div><b>v0.1.0 published to npm</b><small>Yesterday</small></div></li>
+      </ul>
+      <button class="btn ghost mark">Mark all as read</button>
+    </section>
+
+    <section class="cell span2">
+      <h2>Chat</h2>
+      <div class="thread" id="thread">
+        <p class="msg them">Did you try it on a whole page?</p>
+        <p class="msg me">Yep, flip the theme switch up there ↗</p>
+      </div>
+      <form class="composer" id="composer"><input value="This is so smooth 🔥" aria-label="Message"><button class="btn primary">Send</button></form>
+    </section>
+
+    <section class="cell">
+      <h2>Player</h2>
+      <div class="player" id="player">
+        <div class="cover" aria-hidden="true"></div>
+        <div class="track"><b>Night Drive</b><small>Paused</small></div>
+        <button class="play" aria-label="Play" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="tri" d="M8 5l11 7-11 7z"/><path class="bars" d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg></button>
+      </div>
     </section>
   </main>
 </div>

@@ -247,7 +247,8 @@ function cloneTree(src, parentCS, isRoot, ctx) {
     if (src.type === "checkbox" || src.type === "radio") {
       if (src.checked) clone.setAttribute("checked", "");
       else clone.removeAttribute("checked");
-    } else if (src.type !== "file" && src.type !== "password") clone.setAttribute("value", src.value);
+    } else if (src.type === "password") clone.setAttribute("value", "\u2022".repeat(src.value.length));
+    else if (src.type !== "file") clone.setAttribute("value", src.value);
   }
   if (tag === "textarea") {
     clone.textContent = src.value;

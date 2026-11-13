@@ -108,7 +108,7 @@ waveOnClick(trigger, target, (event) => { /* update */ }, { palette: 'ocean' });
 ## Examples
 
 - [`demo/`](demo/): a payment screen, a single button, a tab panel, a media card, an element that changes size and a whole-page theme switch.
-- [`examples/ui-kit/`](examples/ui-kit/): buttons and UI elements (like, follow, status pill, copy, filter chips, a settings switch, add to cart, pricing tabs, a newsletter form, theme switch). `index.html`, `style.css` and `script.js` paste straight into CodePen; `standalone.html` opens from disk.
+- [`examples/ui-kit/`](examples/ui-kit/): about 40 clickable UI pieces in five groups (buttons, toggles and selection, commerce, navigation and content, forms and feedback), plus a theme switch that waves the whole page. `index.html`, `style.css` and `script.js` paste straight into CodePen; `standalone.html` opens from disk.
 
 ## API
 
@@ -186,6 +186,7 @@ npm run build          # dist/ + demo/standalone.html
 npm test               # unit tests for the pure core (node:test)
 npx playwright install chromium
 npm run test:browser   # end-to-end checks in Chromium (WebGL2 via SwiftShader)
+npm run test:ui-kit    # clicks every component of the UI kit and checks the result
 npm run demo           # serves the repo; open /demo/
 ```
 

@@ -10,10 +10,10 @@ body { margin: 0; }
 
 #app {
   --bg: #09090b; --panel: #131316; --panel2: #1b1b20; --line: #26262d; --text: #ededf2; --muted: #8b8b96;
-  --accent: #8b7bff; --accent-ink: #fff; --ok: #30d158; --like: #ff4f7b;
+  --accent: #8b7bff; --accent-ink: #fff; --ok: #30d158; --like: #ff4f7b; --warn: #ffb23c; --danger: #ff5a5a;
   min-height: 100vh; background: var(--bg); color: var(--text);
   font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  padding: 28px clamp(16px, 4vw, 48px) 48px;
+  padding: 28px clamp(16px, 4vw, 48px) 56px;
 }
 #app[data-theme="light"] {
   --bg: #f4f3f0; --panel: #ffffff; --panel2: #f1f0ec; --line: #e3e1dc; --text: #16161a; --muted: #6d6c75;
@@ -22,66 +22,37 @@ body { margin: 0; }
 
 button { font: inherit; color: inherit; cursor: pointer; }
 :is(button, input):focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+svg { flex: none; }
 
-/* header */
-.top { display: flex; justify-content: space-between; align-items: center; gap: 16px; max-width: 980px; margin: 0 auto 26px; }
+/* ── layout ─────────────────────────────────────────────── */
+.top { display: flex; justify-content: space-between; align-items: center; gap: 16px; max-width: 1180px; margin: 0 auto 10px; }
 .brand { display: flex; gap: 14px; align-items: center; }
-.logo { width: 40px; height: 40px; border-radius: 12px; background: conic-gradient(from 200deg, #ff4fd8, #a35bff, #5b7cff, #38d9ff, #ffd36b, #ff4fd8); }
+.logo { width: 40px; height: 40px; flex: none; border-radius: 12px; background: conic-gradient(from 200deg, #ff4fd8, #a35bff, #5b7cff, #38d9ff, #ffd36b, #ff4fd8); }
 h1 { margin: 0; font-size: 17px; letter-spacing: -.01em; }
 .brand p { margin: 0; color: var(--muted); font-size: 13px; }
 .top-actions { display: flex; gap: 12px; align-items: center; }
-.icon-btn { position: relative; width: 42px; height: 42px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); display: grid; place-items: center; }
-.icon-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.icon-btn svg circle { fill: currentColor; stroke: none; }
-.badge[hidden] { display: none; }
-.badge { position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; background: var(--like); color: #fff; font-size: 11px; display: grid; place-items: center; }
 
-/* grid */
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; max-width: 980px; margin: 0 auto; }
-.cell { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 18px; display: flex; flex-direction: column; gap: 14px; align-items: flex-start; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; max-width: 1180px; margin: 0 auto; }
+.sec { grid-column: 1 / -1; margin: 22px 0 0; font-size: 13px; font-weight: 650; color: var(--muted); }
+.cell { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 18px; display: flex; flex-direction: column; gap: 14px; align-items: flex-start; min-width: 0; }
 .cell.span2 { grid-column: span 2; }
-@media (max-width: 560px) { .cell.span2 { grid-column: span 1; } }
+@media (max-width: 540px) { .cell.span2 { grid-column: span 1; } }
 h2 { margin: 0; font-size: 11px; text-transform: uppercase; letter-spacing: .09em; color: var(--muted); font-weight: 600; }
+small { color: var(--muted); }
 
-/* buttons */
-.btn { height: 38px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel2); font-weight: 600; }
+/* ── shared controls ───────────────────────────────────── */
+.btn { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel2); font-weight: 600; white-space: nowrap; }
+.btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .btn.primary { background: var(--accent); border-color: transparent; color: var(--accent-ink); }
 .btn.ghost { background: transparent; }
 .btn.done { background: var(--ok); color: #05210e; border-color: transparent; }
+.btn.danger { color: var(--danger); }
+.icon-btn { position: relative; width: 42px; height: 42px; flex: none; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); display: grid; place-items: center; }
+.icon-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.cart svg circle { fill: currentColor; stroke: none; }
+.badge[hidden] { display: none; }
+.badge { position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; background: var(--like); color: #fff; font-size: 11px; display: grid; place-items: center; }
 
-/* like */
-.like { display: inline-flex; align-items: center; gap: 8px; height: 46px; padding: 0 18px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel2); font-weight: 650; font-size: 15px; }
-.like svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linejoin: round; }
-.like[aria-pressed="true"] { background: color-mix(in oklab, var(--like) 18%, var(--panel2)); border-color: color-mix(in oklab, var(--like) 45%, transparent); color: var(--like); }
-.like[aria-pressed="true"] svg { fill: currentColor; }
-
-/* follow */
-.profile { display: flex; align-items: center; gap: 10px; width: 100%; }
-.profile > div { flex: 1; display: flex; flex-direction: column; }
-.profile small { color: var(--muted); }
-.avatar { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 13px; color: #fff; background: linear-gradient(135deg, #ff9a5a, #c86bfa); }
-.follow.following { background: transparent; color: var(--muted); }
-
-/* status pill */
-.pill { display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 14px 0 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel2); font-weight: 600; }
-.pill i { width: 9px; height: 9px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 3px color-mix(in oklab, var(--ok) 25%, transparent); }
-.pill[data-i="1"] i { background: #ffb23c; box-shadow: 0 0 0 3px rgba(255, 178, 60, .25); }
-.pill[data-i="2"] i { background: #ff5a3c; box-shadow: 0 0 0 3px rgba(255, 90, 60, .25); }
-
-/* copy */
-.code { display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 6px 6px 14px; border-radius: 14px; background: var(--panel2); border: 1px solid var(--line); }
-.code code { flex: 1; font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.code .copy { height: 32px; padding: 0 12px; }
-
-/* chips */
-.chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.chip { height: 32px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: transparent; font-weight: 600; font-size: 13px; color: var(--muted); }
-.chip[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: transparent; }
-
-/* settings */
-.setting { display: flex; align-items: center; gap: 14px; width: 100%; padding: 12px 14px; border-radius: 14px; background: var(--panel2); }
-.setting > div { flex: 1; display: flex; flex-direction: column; }
-.setting small { color: var(--muted); font-size: 12.5px; }
 .switch { position: relative; flex: none; width: 52px; height: 30px; border-radius: 999px; border: 0; padding: 0; background: var(--accent); }
 .switch::after { content: ""; position: absolute; top: 3px; left: 25px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .35); }
 .switch[aria-checked="false"] { background: #3a3a44; }
@@ -91,29 +62,204 @@ h2 { margin: 0; font-size: 11px; text-transform: uppercase; letter-spacing: .09e
 .switch.sm::after { width: 20px; height: 20px; left: 23px; }
 .switch.sm[aria-checked="false"]::after { left: 3px; }
 
-/* product */
-.product { display: flex; gap: 16px; width: 100%; padding: 12px; border-radius: 16px; background: var(--panel2); }
+.segmented { display: inline-flex; padding: 4px; gap: 4px; border-radius: 12px; background: var(--panel2); }
+.segmented button { border: 0; background: transparent; padding: 7px 14px; border-radius: 9px; font-weight: 600; color: var(--muted); }
+.segmented button:is([aria-selected="true"], [aria-pressed="true"]) { background: var(--panel); color: var(--text); box-shadow: 0 1px 3px rgba(0, 0, 0, .25); }
+.segmented.icons button { padding: 6px 10px; display: grid; place-items: center; }
+.segmented.icons svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+
+/* ── buttons ───────────────────────────────────────────── */
+.like { display: inline-flex; align-items: center; gap: 8px; height: 46px; padding: 0 18px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel2); font-weight: 650; font-size: 15px; }
+.like svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linejoin: round; }
+.like[aria-pressed="true"] { background: color-mix(in oklab, var(--like) 18%, var(--panel2)); border-color: color-mix(in oklab, var(--like) 45%, transparent); color: var(--like); }
+.like[aria-pressed="true"] svg { fill: currentColor; }
+
+.profile { display: flex; align-items: center; gap: 10px; width: 100%; }
+.avatar { width: 40px; height: 40px; flex: none; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 13px; color: #fff; background: linear-gradient(135deg, #ff9a5a, #c86bfa); }
+.who { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.who b, .who small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.follow { flex: none; }
+.follow.following { background: transparent; color: var(--muted); }
+
+.bookmark[aria-pressed="true"] { color: var(--accent); border-color: color-mix(in oklab, var(--accent) 50%, transparent); }
+.bookmark[aria-pressed="true"] svg { fill: currentColor; }
+
+.vote { display: inline-flex; align-items: center; gap: 4px; padding: 4px; border-radius: 999px; background: var(--panel2); border: 1px solid var(--line); }
+.vote button { width: 34px; height: 34px; border-radius: 50%; border: 0; background: transparent; display: grid; place-items: center; color: var(--muted); }
+.vote svg { width: 16px; height: 16px; fill: currentColor; }
+.vote b { min-width: 30px; text-align: center; }
+.vote[data-v="1"] { color: #ff7a3d; } .vote[data-v="1"] .up { color: #ff7a3d; background: rgba(255, 122, 61, .15); }
+.vote[data-v="-1"] { color: #7a8cff; } .vote[data-v="-1"] .down { color: #7a8cff; background: rgba(122, 140, 255, .15); }
+
+.download[data-state="busy"] { background: var(--panel2); color: var(--text); border-color: var(--line); }
+.download[data-state="done"] { background: var(--ok); color: #05210e; }
+
+.code { display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 6px 6px 14px; border-radius: 14px; background: var(--panel2); border: 1px solid var(--line); }
+.code code { flex: 1; min-width: 0; font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.code .copy { height: 32px; padding: 0 12px; }
+
+.file-row { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; padding: 8px 8px 8px 10px; border-radius: 14px; background: var(--panel2); }
+.file-row > div { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.file-row b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.file-ic { width: 36px; height: 40px; flex: none; border-radius: 8px; display: grid; place-items: center; font-size: 10px; font-weight: 800; color: #fff; background: #e5484d; }
+.file-row .gone { flex: 1; color: var(--muted); }
+.file-row .btn { height: 32px; padding: 0 12px; }
+
+.mute .off { display: none; }
+.mute[aria-pressed="true"] .on { display: none; }
+.mute[aria-pressed="true"] .off { display: inline; }
+.mute[aria-pressed="true"] { color: var(--danger); }
+.mute .spk { fill: currentColor; stroke: none; }
+
+/* ── toggles & selection ───────────────────────────────── */
+.pill { display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 14px 0 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel2); font-weight: 600; }
+.pill i { width: 9px; height: 9px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 3px color-mix(in oklab, var(--ok) 25%, transparent); }
+.pill[data-i="1"] i { background: var(--warn); box-shadow: 0 0 0 3px rgba(255, 178, 60, .25); }
+.pill[data-i="2"] i { background: var(--danger); box-shadow: 0 0 0 3px rgba(255, 90, 90, .25); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { height: 32px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: transparent; font-weight: 600; font-size: 13px; color: var(--muted); }
+.chip[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: transparent; }
+
+.setting { display: flex; align-items: center; gap: 14px; width: 100%; padding: 12px 14px; border-radius: 14px; background: var(--panel2); }
+.setting > div { flex: 1; display: flex; flex-direction: column; }
+.setting small { font-size: 12.5px; }
+
+.todos { list-style: none; margin: 0; padding: 0; width: 100%; display: grid; gap: 6px; }
+.todo { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border-radius: 12px; border: 0; background: var(--panel2); text-align: left; font-weight: 550; }
+.todo i { width: 18px; height: 18px; flex: none; border-radius: 6px; border: 2px solid var(--line); }
+.todo[aria-pressed="true"] { color: var(--muted); text-decoration: line-through; }
+.todo[aria-pressed="true"] i { background: var(--ok); border-color: var(--ok); box-shadow: inset 0 0 0 3px var(--panel2); }
+
+.radios { display: grid; grid-template-columns: repeat(auto-fit, minmax(76px, 1fr)); gap: 8px; width: 100%; }
+.radio-card { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 12px 14px; border-radius: 14px; border: 1.5px solid var(--line); background: var(--panel2); text-align: left; }
+.radio-card[aria-checked="true"] { border-color: var(--accent); background: color-mix(in oklab, var(--accent) 12%, var(--panel2)); }
+.radio-card[aria-checked="true"] small { color: var(--accent); }
+
+.rating { display: flex; flex-direction: column; gap: 4px; }
+.stars { display: flex; gap: 2px; }
+.stars button { border: 0; background: transparent; padding: 0 2px; font-size: 26px; line-height: 1; color: var(--line); }
+.stars button.on { color: #ffc53d; }
+
+.swatch-demo { display: flex; gap: 14px; align-items: center; width: 100%; }
+.tee { width: 86px; flex: none; display: grid; justify-items: center; gap: 4px; padding: 10px 0 8px; border-radius: 14px; background: var(--panel2); }
+.tee svg { width: 56px; height: 50px; fill: var(--c); }
+.swatches { display: flex; gap: 8px; flex-wrap: wrap; }
+.swatches button { width: 28px; height: 28px; border-radius: 50%; border: 0; padding: 0; background: var(--c); box-shadow: 0 0 0 2px var(--panel), 0 0 0 3px transparent; }
+.swatches button[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px var(--c); }
+
+.align-text { margin: 0; width: 100%; padding: 12px; border-radius: 12px; background: var(--panel2); font-size: 13px; }
+
+.temp-card { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; padding: 12px 12px 12px 16px; border-radius: 14px; background: linear-gradient(135deg, #ffb36b, #ff6a88); color: #2a0f12; }
+#temp { display: flex; flex-direction: column; }
+#temp b { font-size: 30px; line-height: 1; letter-spacing: -.03em; }
+#temp small { color: rgba(42, 15, 18, .7); }
+.unit { background: rgba(255, 255, 255, .35); border-color: transparent; color: #2a0f12; }
+
+/* ── commerce ──────────────────────────────────────────── */
+.product { display: flex; flex-wrap: wrap; gap: 16px; width: 100%; padding: 12px; border-radius: 16px; background: var(--panel2); }
 .product .art { width: 120px; flex: none; border-radius: 12px; background: radial-gradient(circle at 50% 30%, #ffe2a8 0 18%, transparent 19%), linear-gradient(160deg, #6b4a2f, #2a1c12); min-height: 120px; }
-.product .info { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; justify-content: center; }
-.product small { color: var(--muted); }
+.product .info { flex: 1; min-width: 140px; display: flex; flex-direction: column; gap: 4px; align-items: flex-start; justify-content: center; }
 .product b { font-size: 18px; }
 .product .price { margin: 0 0 8px; font-size: 22px; font-weight: 700; letter-spacing: -.02em; }
 .product.in-cart .price { color: var(--ok); }
 
-/* pricing */
-.segmented { display: inline-flex; padding: 4px; gap: 4px; border-radius: 12px; background: var(--panel2); }
-.segmented button { border: 0; background: transparent; padding: 7px 16px; border-radius: 9px; font-weight: 600; color: var(--muted); }
-.segmented button[aria-selected="true"] { background: var(--panel); color: var(--text); box-shadow: 0 1px 3px rgba(0, 0, 0, .25); }
+.stepper { display: inline-flex; align-items: center; border-radius: 999px; border: 1px solid var(--line); background: var(--panel2); }
+.stepper button { width: 40px; height: 40px; border: 0; background: transparent; font-size: 20px; border-radius: 50%; }
+.stepper output { min-width: 34px; text-align: center; font-weight: 700; font-size: 16px; }
+
+.thumb { position: relative; width: 100%; border-radius: 16px; overflow: hidden; background: var(--panel2); }
+.thumb .img { height: 96px; background: radial-gradient(ellipse at 50% 120%, #d9a066 0 35%, transparent 36%), linear-gradient(160deg, #3b6e6a, #1c3b3f); }
+.thumb .meta { display: flex; justify-content: space-between; padding: 10px 12px; }
+.heart { position: absolute; top: 8px; right: 8px; width: 34px; height: 34px; border-radius: 50%; border: 0; background: rgba(0, 0, 0, .35); color: #fff; display: grid; place-items: center; }
+.heart svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
+.heart[aria-pressed="true"] { background: #fff; color: var(--like); }
+.heart[aria-pressed="true"] svg { fill: currentColor; }
+.thumb.wished .meta small::after { content: " · in wishlist"; color: var(--like); }
+
+.currency { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+.prices { list-style: none; margin: 0; padding: 4px 14px; border-radius: 14px; background: var(--panel2); }
+.prices li { display: flex; justify-content: space-between; padding: 9px 0; border-top: 1px solid var(--line); }
+.prices li:first-child { border-top: 0; }
+.prices b { font-variant-numeric: tabular-nums; }
+
+/* ── navigation & content ──────────────────────────────── */
 .plan { width: 100%; padding: 16px; border-radius: 16px; background: var(--panel2); display: grid; gap: 6px; }
 .plan .amount { font-size: 34px; font-weight: 700; letter-spacing: -.03em; }
-.plan .amount small { font-size: 14px; color: var(--muted); font-weight: 500; }
+.plan .amount small { font-size: 14px; font-weight: 500; }
 .plan .save { justify-self: start; font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: color-mix(in oklab, var(--ok) 18%, transparent); color: var(--ok); }
 .plan ul { margin: 6px 0 0; padding-left: 18px; color: var(--muted); }
 
-/* newsletter */
-.newsletter { display: flex; gap: 8px; width: 100%; padding: 6px; border-radius: 16px; background: var(--panel2); }
-.newsletter input { flex: 1; min-width: 0; height: 40px; border: 0; background: transparent; color: var(--text); padding: 0 10px; font: inherit; }
+.pm { width: 100%; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); }
+.pm-tabs { display: flex; gap: 2px; padding: 6px 6px 0; background: var(--panel2); }
+.pm-tabs button { border: 0; background: transparent; padding: 7px 12px; border-radius: 8px 8px 0 0; font: 600 12.5px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); }
+.pm-tabs button[aria-selected="true"] { background: #0d0d10; color: #ededf2; }
+.pm-code { margin: 0; padding: 14px 16px; background: #0d0d10; color: #c9f; font: 13.5px ui-monospace, SFMono-Regular, Menlo, monospace; }
+.pm-code code::before { content: "$ "; color: #6b6b78; }
+
+.list { list-style: none; margin: 0; padding: 0; width: 100%; display: grid; gap: 6px; }
+.list li { display: flex; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 12px; background: var(--panel2); }
+.list li i { width: 28px; height: 28px; flex: none; border-radius: 8px; background: var(--c); }
+.list li div { display: flex; flex-direction: column; }
+.list li small { color: var(--muted); font-size: 12px; }
+.pages { display: flex; gap: 6px; }
+.pages button { width: 32px; height: 32px; border-radius: 9px; border: 1px solid var(--line); background: transparent; font-weight: 600; }
+.pages button[aria-current="page"] { background: var(--text); color: var(--bg); border-color: transparent; }
+
+.accordion { width: 100%; border-radius: 14px; background: var(--panel2); }
+.acc-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; padding: 12px 14px; border: 0; background: transparent; font-weight: 600; text-align: left; }
+.acc-head svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.acc-head[aria-expanded="true"] svg { transform: rotate(180deg); }
+.acc-body { padding: 0 14px 14px; color: var(--muted); font-size: 13px; }
+
+.flash { width: 100%; min-height: 126px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; padding: 14px; border-radius: 14px; background: var(--panel2); }
+.flash p { margin: 0; font-weight: 600; }
+.flash.answer { background: color-mix(in oklab, var(--accent) 16%, var(--panel2)); }
+.flash code { font-size: 13px; }
+.flash .btn { margin-top: auto; height: 32px; padding: 0 12px; }
+
+.hello { width: 100%; padding: 16px; border-radius: 14px; background: linear-gradient(135deg, #2b1f5c, #1b3a5c); color: #fff; display: flex; flex-direction: column; gap: 2px; }
+.hello b { font-size: 22px; letter-spacing: -.01em; }
+.hello small { color: rgba(255, 255, 255, .65); }
+
+/* ── forms & feedback ──────────────────────────────────── */
+.newsletter, .composer { display: flex; gap: 8px; width: 100%; padding: 6px; border-radius: 16px; background: var(--panel2); }
+:is(.newsletter, .composer) input { flex: 1; min-width: 0; height: 40px; border: 0; background: transparent; color: var(--text); padding: 0 10px; font: inherit; }
 .newsletter.sent { justify-content: center; align-items: center; min-height: 52px; font-weight: 600; }
+
+.pw { display: flex; align-items: center; width: 100%; padding: 4px 4px 4px 12px; border-radius: 14px; background: var(--panel2); border: 1px solid var(--line); }
+.pw input { flex: 1; min-width: 0; height: 38px; border: 0; background: transparent; color: var(--text); font: 14px ui-monospace, SFMono-Regular, Menlo, monospace; }
+.eye { width: 38px; height: 38px; border-radius: 10px; border: 0; background: transparent; display: grid; place-items: center; color: var(--muted); }
+.eye svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.eye[aria-pressed="true"] { color: var(--accent); }
+
+.order { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; width: 100%; }
+.order span { display: flex; flex-direction: column; gap: 6px; font-size: 11.5px; color: var(--muted); }
+.order span::before { content: ""; height: 6px; border-radius: 3px; background: var(--line); }
+.order span.done { color: var(--text); font-weight: 600; }
+.order span.done::before { background: var(--ok); }
+
+.notifs { list-style: none; margin: 0; padding: 0; width: 100%; display: grid; gap: 6px; }
+.notifs li { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px; background: var(--panel2); }
+.notifs li > div { display: flex; flex-direction: column; }
+.notifs i { width: 8px; height: 8px; flex: none; border-radius: 50%; background: transparent; }
+.notifs li.unread i { background: var(--accent); }
+.notifs li:not(.unread) b { font-weight: 500; color: var(--muted); }
+
+.thread { display: flex; flex-direction: column; gap: 6px; width: 100%; padding: 12px; border-radius: 14px; background: var(--panel2); }
+.msg { margin: 0; max-width: 75%; padding: 8px 12px; border-radius: 16px; font-size: 13.5px; }
+.msg.them { align-self: flex-start; background: var(--panel); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+.msg.me { align-self: flex-end; background: var(--accent); color: var(--accent-ink); border-bottom-right-radius: 4px; }
+
+.player { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px; border-radius: 16px; background: var(--panel2); }
+.cover { width: 48px; height: 48px; flex: none; border-radius: 10px; background: conic-gradient(from 90deg, #ff4fd8, #5b7cff, #38d9ff, #ff4fd8); }
+.track { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.play { width: 42px; height: 42px; flex: none; border-radius: 50%; border: 0; background: var(--text); color: var(--bg); display: grid; place-items: center; }
+.play svg { width: 18px; height: 18px; fill: currentColor; }
+.play .bars { display: none; }
+.play[aria-pressed="true"] .tri { display: none; }
+.play[aria-pressed="true"] .bars { display: inline; }
+.player.playing .track small { color: var(--ok); }
 </style>
 </head>
 <body>
@@ -123,7 +269,7 @@ h2 { margin: 0; font-size: 11px; text-transform: uppercase; letter-spacing: .09e
       <span class="logo" aria-hidden="true"></span>
       <div>
         <h1>distortion-wave</h1>
-        <p>Click anything. Every element is plain HTML/CSS.</p>
+        <p>Click anything. Every element is plain HTML/CSS, the wave works on any of them.</p>
       </div>
     </div>
     <div class="top-actions">
@@ -133,35 +279,65 @@ h2 { margin: 0; font-size: 11px; text-transform: uppercase; letter-spacing: .09e
   </header>
 
   <main class="grid">
-    <!-- Like -->
+    <!-- ───────────── Buttons ───────────── -->
+    <h3 class="sec">Buttons</h3>
+
     <section class="cell">
       <h2>Like</h2>
       <button class="like" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span class="n">128</span></button>
     </section>
 
-    <!-- Follow -->
     <section class="cell">
       <h2>Follow</h2>
       <div class="profile">
         <span class="avatar" aria-hidden="true">LB</span>
-        <div><b>Lucas Bonomi</b><small>@LukyVj</small></div>
+        <div class="who"><b>Lucas Bonomi</b><small>@LukyVj</small></div>
         <button class="btn follow">Follow</button>
       </div>
     </section>
 
-    <!-- Status pill -->
     <section class="cell">
-      <h2>Status</h2>
-      <button class="pill" data-i="0"><i></i><span>Online</span></button>
+      <h2>Bookmark</h2>
+      <button class="btn bookmark" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10a1 1 0 0 1 1 1v15l-6-4-6 4V5a1 1 0 0 1 1-1z"/></svg><span>Save</span></button>
     </section>
 
-    <!-- Copy -->
+    <section class="cell">
+      <h2>Vote</h2>
+      <div class="vote" id="vote" data-v="0">
+        <button class="up" aria-label="Upvote"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6l7 9H5z"/></svg></button>
+        <b>42</b>
+        <button class="down" aria-label="Downvote"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 18L5 9h14z"/></svg></button>
+      </div>
+    </section>
+
+    <section class="cell">
+      <h2>Download</h2>
+      <button class="btn primary download" data-state="idle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14"/></svg><span>Download</span></button>
+    </section>
+
     <section class="cell">
       <h2>Copy</h2>
       <div class="code"><code>npm i distortion-wave</code><button class="btn ghost copy">Copy</button></div>
     </section>
 
-    <!-- Chips -->
+    <section class="cell">
+      <h2>Delete · Undo</h2>
+      <div class="file-row" id="file"></div>
+    </section>
+
+    <section class="cell">
+      <h2>Mute</h2>
+      <button class="icon-btn mute" aria-pressed="false" aria-label="Mute"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M4 9h4l5-4v14l-5-4H4z"/><path class="on" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/><path class="off" d="M16 9l5 6m0-6l-5 6"/></svg></button>
+    </section>
+
+    <!-- ───────────── Toggles & selection ───────────── -->
+    <h3 class="sec">Toggles &amp; selection</h3>
+
+    <section class="cell">
+      <h2>Status</h2>
+      <button class="pill" data-i="0"><i></i><span>Online</span></button>
+    </section>
+
     <section class="cell">
       <h2>Filters</h2>
       <div class="chips">
@@ -172,7 +348,6 @@ h2 { margin: 0; font-size: 11px; text-transform: uppercase; letter-spacing: .09e
       </div>
     </section>
 
-    <!-- Settings row -->
     <section class="cell">
       <h2>Settings</h2>
       <div class="setting" id="notif">
@@ -181,7 +356,66 @@ h2 { margin: 0; font-size: 11px; text-transform: uppercase; letter-spacing: .09e
       </div>
     </section>
 
-    <!-- Product card -->
+    <section class="cell">
+      <h2>Checklist</h2>
+      <ul class="todos">
+        <li><button class="todo" aria-pressed="true"><i></i>Publish on npm</button></li>
+        <li><button class="todo" aria-pressed="false"><i></i>Make a CodePen</button></li>
+        <li><button class="todo" aria-pressed="false"><i></i>Test on Safari</button></li>
+      </ul>
+    </section>
+
+    <section class="cell span2">
+      <h2>Plan</h2>
+      <div class="radios" role="radiogroup" id="radios">
+        <button class="radio-card" role="radio" aria-checked="true"><b>Starter</b><small>Free</small></button>
+        <button class="radio-card" role="radio" aria-checked="false"><b>Pro</b><small>$12/mo</small></button>
+        <button class="radio-card" role="radio" aria-checked="false"><b>Team</b><small>$40/mo</small></button>
+      </div>
+    </section>
+
+    <section class="cell">
+      <h2>Rating</h2>
+      <div class="rating" id="rating">
+        <div class="stars"><button aria-label="1 star">★</button><button aria-label="2 stars">★</button><button aria-label="3 stars">★</button><button aria-label="4 stars">★</button><button aria-label="5 stars">★</button></div>
+        <small>Tap to rate</small>
+      </div>
+    </section>
+
+    <section class="cell">
+      <h2>Colour</h2>
+      <div class="swatch-demo">
+        <div class="tee" id="tee" style="--c:#8b7bff"><svg viewBox="0 0 64 56" aria-hidden="true"><path d="M20 4l-14 8 6 11 6-3v32h28V20l6 3 6-11-14-8c-2 5-6 7-12 7S22 9 20 4z"/></svg><small>Violet</small></div>
+        <div class="swatches">
+          <button style="--c:#8b7bff" aria-pressed="true" aria-label="Violet"></button>
+          <button style="--c:#ff5a7a" aria-pressed="false" aria-label="Coral"></button>
+          <button style="--c:#2ec4d6" aria-pressed="false" aria-label="Lagoon"></button>
+          <button style="--c:#ffc53d" aria-pressed="false" aria-label="Sun"></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="cell">
+      <h2>Text align</h2>
+      <div class="segmented icons" id="align">
+        <button aria-pressed="true" data-a="left" aria-label="Align left"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 10h10M4 14h16M4 18h10"/></svg></button>
+        <button aria-pressed="false" data-a="center" aria-label="Align center"><svg viewBox="0 0 24 24"><path d="M4 6h16M7 10h10M4 14h16M7 18h10"/></svg></button>
+        <button aria-pressed="false" data-a="right" aria-label="Align right"><svg viewBox="0 0 24 24"><path d="M4 6h16M10 10h10M4 14h16M10 18h10"/></svg></button>
+      </div>
+      <p class="align-text" id="alignText">The wave starts from the button you pressed and leans toward your finger.</p>
+    </section>
+
+    <section class="cell">
+      <h2>Units</h2>
+      <div class="temp-card">
+        <div id="temp"><b>21°</b><small>Paris · Sunny</small></div>
+        <button class="btn unit" data-u="c">°C</button>
+      </div>
+    </section>
+
+    <!-- ───────────── Commerce ───────────── -->
+    <h3 class="sec">Commerce</h3>
+
     <section class="cell span2">
       <h2>Add to cart</h2>
       <article class="product" id="product">
@@ -195,17 +429,78 @@ h2 { margin: 0; font-size: 11px; text-transform: uppercase; letter-spacing: .09e
       </article>
     </section>
 
-    <!-- Pricing -->
+    <section class="cell">
+      <h2>Quantity</h2>
+      <div class="stepper" id="qty"><button class="minus" aria-label="Less">−</button><output>1</output><button class="plus" aria-label="More">+</button></div>
+    </section>
+
+    <section class="cell">
+      <h2>Wishlist</h2>
+      <div class="thumb" id="thumb">
+        <div class="img" aria-hidden="true"></div>
+        <div class="meta"><b>Lounge chair</b><small>$320</small></div>
+        <button class="heart" aria-pressed="false" aria-label="Add to wishlist"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></button>
+      </div>
+    </section>
+
+    <section class="cell span2">
+      <h2>Currency</h2>
+      <div class="currency">
+        <div class="segmented" id="cur"><button aria-pressed="true" data-c="usd">$ USD</button><button aria-pressed="false" data-c="eur">€ EUR</button><button aria-pressed="false" data-c="jpy">¥ JPY</button></div>
+        <ul class="prices" id="prices"></ul>
+      </div>
+    </section>
+
+    <!-- ───────────── Navigation & content ───────────── -->
+    <h3 class="sec">Navigation &amp; content</h3>
+
     <section class="cell span2">
       <h2>Pricing</h2>
-      <div class="segmented" role="tablist">
+      <div class="segmented" role="tablist" id="planTabs">
         <button role="tab" aria-selected="true" data-plan="monthly">Monthly</button>
         <button role="tab" aria-selected="false" data-plan="yearly">Yearly</button>
       </div>
       <div class="plan" id="plan"></div>
     </section>
 
-    <!-- Newsletter -->
+    <section class="cell span2">
+      <h2>Install</h2>
+      <div class="pm">
+        <div class="pm-tabs" role="tablist" id="pmTabs">
+          <button role="tab" aria-selected="true">npm</button><button role="tab" aria-selected="false">pnpm</button><button role="tab" aria-selected="false">yarn</button><button role="tab" aria-selected="false">bun</button>
+        </div>
+        <pre class="pm-code" id="pmCode"><code>npm i distortion-wave</code></pre>
+      </div>
+    </section>
+
+    <section class="cell">
+      <h2>Pagination</h2>
+      <ul class="list" id="list"></ul>
+      <div class="pages" id="pages"><button aria-current="page">1</button><button>2</button><button>3</button></div>
+    </section>
+
+    <section class="cell">
+      <h2>Accordion</h2>
+      <div class="accordion" id="acc">
+        <button class="acc-head" aria-expanded="false">What is distortion-wave?<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+        <div class="acc-body" hidden>A tiny library that turns any DOM update into a lensed, colourful wave. One WebGL2 pass, zero dependencies.</div>
+      </div>
+    </section>
+
+    <section class="cell">
+      <h2>Flashcard</h2>
+      <div class="flash" id="flash"></div>
+    </section>
+
+    <section class="cell">
+      <h2>Language</h2>
+      <div class="hello" id="hello"><b>Hello, world</b><small>English</small></div>
+      <button class="btn lang">Switch language</button>
+    </section>
+
+    <!-- ───────────── Forms & feedback ───────────── -->
+    <h3 class="sec">Forms &amp; feedback</h3>
+
     <section class="cell span2">
       <h2>Newsletter</h2>
       <form class="newsletter" id="newsletter">
@@ -213,11 +508,50 @@ h2 { margin: 0; font-size: 11px; text-transform: uppercase; letter-spacing: .09e
         <button class="btn primary">Subscribe</button>
       </form>
     </section>
+
+    <section class="cell">
+      <h2>Password</h2>
+      <div class="pw" id="pw"><input type="password" value="correct-horse-battery" aria-label="Password"><button class="eye" aria-label="Show password" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+    </section>
+
+    <section class="cell">
+      <h2>Order</h2>
+      <div class="order" id="order" data-step="1"></div>
+      <button class="btn next-step">Next step</button>
+    </section>
+
+    <section class="cell span2">
+      <h2>Notifications</h2>
+      <ul class="notifs" id="notifs">
+        <li class="unread"><i></i><div><b>Jakub starred distortion-wave</b><small>2 min ago</small></div></li>
+        <li class="unread"><i></i><div><b>New issue: Safari support</b><small>1 h ago</small></div></li>
+        <li><i></i><div><b>v0.1.0 published to npm</b><small>Yesterday</small></div></li>
+      </ul>
+      <button class="btn ghost mark">Mark all as read</button>
+    </section>
+
+    <section class="cell span2">
+      <h2>Chat</h2>
+      <div class="thread" id="thread">
+        <p class="msg them">Did you try it on a whole page?</p>
+        <p class="msg me">Yep, flip the theme switch up there ↗</p>
+      </div>
+      <form class="composer" id="composer"><input value="This is so smooth 🔥" aria-label="Message"><button class="btn primary">Send</button></form>
+    </section>
+
+    <section class="cell">
+      <h2>Player</h2>
+      <div class="player" id="player">
+        <div class="cover" aria-hidden="true"></div>
+        <div class="track"><b>Night Drive</b><small>Paused</small></div>
+        <button class="play" aria-label="Play" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="tri" d="M8 5l11 7-11 7z"/><path class="bars" d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg></button>
+      </div>
+    </section>
   </main>
 </div>
 <script>/*! distortion-wave · MIT © Lucas Bonomi · https://github.com/LukyVj/distortion-wave */
 var DistortionWave=(()=>{var X=Object.defineProperty;var Nt=Object.getOwnPropertyDescriptor;var Lt=Object.getOwnPropertyNames;var kt=Object.prototype.hasOwnProperty;var Ct=(e,t)=>{for(var i in t)X(e,i,{get:t[i],enumerable:!0})},Dt=(e,t,i,n)=>{if(t&&typeof t=="object"||typeof t=="function")for(let r of Lt(t))!kt.call(e,r)&&r!==i&&X(e,r,{get:()=>t[r],enumerable:!(n=Nt(t,r))||n.enumerable});return e};var Ut=e=>Dt(X({},"__esModule",{value:!0}),e);var he={};Ct(he,{PALETTES:()=>M,PRESETS:()=>H,distortionWave:()=>Ft,frameState:()=>G,prepareWave:()=>Mt,scaleConfig:()=>V,snapshotElement:()=>T,totalDuration:()=>B,warmupWave:()=>Rt,waveOnClick:()=>ue});var pt="http://www.w3.org/1999/xhtml",D="http://www.w3.org/2000/svg",lt="http://www.w3.org/1999/xlink",Bt=new Set(["script","style","link","meta","template","noscript","source","track","base","title"]),Ot=new Set(["background-image","mask-image","-webkit-mask-image","border-image-source","list-style-image"]),mt="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==",It=e=>e.startsWith("--")||e.startsWith("transition")||e.startsWith("animation")||e==="cursor"||e==="will-change"||e==="view-transition-name"||e==="pointer-events",w=null,ct=new Map;function Wt(){if(w?.isConnected)return w.contentDocument;w=document.createElement("iframe"),w.setAttribute("aria-hidden","true"),w.setAttribute("data-dw-ignore",""),w.tabIndex=-1,w.style.cssText="position:fixed;left:-99999px;top:0;width:16px;height:16px;border:0;opacity:0;pointer-events:none",document.documentElement.appendChild(w);let e=w.contentDocument;return e.open(),e.write("<!doctype html><html><head></head><body></body></html>"),e.close(),e}function ut(e){let t=e.namespaceURI===D,i=(t?"svg:":"")+e.localName+(e.localName==="input"?":"+(e.type||"text"):""),n=ct.get(i);if(n)return n;let r=Wt(),a=t?r.createElementNS(D,e.localName):r.createElement(e.localName);if(e.localName==="input")try{a.type=e.type}catch{}r.body.appendChild(a);let o=w.contentWindow.getComputedStyle(a);n=new Map;for(let l=0;l<o.length;l++)n.set(o[l],o.getPropertyValue(o[l]));return a.remove(),ct.set(i,n),n}function ht(e,t,i,n,r){let a="";for(let o=0;o<e.length;o++){let l=e[o];if(It(l))continue;let s=e.getPropertyValue(l);s&&(s===t.get(l)&&(n||!i||i.getPropertyValue(l)===s)||(r&&Ot.has(l)&&s.includes("url(")&&r(l,s),a+=`${l}:${s};`))}return a}var K=new Map;function U(e){if(e.startsWith("data:"))return Promise.resolve(e);let t=K.get(e);return t||(t=fetch(e,{mode:"cors",credentials:"same-origin"}).then(i=>{if(!i.ok)throw new Error(`${i.status} ${e}`);return i.blob()}).then(i=>new Promise((n,r)=>{let a=new FileReader;a.onload=()=>n(a.result),a.onerror=r,a.readAsDataURL(i)})),t.catch(()=>K.delete(e)),K.set(e,t)),t}async function qt(e){let t=[...e.matchAll(/url\((['"]?)(.*?)\1\)/g)].map(n=>n[2]).filter(n=>!n.startsWith("data:")),i=e;for(let n of t)try{i=i.split(n).join(await U(new URL(n,document.baseURI).href))}catch{}return i}function zt(e){if(e.localName==="canvas")return e.toDataURL();let t=document.createElement("canvas");return t.width=e.videoWidth||e.clientWidth,t.height=e.videoHeight||e.clientHeight,t.getContext("2d").drawImage(e,0,0,t.width,t.height),t.toDataURL()}async function $t(e,t){try{return await U(t)}catch{}try{let i=document.createElement("canvas");return i.width=e.naturalWidth,i.height=e.naturalHeight,i.getContext("2d").drawImage(e,0,0),i.toDataURL()}catch{return mt}}var dt="",C=null;function Xt(){let e=[...document.fonts].filter(i=>i.status==="loaded"),t=e.map(i=>`${i.family}|${i.style}|${i.weight}|${i.unicodeRange}`).join(";");return C&&t===dt||(dt=t,C=Kt(e)),C}async function Kt(e){if(!e.length)return"";let t=l=>String(l||"").replace(/["']/g,"").replace(/\s+/g,"").toLowerCase(),i=(l,s)=>{let c=u=>(u=String(u||"400").trim().toLowerCase(),{normal:"400",bold:"700"}[u]||u);return l=c(l),s=c(s),l===s||l.includes(" ")||s.includes(" ")},n=l=>e.some(s=>t(s.family)===t(l.getPropertyValue("font-family"))&&t(s.style)===t(l.getPropertyValue("font-style")||"normal")&&i(s.weight,l.getPropertyValue("font-weight")||"400")&&t(s.unicodeRange)===t(l.getPropertyValue("unicode-range")||"U+0-10FFFF")),r=[],a=(l,s)=>{for(let c of l)if(c instanceof CSSFontFaceRule)r.push([c,s]);else if(c instanceof CSSImportRule)try{c.styleSheet&&a(c.styleSheet.cssRules,c.styleSheet.href||s)}catch{}else c.cssRules&&a(c.cssRules,s)};for(let l of[...document.styleSheets,...document.adoptedStyleSheets||[]]){let s=l.href||document.baseURI;try{a(l.cssRules,s)}catch{if(!l.href)continue;try{let c=await(await fetch(l.href)).text(),u=new CSSStyleSheet;u.replaceSync(c.replace(/@import[^;]+;/g,"")),a(u.cssRules,l.href)}catch{}}}let o=[];for(let[l,s]of r){if(!n(l.style))continue;let c=l.style.getPropertyValue("src").match(/url\((['"]?)(.*?)\1\)/);if(c)try{let u=await U(new URL(c[2],s).href);o.push(l.cssText.replace(/src\s*:[^;}]+;?/,`src:url("${u}");`))}catch{}}return o.join(`
-`)}function*Ht(e){let t=e.shadowRoot||e;for(let i of t.childNodes){if(i.nodeType===1&&i.localName==="slot"){let n=i.assignedNodes({flatten:!0});if(n.length){yield*n;continue}}yield i}}var ft=null;function gt(e,t,i,n){if(e.nodeType===3)return document.createTextNode(e.data);if(e.nodeType!==1)return null;let r=e.localName;if(Bt.has(r)||e.hasAttribute("data-dw-ignore"))return null;let a=getComputedStyle(e);if(a.display==="none")return null;let o;if(r==="canvas"||r==="video"){o=document.createElement("img");try{o.setAttribute("src",zt(e))}catch{o=document.createElement("div")}}else r==="iframe"||r==="embed"||r==="object"?o=document.createElement("div"):o=e.cloneNode(!1);for(let c of[...o.attributes]){let u=c.name.toLowerCase();(u.startsWith("on")||u==="srcset"||u==="sizes"||u==="loading"||u==="style"||u==="class")&&o.removeAttribute(c.name)}if(r==="img"){let c=e.currentSrc||e.src;o.setAttribute("src",mt),c&&n.tasks.push($t(e,c).then(u=>o.setAttribute("src",u)))}if(e.namespaceURI===D&&r==="image"){let c=e.getAttribute("href")||e.getAttributeNS(lt,"href");c&&!c.startsWith("data:")&&(o.removeAttribute("href"),o.removeAttributeNS(lt,"href"),n.tasks.push(U(new URL(c,document.baseURI).href).then(u=>o.setAttribute("href",u)).catch(()=>{})))}let l=[],s=ht(a,ut(e),t,i,(c,u)=>l.push([c,u]));i&&(s+=n.rootOverrides(a)),s+="transition:none;animation:none;",o.setAttribute("style",s);for(let[c,u]of l)n.tasks.push(qt(u).then(h=>{h!==u&&o.setAttribute("style",o.getAttribute("style").replace(`${c}:${u};`,`${c}:${h};`))}));if(e.namespaceURI===pt||!e.namespaceURI)for(let c of["::before","::after"]){let u=getComputedStyle(e,c),h=u.getPropertyValue("content");if(!h||h==="none"||h==="normal")continue;let d="dw"+(n.n++).toString(36);o.classList.add(d),ft??=document.createElement("span"),n.css+=`.${d}${c}{${ht(u,ut(ft),a,!1,null)}}`}if(r==="input"&&(e.type==="checkbox"||e.type==="radio"?e.checked?o.setAttribute("checked",""):o.removeAttribute("checked"):e.type!=="file"&&e.type!=="password"&&o.setAttribute("value",e.value)),r==="textarea")return o.textContent=e.value,o;if(r==="canvas"||r==="video"||r==="iframe"||r==="embed"||r==="object")return o;for(let c of Ht(e)){let u=gt(c,a,!1,n);u&&o.appendChild(u)}return r==="select"&&[...o.querySelectorAll("option")].forEach((c,u)=>{u===e.selectedIndex?c.setAttribute("selected",""):c.removeAttribute("selected")}),o}var Vt=e=>e.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");async function T(e,{dpr:t=1,clip:i=null,rootOpacity:n=null}={}){let r=performance.now();await document.fonts.ready;let a=e.getBoundingClientRect(),o=e.offsetWidth??a.width,l=e.offsetHeight??a.height,s=i??{x:0,y:0,w:o,h:l},c={tasks:[],css:"",n:0,rootOverrides:R=>`margin:0!important;position:relative!important;inset:auto!important;float:none!important;transform:none!important;translate:none!important;rotate:none!important;scale:none!important;box-sizing:border-box!important;width:${o}px!important;height:${l}px!important;`+(R.display.startsWith("inline")&&R.display!=="inline-block"&&R.display!=="inline-flex"&&R.display!=="inline-grid"?"display:inline-block!important;":"")+(n!=null?`opacity:${n}!important;`:"")},u=gt(e,null,!0,c);if(!u)throw new Error("distortion-wave: element is not rendered (display:none?)");await Promise.all(c.tasks);let h=await Xt(),d=new XMLSerializer().serializeToString(u),p=Math.max(1,Math.round(s.w)),f=Math.max(1,Math.round(s.h)),m=`<svg xmlns="${D}" width="${p}" height="${f}"><foreignObject x="0" y="0" width="${p}" height="${f}"><div xmlns="${pt}" style="position:relative;width:${p}px;height:${f}px;overflow:hidden;margin:0;padding:0"><style>${Vt(h+c.css)}</style><div style="position:absolute;left:${-s.x}px;top:${-s.y}px;width:${o}px;height:${l}px">${d}</div></div></foreignObject></svg>`,x=new Image;x.decoding="async",x.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(m),await x.decode();let g=document.createElement("canvas");g.width=Math.max(1,Math.round(p*t)),g.height=Math.max(1,Math.round(f*t));let S=g.getContext("2d",{willReadFrequently:!1});return S.drawImage(x,0,0,g.width,g.height),S.getImageData(0,0,1,1),{canvas:g,w:p,h:f,dpr:t,ms:performance.now()-r,bytes:m.length}}var yt=Math.PI*2,b=(e,t=0,i=1)=>Math.min(Math.max(e,t),i),v=(e,t,i)=>e+(t-e)*i,vt=e=>e-Math.floor(e),y=(e,t,i)=>{let n=b((i-e)/(t-e||1e-6));return n*n*(3-2*n)};function wt(e,t,i,n){let r=(a,o,l)=>{let s=1-a;return 3*s*s*a*o+3*s*a*a*l+a*a*a};return a=>{if(a<=0)return 0;if(a>=1)return 1;let o=0,l=1;for(let s=0;s<22;s++){let c=(o+l)/2;r(c,e,i)<a?o=c:l=c}return r((o+l)/2,t,n)}}var Gt=wt(.2,1,.3,1),xt=wt(.45,0,.55,1);function bt(e){let t=parseInt(e.replace("#",""),16),[i,n,r]=[t>>16&255,t>>8&255,t&255].map(s=>(s/=255,s<=.04045?s/12.92:((s+.055)/1.055)**2.4)),a=Math.cbrt(.4122214708*i+.5363325363*n+.0514459929*r),o=Math.cbrt(.2119034982*i+.6806995451*n+.1073969566*r),l=Math.cbrt(.0883024619*i+.2817188376*n+.6299787005*r);return[.2104542553*a+.793617785*o-.0040720468*l,1.9779984951*a-2.428592205*o+.4505937099*l,.0259040371*a+.7827717662*o-.808675766*l]}var M={aurora:["#FF4FD8","#A35BFF","#5B7CFF","#38D9FF","#FFD36B","#FF7A5C"],ocean:["#3A7BFF","#2EE6D6","#7C5CFF","#1FB6FF","#B8F2FF"],mint:["#2BD67B","#B6FF5C","#1FC8A9","#E8FFB0","#3CE0C0"],ember:["#FF5A3C","#FFB23C","#FF3C8E","#FFE07A","#FF7F50"]},E={type:"vertical",speed:1,anticipation:.45,travel:2.2,linger:-.3,rimFade:2.8,hairDelay:.45,hairFade:2.8,pull:22,inhale:50,gatherGlow:.35,gatherDots:1,amplitude:32,lensWidth:140,aberration:.75,swell:20,blur:18,blurNear:6,blurAhead:90,blurBehind:230,lead:120,tail:280,band:.9,rimWidth:14,rimSoftness:320,rimStrength:.85,uneven:1,hairWidth:1.5,lean:.9,margin:60,seam:48,particles:64,particleSize:1.8,particleLife:2.1,reach:140,spread:1,palette:"aurora"},H={vertical:E,horizontal:{...E,type:"horizontal"},center:{...E,type:"center",anticipation:.25,travel:3.2,linger:-.2,rimFade:2.4,hairDelay:.9,pull:14,inhale:32,gatherGlow:.2,gatherDots:0,amplitude:20,lensWidth:90,aberration:.35,swell:13,blur:11,blurAhead:54,blurBehind:140,lead:80,tail:180,band:.75,rimStrength:.7,rimSoftness:200,particles:90,particleLife:3,reach:90,spread:.65}},Yt=["pull","inhale","amplitude","lensWidth","swell","blur","blurNear","blurAhead","blurBehind","lead","tail","rimWidth","rimSoftness","reach","margin","seam"],jt=["anticipation","travel","linger","rimFade","hairDelay","hairFade","particleLife"];function V(e,t,i){let n=b(Math.sqrt(t*i)/516,.12,1.8),r=b(.45+.55*Math.sqrt(n),.6,1.15)/(e.speed||1),a={...e,k:n};for(let o of Yt)a[o]=e[o]*n;for(let o of jt)a[o]=e[o]*r;return a.blurNear=Math.max(a.blurNear,1.2),a.blur=Math.max(a.blur,a.blurNear),a.rimWidth=Math.max(a.rimWidth,2.5),a.seam=Math.max(a.seam,4),a.anticipation=Math.max(a.anticipation,.2/(e.speed||1)),a.particles=Math.round(e.particles*b(n,.3,1.5)),a.particleSize=e.particleSize*b(.6+.4*n,.7,1.3),a}var B=e=>e.anticipation+Math.max(e.travel*.6,e.linger+e.rimFade,e.linger+e.hairDelay+e.hairFade,e.particleLife);function Qt(e,t,i,n,r,a){let o=Math.cos(i),l=Math.sin(i),s=0;for(let[c,u]of[[0,0],[r,0],[0,a],[r,a]]){let h=c-e,d=u-t;s=Math.max(s,Math.hypot((o*h+l*d)*n,-l*h+o*d))}return s}function G(e,t,i){let n=t.type==="center",r=t.type==="horizontal",a=B(t),o=b(e,0,a),l=o-t.anticipation,s=y(0,t.anticipation,o),c=b(l/t.travel),u=Gt(c),h=i.src,d=h.x+h.w/2,p=h.y+h.h/2,f=Math.max(Math.min(h.w,h.h)/2,1),m=(r?h.h:h.w)/2,x=(r?h.w:h.h)/2,g=r?Math.PI/2:0,S=Math.cos(g),R=Math.sin(g),P=(i.w/2-d)*Math.sin(g)+(i.h/2-p)*-Math.cos(g)>=0?1:-1,N=0;!n&&i.touch&&(N=b(((i.touch.x-d)*S+(i.touch.y-p)*R)/Math.max(m,1),-1,1)*t.lean);let L=y(0,.45,u),it=d+S*N*m*L,at=p+R*N*m*L,_=g+P*N*.45*L,$=n?1:1.4,k=Qt(it,at,_,$,i.w,i.h)+t.swell*$+t.margin,rt=l<0?f+t.inhale*(1-s):f+(k+t.margin*1.6-f)*u,nt=1-y(.2,.55,c),ot=t.gatherGlow*.5,Pt=y(0,.05,c)*nt,st=l>0&&rt-t.swell>k;return{time:o,fly:l,pre:s,prog:c,moved:u,ring:n,dir:P,r0:f,half:m,perp:x,cx:d,cy:p,ox:it,oy:at,tilt:_,squash:v(1,$,y(0,.5,u)),spine:n?0:Math.max(0,m-f)*(1-L),lx:Math.cos(_),ly:Math.sin(_),fx:P*Math.sin(_),fy:-P*Math.cos(_),radius:rt,swell:t.swell*y(0,.3,u),energy:Pt,pull:t.pull*s*(1-y(0,.22,l)),glow:l<0?ot*s:v(ot,1,y(0,.07,c))*nt,clear:v(f-t.rimSoftness,k+t.rimSoftness,xt((l-t.linger)/t.rimFade)),hairClear:v(f-t.rimSoftness,k+t.rimSoftness,xt((l-t.linger-t.hairDelay)/t.hairFade)),rim:t.rimStrength*y(0,.1,c)*(1-y(.9,1,o/a)),hold:n&&i.hold?f:0,launched:l>0,covered:st,settled:st&&c>=.55}}function At(e,t){return Array.from({length:e},(i,n)=>{let r=a=>vt((n+1)*a);return{col:r(.6180339887)*2-1,gy:r(.7071067812),head:r(.1618033989)*yt,pace:.4+.65*Math.sqrt(r(.7548776662)),drift:12+45*r(.569840291),sway:3+10*r(.4142135624),swayHz:2+3*r(.7320508076),tw:7+10*r(.2360679775),ph:r(.3819660113)*yt,hop:r(.5497004779),life:t.particleLife*(.45+.55*r(.6457513111)),size:t.particleSize*(.55+.45*r(.8774)**2),bright:.35+.65*r(.6055512755)}})}function St(e,t,i){let n=.75+.25*Math.sin(t.time*e.tw+e.ph),r=i.k;if(!t.launched){if(!i.gatherDots)return null;let h=t.time/.32+e.hop,d=vt(h),p=y(0,.3,d)*(1-y(.6,1,d))*e.bright*n*y(0,i.anticipation*.35,t.time)*(1-y(i.anticipation*.75,i.anticipation,t.time)),f=i.reach*(1-d*d);if(t.ring){let g=e.head+Math.floor(h)*2.399963,S=t.r0+12*r+f;return{x:t.cx+Math.cos(g)*S,y:t.cy+Math.sin(g)*S,a:p}}let m=e.col*(t.half+16*r)*(1-.35*(1-d)),x=t.perp+10*r+f*(.45+.55*e.gy);return{x:t.cx+t.lx*m+t.fx*x,y:t.cy+t.ly*m+t.fy*x,a:p}}let a=t.fly,o=(1-y(e.life*.55,e.life,a))*e.bright*n*y(0,.08,a),l=e.sway*Math.max(r,.3)*Math.sin(e.swayHz*a+e.ph)*Math.min(a/.25,1),s=(t.radius-t.r0)*e.pace*i.spread;if(t.ring){let h=t.r0+s+e.drift*r*a,d=Math.cos(e.head),p=Math.sin(e.head);return{x:t.ox+d*h-p*l,y:t.oy+p*h+d*l,a:o}}let c=e.col*t.half*(1+.25*t.moved*e.pace)+l,u=(t.r0+s)*(1-.3*e.col*e.col)+e.drift*r*a;return{x:t.ox+t.lx*c+t.fx*u,y:t.oy+t.ly*c+t.fy*u,a:o}}var Y=`#version 300 es
+`)}function*Ht(e){let t=e.shadowRoot||e;for(let i of t.childNodes){if(i.nodeType===1&&i.localName==="slot"){let n=i.assignedNodes({flatten:!0});if(n.length){yield*n;continue}}yield i}}var ft=null;function gt(e,t,i,n){if(e.nodeType===3)return document.createTextNode(e.data);if(e.nodeType!==1)return null;let r=e.localName;if(Bt.has(r)||e.hasAttribute("data-dw-ignore"))return null;let a=getComputedStyle(e);if(a.display==="none")return null;let o;if(r==="canvas"||r==="video"){o=document.createElement("img");try{o.setAttribute("src",zt(e))}catch{o=document.createElement("div")}}else r==="iframe"||r==="embed"||r==="object"?o=document.createElement("div"):o=e.cloneNode(!1);for(let c of[...o.attributes]){let u=c.name.toLowerCase();(u.startsWith("on")||u==="srcset"||u==="sizes"||u==="loading"||u==="style"||u==="class")&&o.removeAttribute(c.name)}if(r==="img"){let c=e.currentSrc||e.src;o.setAttribute("src",mt),c&&n.tasks.push($t(e,c).then(u=>o.setAttribute("src",u)))}if(e.namespaceURI===D&&r==="image"){let c=e.getAttribute("href")||e.getAttributeNS(lt,"href");c&&!c.startsWith("data:")&&(o.removeAttribute("href"),o.removeAttributeNS(lt,"href"),n.tasks.push(U(new URL(c,document.baseURI).href).then(u=>o.setAttribute("href",u)).catch(()=>{})))}let l=[],s=ht(a,ut(e),t,i,(c,u)=>l.push([c,u]));i&&(s+=n.rootOverrides(a)),s+="transition:none;animation:none;",o.setAttribute("style",s);for(let[c,u]of l)n.tasks.push(qt(u).then(h=>{h!==u&&o.setAttribute("style",o.getAttribute("style").replace(`${c}:${u};`,`${c}:${h};`))}));if(e.namespaceURI===pt||!e.namespaceURI)for(let c of["::before","::after"]){let u=getComputedStyle(e,c),h=u.getPropertyValue("content");if(!h||h==="none"||h==="normal")continue;let d="dw"+(n.n++).toString(36);o.classList.add(d),ft??=document.createElement("span"),n.css+=`.${d}${c}{${ht(u,ut(ft),a,!1,null)}}`}if(r==="input"&&(e.type==="checkbox"||e.type==="radio"?e.checked?o.setAttribute("checked",""):o.removeAttribute("checked"):e.type==="password"?o.setAttribute("value","\u2022".repeat(e.value.length)):e.type!=="file"&&o.setAttribute("value",e.value)),r==="textarea")return o.textContent=e.value,o;if(r==="canvas"||r==="video"||r==="iframe"||r==="embed"||r==="object")return o;for(let c of Ht(e)){let u=gt(c,a,!1,n);u&&o.appendChild(u)}return r==="select"&&[...o.querySelectorAll("option")].forEach((c,u)=>{u===e.selectedIndex?c.setAttribute("selected",""):c.removeAttribute("selected")}),o}var Vt=e=>e.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");async function T(e,{dpr:t=1,clip:i=null,rootOpacity:n=null}={}){let r=performance.now();await document.fonts.ready;let a=e.getBoundingClientRect(),o=e.offsetWidth??a.width,l=e.offsetHeight??a.height,s=i??{x:0,y:0,w:o,h:l},c={tasks:[],css:"",n:0,rootOverrides:R=>`margin:0!important;position:relative!important;inset:auto!important;float:none!important;transform:none!important;translate:none!important;rotate:none!important;scale:none!important;box-sizing:border-box!important;width:${o}px!important;height:${l}px!important;`+(R.display.startsWith("inline")&&R.display!=="inline-block"&&R.display!=="inline-flex"&&R.display!=="inline-grid"?"display:inline-block!important;":"")+(n!=null?`opacity:${n}!important;`:"")},u=gt(e,null,!0,c);if(!u)throw new Error("distortion-wave: element is not rendered (display:none?)");await Promise.all(c.tasks);let h=await Xt(),d=new XMLSerializer().serializeToString(u),p=Math.max(1,Math.round(s.w)),f=Math.max(1,Math.round(s.h)),m=`<svg xmlns="${D}" width="${p}" height="${f}"><foreignObject x="0" y="0" width="${p}" height="${f}"><div xmlns="${pt}" style="position:relative;width:${p}px;height:${f}px;overflow:hidden;margin:0;padding:0"><style>${Vt(h+c.css)}</style><div style="position:absolute;left:${-s.x}px;top:${-s.y}px;width:${o}px;height:${l}px">${d}</div></div></foreignObject></svg>`,x=new Image;x.decoding="async",x.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(m),await x.decode();let g=document.createElement("canvas");g.width=Math.max(1,Math.round(p*t)),g.height=Math.max(1,Math.round(f*t));let S=g.getContext("2d",{willReadFrequently:!1});return S.drawImage(x,0,0,g.width,g.height),S.getImageData(0,0,1,1),{canvas:g,w:p,h:f,dpr:t,ms:performance.now()-r,bytes:m.length}}var yt=Math.PI*2,b=(e,t=0,i=1)=>Math.min(Math.max(e,t),i),v=(e,t,i)=>e+(t-e)*i,vt=e=>e-Math.floor(e),y=(e,t,i)=>{let n=b((i-e)/(t-e||1e-6));return n*n*(3-2*n)};function wt(e,t,i,n){let r=(a,o,l)=>{let s=1-a;return 3*s*s*a*o+3*s*a*a*l+a*a*a};return a=>{if(a<=0)return 0;if(a>=1)return 1;let o=0,l=1;for(let s=0;s<22;s++){let c=(o+l)/2;r(c,e,i)<a?o=c:l=c}return r((o+l)/2,t,n)}}var Gt=wt(.2,1,.3,1),xt=wt(.45,0,.55,1);function bt(e){let t=parseInt(e.replace("#",""),16),[i,n,r]=[t>>16&255,t>>8&255,t&255].map(s=>(s/=255,s<=.04045?s/12.92:((s+.055)/1.055)**2.4)),a=Math.cbrt(.4122214708*i+.5363325363*n+.0514459929*r),o=Math.cbrt(.2119034982*i+.6806995451*n+.1073969566*r),l=Math.cbrt(.0883024619*i+.2817188376*n+.6299787005*r);return[.2104542553*a+.793617785*o-.0040720468*l,1.9779984951*a-2.428592205*o+.4505937099*l,.0259040371*a+.7827717662*o-.808675766*l]}var M={aurora:["#FF4FD8","#A35BFF","#5B7CFF","#38D9FF","#FFD36B","#FF7A5C"],ocean:["#3A7BFF","#2EE6D6","#7C5CFF","#1FB6FF","#B8F2FF"],mint:["#2BD67B","#B6FF5C","#1FC8A9","#E8FFB0","#3CE0C0"],ember:["#FF5A3C","#FFB23C","#FF3C8E","#FFE07A","#FF7F50"]},E={type:"vertical",speed:1,anticipation:.45,travel:2.2,linger:-.3,rimFade:2.8,hairDelay:.45,hairFade:2.8,pull:22,inhale:50,gatherGlow:.35,gatherDots:1,amplitude:32,lensWidth:140,aberration:.75,swell:20,blur:18,blurNear:6,blurAhead:90,blurBehind:230,lead:120,tail:280,band:.9,rimWidth:14,rimSoftness:320,rimStrength:.85,uneven:1,hairWidth:1.5,lean:.9,margin:60,seam:48,particles:64,particleSize:1.8,particleLife:2.1,reach:140,spread:1,palette:"aurora"},H={vertical:E,horizontal:{...E,type:"horizontal"},center:{...E,type:"center",anticipation:.25,travel:3.2,linger:-.2,rimFade:2.4,hairDelay:.9,pull:14,inhale:32,gatherGlow:.2,gatherDots:0,amplitude:20,lensWidth:90,aberration:.35,swell:13,blur:11,blurAhead:54,blurBehind:140,lead:80,tail:180,band:.75,rimStrength:.7,rimSoftness:200,particles:90,particleLife:3,reach:90,spread:.65}},Yt=["pull","inhale","amplitude","lensWidth","swell","blur","blurNear","blurAhead","blurBehind","lead","tail","rimWidth","rimSoftness","reach","margin","seam"],jt=["anticipation","travel","linger","rimFade","hairDelay","hairFade","particleLife"];function V(e,t,i){let n=b(Math.sqrt(t*i)/516,.12,1.8),r=b(.45+.55*Math.sqrt(n),.6,1.15)/(e.speed||1),a={...e,k:n};for(let o of Yt)a[o]=e[o]*n;for(let o of jt)a[o]=e[o]*r;return a.blurNear=Math.max(a.blurNear,1.2),a.blur=Math.max(a.blur,a.blurNear),a.rimWidth=Math.max(a.rimWidth,2.5),a.seam=Math.max(a.seam,4),a.anticipation=Math.max(a.anticipation,.2/(e.speed||1)),a.particles=Math.round(e.particles*b(n,.3,1.5)),a.particleSize=e.particleSize*b(.6+.4*n,.7,1.3),a}var B=e=>e.anticipation+Math.max(e.travel*.6,e.linger+e.rimFade,e.linger+e.hairDelay+e.hairFade,e.particleLife);function Qt(e,t,i,n,r,a){let o=Math.cos(i),l=Math.sin(i),s=0;for(let[c,u]of[[0,0],[r,0],[0,a],[r,a]]){let h=c-e,d=u-t;s=Math.max(s,Math.hypot((o*h+l*d)*n,-l*h+o*d))}return s}function G(e,t,i){let n=t.type==="center",r=t.type==="horizontal",a=B(t),o=b(e,0,a),l=o-t.anticipation,s=y(0,t.anticipation,o),c=b(l/t.travel),u=Gt(c),h=i.src,d=h.x+h.w/2,p=h.y+h.h/2,f=Math.max(Math.min(h.w,h.h)/2,1),m=(r?h.h:h.w)/2,x=(r?h.w:h.h)/2,g=r?Math.PI/2:0,S=Math.cos(g),R=Math.sin(g),P=(i.w/2-d)*Math.sin(g)+(i.h/2-p)*-Math.cos(g)>=0?1:-1,N=0;!n&&i.touch&&(N=b(((i.touch.x-d)*S+(i.touch.y-p)*R)/Math.max(m,1),-1,1)*t.lean);let L=y(0,.45,u),it=d+S*N*m*L,at=p+R*N*m*L,_=g+P*N*.45*L,$=n?1:1.4,k=Qt(it,at,_,$,i.w,i.h)+t.swell*$+t.margin,rt=l<0?f+t.inhale*(1-s):f+(k+t.margin*1.6-f)*u,nt=1-y(.2,.55,c),ot=t.gatherGlow*.5,Pt=y(0,.05,c)*nt,st=l>0&&rt-t.swell>k;return{time:o,fly:l,pre:s,prog:c,moved:u,ring:n,dir:P,r0:f,half:m,perp:x,cx:d,cy:p,ox:it,oy:at,tilt:_,squash:v(1,$,y(0,.5,u)),spine:n?0:Math.max(0,m-f)*(1-L),lx:Math.cos(_),ly:Math.sin(_),fx:P*Math.sin(_),fy:-P*Math.cos(_),radius:rt,swell:t.swell*y(0,.3,u),energy:Pt,pull:t.pull*s*(1-y(0,.22,l)),glow:l<0?ot*s:v(ot,1,y(0,.07,c))*nt,clear:v(f-t.rimSoftness,k+t.rimSoftness,xt((l-t.linger)/t.rimFade)),hairClear:v(f-t.rimSoftness,k+t.rimSoftness,xt((l-t.linger-t.hairDelay)/t.hairFade)),rim:t.rimStrength*y(0,.1,c)*(1-y(.9,1,o/a)),hold:n&&i.hold?f:0,launched:l>0,covered:st,settled:st&&c>=.55}}function At(e,t){return Array.from({length:e},(i,n)=>{let r=a=>vt((n+1)*a);return{col:r(.6180339887)*2-1,gy:r(.7071067812),head:r(.1618033989)*yt,pace:.4+.65*Math.sqrt(r(.7548776662)),drift:12+45*r(.569840291),sway:3+10*r(.4142135624),swayHz:2+3*r(.7320508076),tw:7+10*r(.2360679775),ph:r(.3819660113)*yt,hop:r(.5497004779),life:t.particleLife*(.45+.55*r(.6457513111)),size:t.particleSize*(.55+.45*r(.8774)**2),bright:.35+.65*r(.6055512755)}})}function St(e,t,i){let n=.75+.25*Math.sin(t.time*e.tw+e.ph),r=i.k;if(!t.launched){if(!i.gatherDots)return null;let h=t.time/.32+e.hop,d=vt(h),p=y(0,.3,d)*(1-y(.6,1,d))*e.bright*n*y(0,i.anticipation*.35,t.time)*(1-y(i.anticipation*.75,i.anticipation,t.time)),f=i.reach*(1-d*d);if(t.ring){let g=e.head+Math.floor(h)*2.399963,S=t.r0+12*r+f;return{x:t.cx+Math.cos(g)*S,y:t.cy+Math.sin(g)*S,a:p}}let m=e.col*(t.half+16*r)*(1-.35*(1-d)),x=t.perp+10*r+f*(.45+.55*e.gy);return{x:t.cx+t.lx*m+t.fx*x,y:t.cy+t.ly*m+t.fy*x,a:p}}let a=t.fly,o=(1-y(e.life*.55,e.life,a))*e.bright*n*y(0,.08,a),l=e.sway*Math.max(r,.3)*Math.sin(e.swayHz*a+e.ph)*Math.min(a/.25,1),s=(t.radius-t.r0)*e.pace*i.spread;if(t.ring){let h=t.r0+s+e.drift*r*a,d=Math.cos(e.head),p=Math.sin(e.head);return{x:t.ox+d*h-p*l,y:t.oy+p*h+d*l,a:o}}let c=e.col*t.half*(1+.25*t.moved*e.pace)+l,u=(t.r0+s)*(1-.3*e.col*e.col)+e.drift*r*a;return{x:t.ox+t.lx*c+t.fx*u,y:t.oy+t.ly*c+t.fy*u,a:o}}var Y=`#version 300 es
 out vec2 vUv;
 void main() { vec2 p = vec2(float((gl_VertexID << 1) & 2), float(gl_VertexID & 2)); vUv = p; gl_Position = vec4(p * 2.0 - 1.0, 0.0, 1.0); }`,Zt=`#version 300 es
 precision highp float; in vec2 vUv; uniform sampler2D uTex; uniform float uLod; out vec4 o;
@@ -378,13 +712,21 @@ void main() { float r = length(gl_PointCoord - 0.5) * vPt; float cov = clamp(vR 
 <script type="module">
 const { distortionWave, waveOnClick, warmupWave } = window.DistortionWave;
 
+// Every block below follows the same pattern:
+//   distortionWave(target, () => { /* change the DOM */ }, { source, focus: event })
+// target = what gets the wave, source = where it starts, focus = the touch point.
+
 const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const pressed = (el) => el.getAttribute('aria-pressed') === 'true';
 warmupWave();                                   // compile the shaders before the first click
 
-// ── Like: the button is both target and source → a ring from the touch point
+// ═════════════════════════════ Buttons ═════════════════════════════
+
+// Like: no source → a ring from the touch point, inside the button itself
 const like = $('.like');
 like.addEventListener('click', (e) => {
-  const on = like.getAttribute('aria-pressed') !== 'true';
+  const on = !pressed(like);
   distortionWave(like, () => {
     like.setAttribute('aria-pressed', on);
     const n = like.querySelector('.n');
@@ -392,7 +734,7 @@ like.addEventListener('click', (e) => {
   }, { focus: e, palette: on ? 'ember' : 'aurora' });
 });
 
-// ── Follow
+// Follow
 const follow = $('.follow');
 follow.addEventListener('click', (e) => {
   const on = !follow.classList.contains('following');
@@ -402,18 +744,41 @@ follow.addEventListener('click', (e) => {
   }, { focus: e, palette: 'ocean' });
 });
 
-// ── Status pill: cycles Online → Away → Busy
-const STATUS = ['Online', 'Away', 'Busy'];
-const pill = $('.pill');
-pill.addEventListener('click', (e) => {
-  const i = (+pill.dataset.i + 1) % STATUS.length;
-  distortionWave(pill, () => {
-    pill.dataset.i = i;
-    pill.querySelector('span').textContent = STATUS[i];
-  }, { focus: e, palette: ['#30d158', '#ffb23c', '#ff5a3c'] });
+// Bookmark
+const bookmark = $('.bookmark');
+bookmark.addEventListener('click', (e) => {
+  const on = !pressed(bookmark);
+  distortionWave(bookmark, () => {
+    bookmark.setAttribute('aria-pressed', on);
+    bookmark.querySelector('span').textContent = on ? 'Saved' : 'Save';
+  }, { focus: e, palette: 'ocean' });
 });
 
-// ── Copy: the wave crosses the code block from the button
+// Vote: the wave leaves the arrow you pressed
+const vote = $('#vote');
+vote.addEventListener('click', (e) => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  const dir = btn.classList.contains('up') ? 1 : -1;
+  const next = +vote.dataset.v === dir ? 0 : dir;
+  distortionWave(vote, () => {
+    vote.dataset.v = next;
+    vote.querySelector('b').textContent = 42 + next;
+  }, { source: btn, focus: e, palette: dir > 0 ? 'ember' : 'ocean' });
+});
+
+// Download: two waves in a row (idle → busy → done), chained on `finished`
+const dl = $('.download');
+const setDownload = (state, label) => { dl.dataset.state = state; dl.querySelector('span').textContent = label; };
+dl.addEventListener('click', async (e) => {
+  if (dl.dataset.state === 'busy') return;
+  if (dl.dataset.state === 'done') return distortionWave(dl, () => setDownload('idle', 'Download'), { focus: e });
+  await distortionWave(dl, () => setDownload('busy', 'Downloading…'), { focus: e, palette: 'ocean' }).finished;
+  await new Promise((r) => setTimeout(r, 900));
+  distortionWave(dl, () => setDownload('done', 'Downloaded'), { palette: 'mint' });
+});
+
+// Copy: the wave crosses the code block from the button
 const copy = $('.copy');
 copy.addEventListener('click', (e) => {
   navigator.clipboard?.writeText($('.code code').textContent).catch(() => {});
@@ -426,24 +791,130 @@ copy.addEventListener('click', (e) => {
   }, 1200));
 });
 
-// ── Filter chips
-document.querySelectorAll('.chip').forEach((chip) => chip.addEventListener('click', (e) => {
-  const on = chip.getAttribute('aria-pressed') !== 'true';
+// Delete · Undo: innerHTML is replaced, keyboard focus still lands on the new button
+const file = $('#file');
+const renderFile = (deleted) => {
+  file.innerHTML = deleted
+    ? '<span class="gone">invoice-0421.pdf moved to trash</span><button class="btn ghost undo">Undo</button>'
+    : '<span class="file-ic">PDF</span><div><b>invoice-0421.pdf</b><small>184 KB</small></div><button class="btn danger del">Delete</button>';
+};
+renderFile(false);
+file.addEventListener('click', (e) => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  const deleted = btn.classList.contains('del');
+  distortionWave(file, () => renderFile(deleted), { source: btn, focus: e, palette: deleted ? 'ember' : 'mint' });
+});
+
+// Mute
+const mute = $('.mute');
+mute.addEventListener('click', (e) => {
+  const on = !pressed(mute);
+  distortionWave(mute, () => {
+    mute.setAttribute('aria-pressed', on);
+    mute.setAttribute('aria-label', on ? 'Unmute' : 'Mute');
+  }, { focus: e, palette: on ? 'ember' : 'mint' });
+});
+
+// ═════════════════════════ Toggles & selection ═════════════════════════
+
+// Status pill: cycles Online → Away → Busy, with a custom palette
+const STATUS = ['Online', 'Away', 'Busy'];
+const pill = $('.pill');
+pill.addEventListener('click', (e) => {
+  const i = (+pill.dataset.i + 1) % STATUS.length;
+  distortionWave(pill, () => {
+    pill.dataset.i = i;
+    pill.querySelector('span').textContent = STATUS[i];
+  }, { focus: e, palette: ['#30d158', '#ffb23c', '#ff5a3c'] });
+});
+
+// Filter chips
+$$('.chip').forEach((chip) => chip.addEventListener('click', (e) => {
+  const on = !pressed(chip);
   distortionWave(chip, () => chip.setAttribute('aria-pressed', on), { focus: e });
 }));
 
-// ── Settings row: the wave leaves the switch and crosses the row
+// Settings row: the wave leaves the switch and crosses the row
 const row = $('#notif');
-const sw = row.querySelector('.switch');
-sw.addEventListener('click', (e) => {
-  const on = sw.getAttribute('aria-checked') !== 'true';
+const rowSwitch = row.querySelector('.switch');
+rowSwitch.addEventListener('click', (e) => {
+  const on = rowSwitch.getAttribute('aria-checked') !== 'true';
   distortionWave(row, () => {
-    sw.setAttribute('aria-checked', on);
-    row.querySelector('small').textContent = on ? 'Weekly digest, mentions and replies.' : 'Muted. You will not get any email.';
-  }, { source: sw, focus: e, palette: on ? 'aurora' : 'ocean' });
+    rowSwitch.setAttribute('aria-checked', on);
+    row.querySelector('small').textContent = on ? 'Weekly digest, mentions and replies.' : 'Muted. No emails at all.';
+  }, { source: rowSwitch, focus: e, palette: on ? 'aurora' : 'ocean' });
 });
 
-// ── Add to cart: wave over the whole product card, cart badge updates outside
+// Checklist
+$$('.todo').forEach((todo) => todo.addEventListener('click', (e) => {
+  const on = !pressed(todo);
+  distortionWave(todo, () => todo.setAttribute('aria-pressed', on), { focus: e, palette: on ? 'mint' : 'aurora' });
+}));
+
+// Radio cards: the whole group gets the wave, from the card you picked
+const radios = $('#radios');
+radios.addEventListener('click', (e) => {
+  const card = e.target.closest('.radio-card');
+  if (!card || card.getAttribute('aria-checked') === 'true') return;
+  distortionWave(radios, () => {
+    $$('.radio-card', radios).forEach((c) => c.setAttribute('aria-checked', c === card));
+  }, { source: card, focus: e });
+});
+
+// Star rating
+const rating = $('#rating');
+const STARS = $$('.stars button', rating);
+const RATING_LABELS = ['Meh', 'Okay', 'Good', 'Great', 'Loved it'];
+rating.addEventListener('click', (e) => {
+  const star = e.target.closest('button');
+  if (!star) return;
+  const n = STARS.indexOf(star) + 1;
+  distortionWave(rating, () => {
+    STARS.forEach((s, i) => s.classList.toggle('on', i < n));
+    rating.querySelector('small').textContent = `${n}/5 · ${RATING_LABELS[n - 1]}`;
+  }, { source: star, focus: e, palette: ['#ffc53d', '#ff9f43', '#ff6b6b'] });
+});
+
+// Colour: the preview changes, the wave leaves the swatch in that colour
+const tee = $('#tee');
+$('.swatches').addEventListener('click', (e) => {
+  const swatch = e.target.closest('button');
+  if (!swatch || pressed(swatch)) return;
+  const c = swatch.style.getPropertyValue('--c');
+  distortionWave(tee, () => {
+    tee.style.setProperty('--c', c);
+    tee.querySelector('small').textContent = swatch.getAttribute('aria-label');
+    $$('.swatches button').forEach((b) => b.setAttribute('aria-pressed', b === swatch));
+  }, { source: swatch, focus: e, palette: [c, '#ffffff', c] });
+});
+
+// Text align: the source (toolbar) sits outside the target (paragraph)
+const alignText = $('#alignText');
+$('#align').addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (!b || pressed(b)) return;
+  distortionWave(alignText, () => {
+    alignText.style.textAlign = b.dataset.a;
+    $$('#align button').forEach((x) => x.setAttribute('aria-pressed', x === b));
+  }, { source: b, focus: e });
+});
+
+// Units
+const temp = $('#temp');
+const unit = $('.unit');
+unit.addEventListener('click', (e) => {
+  const toF = unit.dataset.u === 'c';
+  distortionWave(temp, () => {
+    unit.dataset.u = toF ? 'f' : 'c';
+    unit.textContent = toF ? '°F' : '°C';
+    temp.querySelector('b').textContent = toF ? '70°' : '21°';
+  }, { source: unit, focus: e, palette: 'ember' });
+});
+
+// ═════════════════════════════ Commerce ═════════════════════════════
+
+// Add to cart: wave over the whole product card, cart badge updates outside
 const product = $('#product');
 const badge = $('.cart .badge');
 let cartCount = 0;
@@ -462,7 +933,51 @@ product.addEventListener('click', (e) => {
   $('.cart').setAttribute('aria-label', `Cart, ${cartCount} item${cartCount === 1 ? '' : 's'}`);
 });
 
-// ── Pricing: the wave goes down from the clicked tab into the plan
+// Quantity stepper
+const qty = $('#qty');
+qty.addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  const out = qty.querySelector('output');
+  const n = +out.textContent;
+  const up = b.classList.contains('plus');
+  const next = Math.max(1, Math.min(9, n + (up ? 1 : -1)));
+  if (next === n) return;
+  distortionWave(qty, () => { out.textContent = next; }, { source: b, focus: e, palette: up ? 'mint' : 'ember' });
+});
+
+// Wishlist: a small button on top of a card, the whole card gets the wave
+const thumb = $('#thumb');
+const heart = $('.heart');
+heart.addEventListener('click', (e) => {
+  const on = !pressed(heart);
+  distortionWave(thumb, () => {
+    heart.setAttribute('aria-pressed', on);
+    heart.setAttribute('aria-label', on ? 'Remove from wishlist' : 'Add to wishlist');
+    thumb.classList.toggle('wished', on);
+  }, { source: heart, focus: e, palette: 'ember' });
+});
+
+// Currency: a list re-rendered with innerHTML
+const RATES = { usd: ['$', 1, 2], eur: ['€', 0.92, 2], jpy: ['¥', 151, 0] };
+const ITEMS = [['Halo Lamp', 49], ['Lounge chair', 320], ['Desk mat', 24]];
+const prices = $('#prices');
+const renderPrices = (cur) => {
+  const [sym, rate, digits] = RATES[cur];
+  const fmt = (v) => v.toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+  prices.innerHTML = ITEMS.map(([name, usd]) => `<li><span>${name}</span><b>${sym}${fmt(usd * rate)}</b></li>`).join('');
+  $$('#cur button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.c === cur));
+};
+renderPrices('usd');
+$('#cur').addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (!b || pressed(b)) return;
+  distortionWave(prices, () => renderPrices(b.dataset.c), { source: b, focus: e });
+});
+
+// ═════════════════════════ Navigation & content ═════════════════════════
+
+// Pricing tabs: the wave goes down from the clicked tab into the plan
 const PLANS = {
   monthly: { price: '$12', per: '/ month', save: '', perks: ['3 projects', 'Community support'] },
   yearly: { price: '$120', per: '/ year', save: '2 months free', perks: ['Unlimited projects', 'Priority support', 'Early access'] },
@@ -470,32 +985,195 @@ const PLANS = {
 const plan = $('#plan');
 const renderPlan = (key) => {
   const p = PLANS[key];
-  plan.innerHTML = `<div class="amount">${p.price} <small>${p.per}</small></div>
-    ${p.save ? `<span class="save">${p.save}</span>` : ''}
-    <ul>${p.perks.map((x) => `<li>${x}</li>`).join('')}</ul>`;
-  document.querySelectorAll('.segmented button').forEach((b) => b.setAttribute('aria-selected', b.dataset.plan === key));
+  plan.innerHTML = `<div class="amount">${p.price} <small>${p.per}</small></div>`
+    + (p.save ? `<span class="save">${p.save}</span>` : '')
+    + `<ul>${p.perks.map((x) => `<li>${x}</li>`).join('')}</ul>`;
+  $$('#planTabs button').forEach((b) => b.setAttribute('aria-selected', b.dataset.plan === key));
 };
 renderPlan('monthly');
-$('.segmented').addEventListener('click', (e) => {
+$('#planTabs').addEventListener('click', (e) => {
   const tab = e.target.closest('button');
   if (!tab || tab.getAttribute('aria-selected') === 'true') return;
   distortionWave(plan, () => renderPlan(tab.dataset.plan), { source: tab, focus: e });
 });
 
-// ── Newsletter: the form turns into a success message (works with Enter too)
+// Install tabs
+const PM = { npm: 'npm i distortion-wave', pnpm: 'pnpm add distortion-wave', yarn: 'yarn add distortion-wave', bun: 'bun add distortion-wave' };
+const pmCode = $('#pmCode');
+$('#pmTabs').addEventListener('click', (e) => {
+  const tab = e.target.closest('button');
+  if (!tab || tab.getAttribute('aria-selected') === 'true') return;
+  distortionWave(pmCode, () => {
+    pmCode.querySelector('code').textContent = PM[tab.textContent.trim()];
+    $$('#pmTabs button').forEach((b) => b.setAttribute('aria-selected', b === tab));
+  }, { source: tab, focus: e, palette: 'ocean' });
+});
+
+// Pagination: the source (page buttons) is below the target (list), so the wave goes up
+const PAGES = [
+  [['Aurora', 'Gradient', '#ff4fd8'], ['Nebula', 'Noise', '#5b7cff'], ['Comet', 'Particles', '#38d9ff']],
+  [['Ember', 'Glow', '#ffb23c'], ['Lagoon', 'Water', '#2ec4d6'], ['Moss', 'Texture', '#30d158']],
+  [['Prism', 'Refraction', '#8b7bff'], ['Dune', 'Displacement', '#ffd36b'], ['Coral', 'Blur', '#ff5a7a']],
+];
+const list = $('#list');
+const pageButtons = $$('#pages button');
+const renderList = (page) => {
+  list.innerHTML = PAGES[page].map(([name, kind, c]) => `<li><i style="--c:${c}"></i><div><b>${name}</b><small>${kind}</small></div></li>`).join('');
+  pageButtons.forEach((b, i) => (i === page ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current')));
+};
+renderList(0);
+$('#pages').addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (!b || b.hasAttribute('aria-current')) return;
+  distortionWave(list, () => renderList(pageButtons.indexOf(b)), { source: b, focus: e });
+});
+
+// Accordion: the element changes size, the wave's shape follows it
+const acc = $('#acc');
+const accHead = acc.querySelector('.acc-head');
+accHead.addEventListener('click', (e) => {
+  const open = accHead.getAttribute('aria-expanded') !== 'true';
+  distortionWave(acc, () => {
+    accHead.setAttribute('aria-expanded', open);
+    acc.querySelector('.acc-body').hidden = !open;
+  }, { source: accHead, focus: e, palette: 'ocean' });
+});
+
+// Flashcard
+const CARDS = [
+  ['Which browser API does distortion-wave copy?', 'document.startViewTransition()'],
+  ['What draws the wave?', 'One WebGL2 full-screen pass.'],
+  ['What happens without WebGL?', 'Your update still runs, just without the wave.'],
+];
+const flash = $('#flash');
+let card = 0, showAnswer = false;
+const renderFlash = () => {
+  const [q, a] = CARDS[card];
+  flash.classList.toggle('answer', showAnswer);
+  flash.innerHTML = showAnswer
+    ? `<small>Answer</small><p>${a}</p><button class="btn">Next question</button>`
+    : `<small>Question ${card + 1}/${CARDS.length}</small><p>${q}</p><button class="btn">Show answer</button>`;
+};
+renderFlash();
+flash.addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  const toAnswer = !showAnswer;
+  distortionWave(flash, () => {
+    if (toAnswer) showAnswer = true;
+    else { showAnswer = false; card = (card + 1) % CARDS.length; }
+    renderFlash();
+  }, { source: b, focus: e, palette: toAnswer ? 'aurora' : 'ocean' });
+});
+
+// Language
+const HELLO = [['Hello, world', 'English'], ['Bonjour le monde', 'Français'], ['Hola, mundo', 'Español'], ['Hallo Welt', 'Deutsch'], ['こんにちは世界', '日本語']];
+const hello = $('#hello');
+const lang = $('.lang');
+let li = 0;
+lang.addEventListener('click', (e) => {
+  li = (li + 1) % HELLO.length;
+  distortionWave(hello, () => {
+    hello.querySelector('b').textContent = HELLO[li][0];
+    hello.querySelector('small').textContent = HELLO[li][1];
+  }, { source: lang, focus: e });
+});
+
+// ═════════════════════════ Forms & feedback ═════════════════════════
+
+// Newsletter: the form turns into a success message (works with Enter too)
 const form = $('#newsletter');
-let pressedAt = null;                           // submit events carry no coordinates: remember the pointer
-form.addEventListener('pointerdown', (e) => { pressedAt = { x: e.clientX, y: e.clientY }; });
+let formPoint = null;                           // submit events carry no coordinates: remember the pointer
+form.addEventListener('pointerdown', (e) => { formPoint = { x: e.clientX, y: e.clientY }; });
 form.addEventListener('submit', (e) => {
   e.preventDefault();
   distortionWave(form, () => {
     form.classList.add('sent');
     form.innerHTML = '<span>You’re in. See you in your inbox ✦</span>';
-  }, { source: form.querySelector('button'), focus: pressedAt, palette: 'aurora' });
-  pressedAt = null;
+  }, { source: form.querySelector('button'), focus: formPoint, palette: 'aurora' });
+  formPoint = null;
 });
 
-// ── Theme: one wave across the whole page, from the switch
+// Password reveal
+const pw = $('#pw');
+const eye = pw.querySelector('.eye');
+const pwInput = pw.querySelector('input');
+eye.addEventListener('click', (e) => {
+  const show = !pressed(eye);
+  distortionWave(pw, () => {
+    pwInput.type = show ? 'text' : 'password';
+    eye.setAttribute('aria-pressed', show);
+    eye.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+  }, { source: eye, focus: e });
+});
+
+// Order progress
+const STEPS = ['Ordered', 'Packed', 'Shipped', 'Delivered'];
+const order = $('#order');
+const nextStep = $('.next-step');
+const renderOrder = () => {
+  const step = +order.dataset.step;
+  order.innerHTML = STEPS.map((name, i) => `<span class="${i < step ? 'done' : ''}">${name}</span>`).join('');
+  nextStep.textContent = step >= STEPS.length ? 'Start over' : 'Next step';
+};
+renderOrder();
+nextStep.addEventListener('click', (e) => {
+  const step = +order.dataset.step;
+  distortionWave(order, () => {
+    order.dataset.step = step >= STEPS.length ? 1 : step + 1;
+    renderOrder();
+  }, { source: nextStep, focus: e, palette: 'mint' });
+});
+
+// Notifications
+const notifs = $('#notifs');
+const mark = $('.mark');
+mark.addEventListener('click', (e) => {
+  const read = mark.textContent === 'Mark all as read';
+  distortionWave(notifs, () => {
+    $$('li', notifs).slice(0, 2).forEach((item) => item.classList.toggle('unread', !read));
+    mark.textContent = read ? 'Mark as unread' : 'Mark all as read';
+  }, { source: mark, focus: e, palette: 'ocean' });
+});
+
+// Chat: a message is appended, the thread grows and the shape follows
+const thread = $('#thread');
+const composer = $('#composer');
+const NEXT_MESSAGES = ['Wait, it works on a single button too?', 'Shipping this tomorrow.', 'That rim glow 👌'];
+let mi = 0, chatPoint = null;
+composer.addEventListener('pointerdown', (e) => { chatPoint = { x: e.clientX, y: e.clientY }; });
+composer.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const input = composer.querySelector('input');
+  const text = input.value.trim();
+  if (!text) return;
+  distortionWave(thread, () => {
+    const msg = document.createElement('p');
+    msg.className = 'msg me';
+    msg.textContent = text;
+    thread.append(msg);
+    while (thread.children.length > 4) thread.firstElementChild.remove();
+  }, { source: composer.querySelector('button'), focus: chatPoint, palette: 'aurora' });
+  input.value = NEXT_MESSAGES[mi++ % NEXT_MESSAGES.length];
+  chatPoint = null;
+});
+
+// Player
+const player = $('#player');
+const play = player.querySelector('.play');
+play.addEventListener('click', (e) => {
+  const on = !pressed(play);
+  distortionWave(player, () => {
+    play.setAttribute('aria-pressed', on);
+    play.setAttribute('aria-label', on ? 'Pause' : 'Play');
+    player.classList.toggle('playing', on);
+    player.querySelector('small').textContent = on ? 'Playing · 1:24 / 3:58' : 'Paused';
+  }, { source: play, focus: e, palette: 'aurora' });
+});
+
+// ═════════════════════════ The whole page ═════════════════════════
+
+// Theme: one wave across everything, from the switch (waveOnClick also pre-captures on hover)
 const app = $('#app');
 const theme = $('#theme');
 waveOnClick(theme, app, () => {
