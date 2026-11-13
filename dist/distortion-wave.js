@@ -603,6 +603,7 @@ uniform vec2 uSize, uRes;
 uniform sampler2D uOld0, uOld1, uOld2, uNew0, uNew1, uNew2;
 uniform vec4 uOldRect, uNewRect, uShape, uRadii;   // rects in canvas CSS px; radii (br, tr, bl, tl)
 uniform int uMode;                                 // 0 before \xB7 1 live \xB7 2 after \xB7 3 crossfade \xB7 4 effects only (live DOM below)
+uniform bool uClip;                                 // an ancestor clips the element: mask everything by the shape
 uniform float uFade, uBoxless;                      // uBoxless: the element paints no box \u2192 light up its content only
 uniform bool uLaunched, uRing;
 uniform vec2 uOrigin;
@@ -667,10 +668,15 @@ vec3 oklabToSrgb(vec3 c) {
 void main() {
   vec2 p = vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y) * (uSize.x / uRes.x);
   float dn = (ign(gl_FragCoord.xy) - 0.5) / 255.0;
+  // element shape (per-corner radii, clipped by overflow ancestors): mask + rim
+  vec2 c = p - (uShape.xy + uShape.zw * 0.5);
+  float sd = sdRoundBox(c, uShape.zw * 0.5, uRadii);
+  float mask = clamp(0.5 - sd * (uRes.x / uSize.x), 0.0, 1.0);
+  float clipM = uClip ? mask : 1.0;
   if (uMode == 0 || uMode == 2 || uMode == 3) {
     vec4 a = tap(uOld0, uOldRect, p, p), b = tap(uNew0, uNewRect, p, p);
-    vec4 c = uMode == 0 ? a : uMode == 2 ? b : mix(a, b, uFade);
-    outColor = vec4(c.rgb + dn * c.a, c.a); return;
+    vec4 v = (uMode == 0 ? a : uMode == 2 ? b : mix(a, b, uFade)) * clipM;
+    outColor = vec4(v.rgb + dn * v.a, v.a); return;
   }
   Front f = front(p);
   vec2 r = p - uOrigin; float rl = max(length(r), 1.0);
@@ -692,12 +698,8 @@ void main() {
     else col = mix(layerNew(p, sp, sl, tn, tf), layerOld(p, sp, sl, tn, tf), cover);
     // the UNdisplaced alpha fixes the silhouette (rounded corners, transparent areas): no fill-in, no fringe outside
     float aU = mix(tap(uNew0, uNewRect, p, p).a, tap(uOld0, uOldRect, p, p).a, cover);
-    col *= min(1.0, aU / max(col.a, 1e-4));
+    col *= min(1.0, aU / max(col.a, 1e-4)) * clipM;
   }
-  // element shape (per-corner radii): mask + rim
-  vec2 c = p - (uShape.xy + uShape.zw * 0.5);
-  float sd = sdRoundBox(c, uShape.zw * 0.5, uRadii);
-  float mask = clamp(0.5 - sd * (uRes.x / uSize.x), 0.0, 1.0);
   if (uBoxless > 0.5) {
     // no background, border or shadow: the band lights the content and a soft halo around it, never the bounding box
     float sharp = max(tap(uNew0, uNewRect, p, p).a, tap(uOld0, uOldRect, p, p).a);
@@ -896,6 +898,7 @@ var Renderer = class {
     gl.uniform1i(u("uMode"), f.mode);
     gl.uniform1f(u("uFade"), f.fade || 0);
     gl.uniform1f(u("uBoxless"), R.boxless ? 1 : 0);
+    gl.uniform1i(u("uClip"), R.clipped ? 1 : 0);
     const s = f.s, c = f.cfg;
     if (s) {
       gl.uniform1i(u("uLaunched"), s.launched ? 1 : 0);
@@ -1046,6 +1049,7 @@ function restoreFocus(info, root) {
 }
 
 // src/index.js
+var fit = (side, a, b) => a + b > 0 ? side / (a + b) : Infinity;
 function parseRadii(cs, w, h) {
   const one = (v, side) => {
     const t = String(v).trim().split(/\s+/)[0];
@@ -1053,8 +1057,43 @@ function parseRadii(cs, w, h) {
     return t.endsWith("%") ? n / 100 * side : n;
   };
   let tl = one(cs.borderTopLeftRadius, w), tr = one(cs.borderTopRightRadius, w), br = one(cs.borderBottomRightRadius, w), bl = one(cs.borderBottomLeftRadius, w);
-  const f = Math.min(1, w / (tl + tr || 1e9), w / (bl + br || 1e9), h / (tl + bl || 1e9), h / (tr + br || 1e9));
+  const f = Math.min(1, fit(w, tl, tr), fit(w, bl, br), fit(h, tl, bl), fit(h, tr, br));
   return { tl: tl * f, tr: tr * f, br: br * f, bl: bl * f };
+}
+function clippedShape(el, rect, radii) {
+  let x0 = rect.left, y0 = rect.top, x1 = rect.right, y1 = rect.bottom, changed = false;
+  const r = { ...radii };
+  for (let n = el, cs = getComputedStyle(el); n.parentElement && n.parentElement !== document.body; ) {
+    if (cs.position === "fixed") break;
+    n = n.parentElement;
+    cs = getComputedStyle(n);
+    const clips = cs.overflowX !== "visible" || cs.overflowY !== "visible" || /paint|strict|content/.test(cs.contain);
+    if (!clips) continue;
+    const b = n.getBoundingClientRect();
+    const bl = parseFloat(cs.borderLeftWidth) || 0, bt = parseFloat(cs.borderTopWidth) || 0, br = parseFloat(cs.borderRightWidth) || 0, bb = parseFloat(cs.borderBottomWidth) || 0;
+    const px0 = b.left + bl, py0 = b.top + bt, px1 = b.right - br, py1 = b.bottom - bb;
+    if (px0 > x0 + 0.5 || py0 > y0 + 0.5 || px1 < x1 - 0.5 || py1 < y1 - 0.5) changed = true;
+    x0 = Math.max(x0, px0);
+    y0 = Math.max(y0, py0);
+    x1 = Math.min(x1, px1);
+    y1 = Math.min(y1, py1);
+    const R = parseRadii(cs, b.width, b.height);
+    const inner = { tl: Math.max(0, R.tl - Math.max(bl, bt)), tr: Math.max(0, R.tr - Math.max(br, bt)), br: Math.max(0, R.br - Math.max(br, bb)), bl: Math.max(0, R.bl - Math.max(bl, bb)) };
+    const corner = (k, dx, dy) => {
+      const v = inner[k] - Math.max(dx, dy);
+      if (v > r[k] + 0.5) {
+        r[k] = v;
+        changed = true;
+      }
+    };
+    corner("tl", x0 - px0, y0 - py0);
+    corner("tr", px1 - x1, y0 - py0);
+    corner("br", px1 - x1, py1 - y1);
+    corner("bl", x0 - px0, py1 - y1);
+  }
+  const w = Math.max(x1 - x0, 0), h = Math.max(y1 - y0, 0);
+  const f = Math.min(1, fit(w, r.tl, r.tr), fit(w, r.bl, r.br), fit(h, r.tl, r.bl), fit(h, r.tr, r.br));
+  return { x: x0, y: y0, w, h, radii: { tl: r.tl * f, tr: r.tr * f, br: r.br * f, bl: r.bl * f }, clipped: changed };
 }
 function isFixed(el) {
   for (let n = el; n && n !== document.documentElement; n = n.parentElement) if (getComputedStyle(n).position === "fixed") return true;
@@ -1065,14 +1104,19 @@ function measure(el) {
   const w = el.offsetWidth ?? rect.width, h = el.offsetHeight ?? rect.height;
   const x0 = Math.max(rect.left, 0), y0 = Math.max(rect.top, 0), x1 = Math.min(rect.right, innerWidth), y1 = Math.min(rect.bottom, innerHeight);
   const fixed = isFixed(el), sx = fixed ? 0 : scrollX, sy = fixed ? 0 : scrollY;
+  const radii = parseRadii(cs, w, h), sh = clippedShape(el, rect, radii);
   return {
     w,
     h,
     fixed,
     opacity: cs.opacity,
-    radii: parseRadii(cs, w, h),
+    radii,
     boxless: !hasVisibleBox(cs),
     visible: x1 > x0 && y1 > y0,
+    shape: { x: sh.x + sx, y: sh.y + sy, w: sh.w, h: sh.h },
+    shapeRadii: sh.radii,
+    clipped: sh.clipped,
+    // what is actually visible
     clip: { x: x0 - rect.left, y: y0 - rect.top, w: x1 - x0, h: y1 - y0 },
     // visible part, element space
     page: { x: x0 + sx, y: y0 + sy, w: x1 - x0, h: y1 - y0 },
@@ -1187,7 +1231,7 @@ var WaveTransition = class {
     this.dots = new Float32Array(Math.max(this.particles.length, 1) * 4);
     this.origin = this._originPage(before);
     this.canvasPage = before.page;
-    this.rects = { old: rel(before.page, before.page), new: null, shape: rel(before.el, before.page), radii: before.radii, boxless: before.boxless };
+    this.rects = { old: rel(before.page, before.page), new: null, shape: rel(before.shape, before.page), radii: before.shapeRadii, boxless: before.boxless, clipped: before.clipped };
     t0 = performance.now();
     r.setLayer("old", oldShot.canvas, cfg.blurNear * this.dpr, cfg.blur * this.dpr);
     this.metrics.upload = Math.round(performance.now() - t0);
@@ -1214,8 +1258,8 @@ var WaveTransition = class {
     r.setLayer("new", newShot.canvas, cfg.blurNear * this.dpr, cfg.blur * this.dpr);
     this.after = after;
     this.canvasPage = union(before.page, after.page);
-    this.rects = { old: rel(before.page, this.canvasPage), new: rel(after.page, this.canvasPage), shape: rel(before.el, this.canvasPage), radii: before.radii, boxless: before.boxless && after.boxless };
-    this.shapes = { from: rel(before.el, this.canvasPage), to: rel(after.el, this.canvasPage), r0: before.radii, r1: after.radii };
+    this.rects = { old: rel(before.page, this.canvasPage), new: rel(after.page, this.canvasPage), shape: rel(before.shape, this.canvasPage), radii: before.shapeRadii, boxless: before.boxless && after.boxless, clipped: before.clipped || after.clipped };
+    this.shapes = { from: rel(before.shape, this.canvasPage), to: rel(after.shape, this.canvasPage), r0: before.shapeRadii, r1: after.shapeRadii };
     this._resizeCanvas();
     this.gateOpen = true;
     if (this.fadeOnly) {

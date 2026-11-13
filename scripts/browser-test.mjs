@@ -110,6 +110,26 @@ await check('update still runs when no new WebGL context can be created', async 
   assert.equal(pressed, 'b');
 });
 
+await check('rounded corners come from overflow-clipping parents and partial radii survive', async () => {
+  const { page } = await open();
+  const r = await page.evaluate(async () => {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'width:300px;border-radius:16px;overflow:hidden;border:1px solid #333;margin:20px';
+    wrap.innerHTML = '<pre id="clipkid" style="margin:0;padding:12px;background:#111;color:#eee">npm i distortion-wave</pre>';
+    const tab = document.createElement('button');
+    tab.id = 'halfround'; tab.textContent = 'tab'; tab.style.cssText = 'border-radius:12px 12px 0 0;padding:8px 16px;background:#222;color:#eee;border:0;margin:20px';
+    document.querySelector('main').prepend(wrap, tab);
+    const a = __dw.distortionWave(document.getElementById('clipkid'), () => { document.getElementById('clipkid').textContent = 'bun add distortion-wave'; });
+    await a.ready; const ra = { ...a.rects.radii, clipped: a.rects.clipped }; a.skip(); await a.finished.catch(() => {});
+    const b = __dw.distortionWave(tab, () => { tab.textContent = 'tab!'; });
+    await b.ready; const rb = { ...b.rects.radii }; b.skip(); await b.finished.catch(() => {});
+    return { ra, rb };
+  });
+  assert.ok(r.ra.clipped, 'clipped by the parent');
+  assert.ok(Math.abs(r.ra.bl - 15) < 0.6 && Math.abs(r.ra.tl - 15) < 0.6, `parent radius minus border, got ${JSON.stringify(r.ra)}`);
+  assert.ok(Math.abs(r.rb.tl - 12) < 0.01 && Math.abs(r.rb.tr - 12) < 0.01 && r.rb.bl === 0, `partial radii kept, got ${JSON.stringify(r.rb)}`);
+});
+
 // Subset of JetBrains Mono ("$ab" only), © 2020 The JetBrains Mono Project Authors, SIL Open Font License 1.1.
 const TINY_FONT = 'data:font/woff;base64,d09GRgABAAAAAAVoAA8AAAAABfAAAQABAAAAAAAAAAAAAAAAAAAAAAAAAABHREVGAAAEuAAAABMAAAAUAA8AAkdQT1MAAATMAAAAIAAAACBEdkx1R1NVQgAABOwAAAAqAAAAKrj6uPRPUy8yAAADVAAAAE4AAABgE3ZYDVNUQVQAAAUYAAAATwAAAF7mY9MfY21hcAAAA6QAAAAzAAAAPACzAENnYXNwAAAEsAAAAAgAAAAIAAAAEGdseWYAAAFYAAABagAAAXjOvmQZaGVhZAAAAvAAAAA2AAAANhSQ8UNoaGVhAAADNAAAACAAAAAkAcoBFWhtdHgAAAMoAAAACgAAAAoC4QC2bG9jYQAAAuQAAAAKAAAACgD1AG9tYXhwAAACxAAAAB0AAAAgAHwCb25hbWUAAAPYAAAAwAAAAWIhIDY/cG9zdAAABJgAAAAXAAAAIP9oADN4nCXPTS8DQRyA8f9OdXYrJBo7swmC7LCraWu7nZ1Zjaq2Gu+EtqiNkLARjaYJcXWqODn3zE18Hid3X0EcRAWf4Pc8gKDU+1C+UQbGwAYwTEt4knPhWczEKpOSZymJM8Gwiu2sFIKZmOj06yAM914W5txyNIjdHJy0G0p0xvGL1ee0t9h/uLnV8LmfYCv10/r3fdOdYCvF7HY2OSsAEBz1PlAEvQGFKYCoaVs2IyzOicql/+cR/d/6iyBEp8pmJWFiJQhQBLPEUi0Mr3Llcs4vlfqnxzNN9PZ460xMt0+ejtvblWK3WFkudAvLABFY7d2gocg5MEgCB4gKy7K5To24bf2e+oITSg3mWTYxKCU6VomQUniWgwTGRDeoMnx8iYJ5Obqxe1bP10IlcNMzazvNhiud1EA+5U4aDx2tue8WVAVrRmtt50K762gXVWde/Rw02uvVVqzzquUzqfJg3/W7KpMeG/kBY8tOzwAAeJxjYGRgYGBh3MGQx7CFgY0BxEMAZgYmACvxAe0AAAAAAAAAADkAbwC8AAAAAQAAAAI2BBD0ToZfDzz1AAMD6AAAAADb0qaaAAAAANva0PL5Of7UBJID/AAAAAYAAgAAAAAAAAJYAFoAQQBcAEgAAHicY2BkYGD+8+8KAwPLhp+Wf/tZJjEwMqACRgCvswbdeJxjYGGKYpzAwMrAwNTFFMHAwOANoRnjGIwYHRgYmBgYOBlggJEBCXg5MTAwHGBQYUhi/vPvCgMD8x9GHZgaJjWmWwwMDAoMrADh8QrlAAB4nB3KSw3AIAAFsPIJCpDAYbY2ZXOGlEfCqZeiomFqyrV7MHRFtXwJljfJzn8XDpBNCPAAeJx9zzFKxFAUheEvOiDKoC7AIqU2Rizt1EpBkEEQposhJJExb8gkhXubhbgCF+ACRHhGsRgsLvwczr3nXOyY25ZMdrFm5MSR9chb9r19c8LU+8iTP/qBqY+RD+35dC1YetVpVGq91LmzOKkHtVLqVql3pZNrtFZSd4JWkLrXCZ6Virh/adCrBV10Hse7vaWVC5lMpYmOwZNTheBFtiFlk/aTe/Jvq5lSZbCQ6zwqf/+70cstNAqzmJxrvwC9DzeAeJxjYGYAg/+pDEYMDAyMDGgAACWjAZsAAAEAAf//AA94nGNgZGBg4GGAAEYIBAAA6wASAAABAAAACgAcAB4AAURGTFQACAAEAAAAAP//AAAAAAAAAAEAAAAKACYAKAACREZMVAAObGF0bgAYAAQAAAAA//8AAAAAAAAAAAAAAAB4nC3LMQ6CYBQE4W8fxNhBQUVt5aFMrICEkoRreCArT2b843YzmRVxVZh0uKlzWY9gO557BnExu7em0udFHuRDe/xdvRtHZfRb+AJ0Nwc3AA==';
 await check('a data: URL font does not break the CSS of the snapshot (::before survives)', async () => {

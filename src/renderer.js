@@ -25,6 +25,7 @@ uniform vec2 uSize, uRes;
 uniform sampler2D uOld0, uOld1, uOld2, uNew0, uNew1, uNew2;
 uniform vec4 uOldRect, uNewRect, uShape, uRadii;   // rects in canvas CSS px; radii (br, tr, bl, tl)
 uniform int uMode;                                 // 0 before · 1 live · 2 after · 3 crossfade · 4 effects only (live DOM below)
+uniform bool uClip;                                 // an ancestor clips the element: mask everything by the shape
 uniform float uFade, uBoxless;                      // uBoxless: the element paints no box → light up its content only
 uniform bool uLaunched, uRing;
 uniform vec2 uOrigin;
@@ -89,10 +90,15 @@ vec3 oklabToSrgb(vec3 c) {
 void main() {
   vec2 p = vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y) * (uSize.x / uRes.x);
   float dn = (ign(gl_FragCoord.xy) - 0.5) / 255.0;
+  // element shape (per-corner radii, clipped by overflow ancestors): mask + rim
+  vec2 c = p - (uShape.xy + uShape.zw * 0.5);
+  float sd = sdRoundBox(c, uShape.zw * 0.5, uRadii);
+  float mask = clamp(0.5 - sd * (uRes.x / uSize.x), 0.0, 1.0);
+  float clipM = uClip ? mask : 1.0;
   if (uMode == 0 || uMode == 2 || uMode == 3) {
     vec4 a = tap(uOld0, uOldRect, p, p), b = tap(uNew0, uNewRect, p, p);
-    vec4 c = uMode == 0 ? a : uMode == 2 ? b : mix(a, b, uFade);
-    outColor = vec4(c.rgb + dn * c.a, c.a); return;
+    vec4 v = (uMode == 0 ? a : uMode == 2 ? b : mix(a, b, uFade)) * clipM;
+    outColor = vec4(v.rgb + dn * v.a, v.a); return;
   }
   Front f = front(p);
   vec2 r = p - uOrigin; float rl = max(length(r), 1.0);
@@ -114,12 +120,8 @@ void main() {
     else col = mix(layerNew(p, sp, sl, tn, tf), layerOld(p, sp, sl, tn, tf), cover);
     // the UNdisplaced alpha fixes the silhouette (rounded corners, transparent areas): no fill-in, no fringe outside
     float aU = mix(tap(uNew0, uNewRect, p, p).a, tap(uOld0, uOldRect, p, p).a, cover);
-    col *= min(1.0, aU / max(col.a, 1e-4));
+    col *= min(1.0, aU / max(col.a, 1e-4)) * clipM;
   }
-  // element shape (per-corner radii): mask + rim
-  vec2 c = p - (uShape.xy + uShape.zw * 0.5);
-  float sd = sdRoundBox(c, uShape.zw * 0.5, uRadii);
-  float mask = clamp(0.5 - sd * (uRes.x / uSize.x), 0.0, 1.0);
   if (uBoxless > 0.5) {
     // no background, border or shadow: the band lights the content and a soft halo around it, never the bounding box
     float sharp = max(tap(uNew0, uNewRect, p, p).a, tap(uOld0, uOldRect, p, p).a);
@@ -259,7 +261,7 @@ class Renderer {
     gl.uniform2f(u('uSize'), f.w, f.h); gl.uniform2f(u('uRes'), W, H);
     v4('uOldRect', R.old); v4('uNewRect', R.new || R.old); v4('uShape', R.shape);
     gl.uniform4f(u('uRadii'), R.radii.br, R.radii.tr, R.radii.bl, R.radii.tl);
-    gl.uniform1i(u('uMode'), f.mode); gl.uniform1f(u('uFade'), f.fade || 0); gl.uniform1f(u('uBoxless'), R.boxless ? 1 : 0);
+    gl.uniform1i(u('uMode'), f.mode); gl.uniform1f(u('uFade'), f.fade || 0); gl.uniform1f(u('uBoxless'), R.boxless ? 1 : 0); gl.uniform1i(u('uClip'), R.clipped ? 1 : 0);
     const s = f.s, c = f.cfg;
     if (s) {
       gl.uniform1i(u('uLaunched'), s.launched ? 1 : 0); gl.uniform1i(u('uRing'), s.ring ? 1 : 0);

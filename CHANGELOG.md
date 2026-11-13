@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.2 — 2026-11-13
+
+- The wave keeps rounded corners that come from a parent with `overflow: hidden` (a `<pre>` inside a rounded card, say). It used to show square corners there.
+- Partial radii such as `border-radius: 12px 12px 0 0` are kept. They used to collapse to square corners.
+
 ## 0.1.1 — 2026-11-13
 
 - Password fields are captured as masked dots instead of rendering empty during the wave. The real value never goes into the snapshot.

@@ -19,11 +19,37 @@ import { acquire, release, warmupWave } from './renderer.js';
 import { captureFocus, restoreFocus } from './focus.js';
 
 // ═══ Measuring & DOM helpers ═════════════════════════════════════════════════
+// two radii on one side may not add up to more than that side (a zero sum leaves them alone)
+const fit = (side, a, b) => (a + b > 0 ? side / (a + b) : Infinity);
 function parseRadii(cs, w, h) {
   const one = (v, side) => { const t = String(v).trim().split(/\s+/)[0]; const n = parseFloat(t) || 0; return t.endsWith('%') ? n / 100 * side : n; };
   let tl = one(cs.borderTopLeftRadius, w), tr = one(cs.borderTopRightRadius, w), br = one(cs.borderBottomRightRadius, w), bl = one(cs.borderBottomLeftRadius, w);
-  const f = Math.min(1, w / ((tl + tr) || 1e9), w / ((bl + br) || 1e9), h / ((tl + bl) || 1e9), h / ((tr + br) || 1e9));   // CSS overlapping-radii rule
+  const f = Math.min(1, fit(w, tl, tr), fit(w, bl, br), fit(h, tl, bl), fit(h, tr, br));   // CSS overlapping-radii rule
   return { tl: tl * f, tr: tr * f, br: br * f, bl: bl * f };
+}
+// The visible shape: overflow-clipping ancestors (a rounded .card with overflow: hidden around a <pre>, a scroller)
+// cut the element and round its corners even when it has no border-radius of its own.
+function clippedShape(el, rect, radii) {
+  let x0 = rect.left, y0 = rect.top, x1 = rect.right, y1 = rect.bottom, changed = false;
+  const r = { ...radii };
+  for (let n = el, cs = getComputedStyle(el); n.parentElement && n.parentElement !== document.body; ) {
+    if (cs.position === 'fixed') break;                                   // nothing above a fixed box clips it
+    n = n.parentElement; cs = getComputedStyle(n);
+    const clips = cs.overflowX !== 'visible' || cs.overflowY !== 'visible' || /paint|strict|content/.test(cs.contain);
+    if (!clips) continue;
+    const b = n.getBoundingClientRect();
+    const bl = parseFloat(cs.borderLeftWidth) || 0, bt = parseFloat(cs.borderTopWidth) || 0, br = parseFloat(cs.borderRightWidth) || 0, bb = parseFloat(cs.borderBottomWidth) || 0;
+    const px0 = b.left + bl, py0 = b.top + bt, px1 = b.right - br, py1 = b.bottom - bb;   // overflow clips at the padding box
+    if (px0 > x0 + 0.5 || py0 > y0 + 0.5 || px1 < x1 - 0.5 || py1 < y1 - 0.5) changed = true;
+    x0 = Math.max(x0, px0); y0 = Math.max(y0, py0); x1 = Math.min(x1, px1); y1 = Math.min(y1, py1);
+    const R = parseRadii(cs, b.width, b.height);
+    const inner = { tl: Math.max(0, R.tl - Math.max(bl, bt)), tr: Math.max(0, R.tr - Math.max(br, bt)), br: Math.max(0, R.br - Math.max(br, bb)), bl: Math.max(0, R.bl - Math.max(bl, bb)) };
+    const corner = (k, dx, dy) => { const v = inner[k] - Math.max(dx, dy); if (v > r[k] + 0.5) { r[k] = v; changed = true; } };
+    corner('tl', x0 - px0, y0 - py0); corner('tr', px1 - x1, y0 - py0); corner('br', px1 - x1, py1 - y1); corner('bl', x0 - px0, py1 - y1);
+  }
+  const w = Math.max(x1 - x0, 0), h = Math.max(y1 - y0, 0);
+  const f = Math.min(1, fit(w, r.tl, r.tr), fit(w, r.bl, r.br), fit(h, r.tl, r.bl), fit(h, r.tr, r.br));
+  return { x: x0, y: y0, w, h, radii: { tl: r.tl * f, tr: r.tr * f, br: r.br * f, bl: r.bl * f }, clipped: changed };
 }
 function isFixed(el) { for (let n = el; n && n !== document.documentElement; n = n.parentElement) if (getComputedStyle(n).position === 'fixed') return true; return false; }
 function measure(el) {
@@ -31,8 +57,10 @@ function measure(el) {
   const w = el.offsetWidth ?? rect.width, h = el.offsetHeight ?? rect.height;
   const x0 = Math.max(rect.left, 0), y0 = Math.max(rect.top, 0), x1 = Math.min(rect.right, innerWidth), y1 = Math.min(rect.bottom, innerHeight);
   const fixed = isFixed(el), sx = fixed ? 0 : scrollX, sy = fixed ? 0 : scrollY;
+  const radii = parseRadii(cs, w, h), sh = clippedShape(el, rect, radii);
   return {
-    w, h, fixed, opacity: cs.opacity, radii: parseRadii(cs, w, h), boxless: !hasVisibleBox(cs), visible: x1 > x0 && y1 > y0,
+    w, h, fixed, opacity: cs.opacity, radii, boxless: !hasVisibleBox(cs), visible: x1 > x0 && y1 > y0,
+    shape: { x: sh.x + sx, y: sh.y + sy, w: sh.w, h: sh.h }, shapeRadii: sh.radii, clipped: sh.clipped,   // what is actually visible
     clip: { x: x0 - rect.left, y: y0 - rect.top, w: x1 - x0, h: y1 - y0 },          // visible part, element space
     page: { x: x0 + sx, y: y0 + sy, w: x1 - x0, h: y1 - y0 },                   // same, page space (scroll-stable)
     el: { x: rect.left + sx, y: rect.top + sy, w: rect.width, h: rect.height },
@@ -119,7 +147,7 @@ class WaveTransition {
     this.particles = makeParticles(cfg.particles, cfg); this.dots = new Float32Array(Math.max(this.particles.length, 1) * 4);
     this.origin = this._originPage(before);                               // source/touch in page coordinates
     this.canvasPage = before.page;
-    this.rects = { old: rel(before.page, before.page), new: null, shape: rel(before.el, before.page), radii: before.radii, boxless: before.boxless };
+    this.rects = { old: rel(before.page, before.page), new: null, shape: rel(before.shape, before.page), radii: before.shapeRadii, boxless: before.boxless, clipped: before.clipped };
     t0 = performance.now();
     r.setLayer('old', oldShot.canvas, cfg.blurNear * this.dpr, cfg.blur * this.dpr);
     this.metrics.upload = Math.round(performance.now() - t0);
@@ -145,8 +173,8 @@ class WaveTransition {
     // 4 · open the gate: the canvas covers the union of before/after
     this.after = after;
     this.canvasPage = union(before.page, after.page);
-    this.rects = { old: rel(before.page, this.canvasPage), new: rel(after.page, this.canvasPage), shape: rel(before.el, this.canvasPage), radii: before.radii, boxless: before.boxless && after.boxless };
-    this.shapes = { from: rel(before.el, this.canvasPage), to: rel(after.el, this.canvasPage), r0: before.radii, r1: after.radii };
+    this.rects = { old: rel(before.page, this.canvasPage), new: rel(after.page, this.canvasPage), shape: rel(before.shape, this.canvasPage), radii: before.shapeRadii, boxless: before.boxless && after.boxless, clipped: before.clipped || after.clipped };
+    this.shapes = { from: rel(before.shape, this.canvasPage), to: rel(after.shape, this.canvasPage), r0: before.shapeRadii, r1: after.shapeRadii };
     this._resizeCanvas();
     this.gateOpen = true;
     if (this.fadeOnly) { this.mode = 3; this.fadeStart = this.now; }
