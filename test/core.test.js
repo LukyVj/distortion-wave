@@ -1,7 +1,7 @@
 // Unit tests for the pure core (no DOM, no GPU): node --test test/
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { PRESETS, scaleConfig, totalDuration, frameState, makeParticles, particleAt, colorAlpha, hasVisibleBox } from '../src/core.js';
+import { PRESETS, scaleConfig, totalDuration, frameState, makeParticles, particleAt, colorAlpha, hasVisibleBox, retime, parseEasing, resolveConfig } from '../src/core.js';
 
 const button = { x: 20, y: 662, w: 320, h: 54 };
 const geom = (cfg, touchX = null) => ({
@@ -87,4 +87,44 @@ test('hasVisibleBox: a transparent grid has no box, a card has one', () => {
   assert.equal(hasVisibleBox({ ...none, boxShadow: 'rgba(0, 0, 0, 0.3) 0px 1px 3px 0px' }), true);
   assert.equal(hasVisibleBox({ ...none, borderTopWidth: '1px', borderTopStyle: 'solid' }), true);
   assert.equal(hasVisibleBox({ ...none, borderTopWidth: '1px', borderTopStyle: 'solid', borderTopColor: 'rgba(0, 0, 0, 0)' }), false);
+});
+
+test('duration: the whole transition lasts exactly that long, whatever the size', () => {
+  for (const [w, h] of [[80, 36], [360, 740], [1440, 900]]) {
+    const c = resolveConfig(PRESETS.vertical, { duration: 1200 }, w, h);
+    assert.ok(Math.abs(totalDuration(c) - 1.2) < 1e-9, `${w}×${h}: ${totalDuration(c)}`);
+  }
+  const c = retime(scaleConfig(PRESETS.center, 200, 200), 3);
+  assert.ok(Math.abs(totalDuration(c) - 3) < 1e-9);
+});
+
+test('without duration the config is the size-scaled default', () => {
+  const a = resolveConfig(PRESETS.vertical, {}, 300, 200), b = scaleConfig(PRESETS.vertical, 300, 200);
+  assert.equal(totalDuration(a), totalDuration(b));
+  assert.equal(a.amplitude, b.amplitude);
+  assert.equal(a.ease, null);
+});
+
+test('easing: keywords, cubic-bezier() strings, arrays, functions; junk is ignored', () => {
+  assert.equal(parseEasing('linear')(0.3).toFixed(3), '0.300');
+  assert.ok(parseEasing('ease-in')(0.3) < 0.3 && parseEasing('ease-out')(0.3) > 0.3);
+  assert.ok(Math.abs(parseEasing('cubic-bezier(0.2, 1, 0.3, 1)')(0.5) - parseEasing([0.2, 1, 0.3, 1])(0.5)) < 1e-12);
+  assert.equal(parseEasing((x) => x * x)(0.5), 0.25);
+  assert.equal(parseEasing('bouncy'), null);
+  assert.equal(parseEasing([0, 1]), null);
+  const lin = resolveConfig(PRESETS.vertical, { easing: 'linear' }, 360, 740);
+  const g = { w: 360, h: 740, src: { x: 150, y: 700, w: 60, h: 30 }, touch: null, hold: false };
+  const s = frameState(lin.anticipation + lin.travel * 0.25, lin, g);
+  assert.ok(Math.abs(s.moved - 0.25) < 1e-3, `linear front at 25%: ${s.moved}`);
+});
+
+test('intensity scales the distortion only, tuning keys still win over the preset', () => {
+  const ref = resolveConfig(PRESETS.vertical, {}, 360, 740);
+  const two = resolveConfig(PRESETS.vertical, { intensity: 2 }, 360, 740);
+  const zero = resolveConfig(PRESETS.vertical, { intensity: 0 }, 360, 740);
+  assert.ok(Math.abs(two.amplitude - ref.amplitude * 2) < 1e-9 && Math.abs(two.aberration - ref.aberration * 2) < 1e-9);
+  assert.equal(zero.amplitude, 0);
+  assert.equal(two.blur, ref.blur);
+  assert.equal(resolveConfig(PRESETS.vertical, { blur: 0 }, 360, 740).blurNear >= 1.2, true);
+  assert.ok(Math.abs(resolveConfig(PRESETS.vertical, { rimWidth: 30, palette: undefined }, 360, 740).rimWidth - 30) < 0.05);
 });

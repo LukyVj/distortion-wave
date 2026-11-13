@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0 — 2026-11-13
+
+- `duration`: total length of the transition in ms, whatever the size of the element.
+- `easing`: how the front travels. CSS keywords, `cubic-bezier(…)`, an array or a function.
+- `intensity`: one multiplier for the distortion (displacement, bulge, chromatic aberration).
+- `setWaveDefaults(options)`: options for every wave of the app, under the per-call ones.
+- Every fine-tuning key is documented in the README and typed.
+- React example (`examples/react`) with a `useWave` hook, plus a CodePen version.
+- UI kit: an Options panel to try duration, easing, intensity and palette live.
+
 ## 0.1.2 — 2026-11-13
 
 - The wave keeps rounded corners that come from a parent with `overflow: hidden` (a `<pre>` inside a rounded card, say). It used to show square corners there.

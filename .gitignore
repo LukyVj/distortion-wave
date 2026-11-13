@@ -3,3 +3,6 @@ test-results/
 shots/
 *.log
 .DS_Store
+examples/react/node_modules/
+examples/react/dist/
+examples/react/package-lock.json

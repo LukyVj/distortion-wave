@@ -466,6 +466,33 @@ function scaleConfig(c, w, h) {
   return o;
 }
 var totalDuration = (c) => c.anticipation + Math.max(c.travel * 0.6, c.linger + c.rimFade, c.linger + c.hairDelay + c.hairFade, c.particleLife);
+function retime(c, seconds) {
+  const f = seconds / totalDuration(c);
+  for (const key of T_KEYS) c[key] *= f;
+  return c;
+}
+var EASINGS = { linear: [0, 0, 1, 1], ease: [0.25, 0.1, 0.25, 1], "ease-in": [0.42, 0, 1, 1], "ease-out": [0, 0, 0.58, 1], "ease-in-out": [0.42, 0, 0.58, 1] };
+function parseEasing(e) {
+  if (typeof e === "function") return e;
+  let v = Array.isArray(e) ? e : EASINGS[e];
+  if (!v && typeof e === "string") {
+    const m = e.match(/cubic-bezier\(([^)]+)\)/);
+    if (m) v = m[1].split(",").map(Number);
+  }
+  return v && v.length === 4 && v.every(Number.isFinite) ? cubicBezier(...v) : null;
+}
+var INTENSITY_KEYS = ["amplitude", "swell", "pull", "inhale", "aberration"];
+function resolveConfig(preset, o, w, h) {
+  const base = { ...preset };
+  for (const k of Object.keys(o)) if (k in BASE && k !== "type" && k !== "particles" && o[k] != null) base[k] = o[k];
+  if (o.particles === false) base.particles = 0;
+  else if (typeof o.particles === "number") base.particles = o.particles;
+  if (o.intensity != null) for (const k of INTENSITY_KEYS) base[k] *= Math.max(0, o.intensity);
+  const c = scaleConfig(base, w, h);
+  if (o.duration > 0) retime(c, o.duration / 1e3);
+  c.ease = parseEasing(o.easing);
+  return c;
+}
 function farthestCorner(ox, oy, tilt, squash, w, h) {
   const c = Math.cos(tilt), s = Math.sin(tilt);
   let best = 0;
@@ -479,7 +506,7 @@ function frameState(t, c, g) {
   const ring = c.type === "center", horiz = c.type === "horizontal";
   const T = totalDuration(c), time = clamp(t, 0, T);
   const fly = time - c.anticipation, pre = smooth(0, c.anticipation, time);
-  const prog = clamp(fly / c.travel), e = easeLaunch(prog);
+  const prog = clamp(fly / c.travel), e = (c.ease || easeLaunch)(prog);
   const s = g.src, cx = s.x + s.w / 2, cy = s.y + s.h / 2;
   const r0 = Math.max(Math.min(s.w, s.h) / 2, 1);
   const half = (horiz ? s.h : s.w) / 2, perp = (horiz ? s.w : s.h) / 2;
@@ -1169,12 +1196,22 @@ function takePrepared(target, m) {
 }
 var ACTIVE = /* @__PURE__ */ new WeakMap();
 var DEFAULTS = { variant: "auto", palette: "aurora", speed: 1, particles: true, reducedMotion: null, timeout: 3e3, preserveFocus: true };
+var USER_DEFAULTS = {};
+var merge = (...objs) => {
+  const out = {};
+  for (const o of objs) for (const k in o) if (o[k] !== void 0) out[k] = o[k];
+  return out;
+};
+function setWaveDefaults(options) {
+  USER_DEFAULTS = options ? merge(USER_DEFAULTS, options) : {};
+  return { ...USER_DEFAULTS };
+}
 var WaveTransition = class {
   constructor(target, update, opts) {
     this.target = target;
     this.update = update || (() => {
     });
-    this.o = { ...DEFAULTS, ...opts };
+    this.o = merge(DEFAULTS, USER_DEFAULTS, opts);
     this._d = { ready: deferred(), update: deferred(), covered: deferred(), finished: deferred() };
     this.ready = this._d.ready.p;
     this.updateCallbackDone = this._d.update.p;
@@ -1219,11 +1256,7 @@ var WaveTransition = class {
     const oldShot = takePrepared(target, before) || await snapshotElement(target, { dpr: Math.min(dpr, 2), clip: before.clip });
     this.metrics.captureBefore = Math.round(performance.now() - t0);
     if (this._skipped) return this._plain();
-    const base = { ...PRESETS[this._variant(before)] || BASE };
-    for (const k of Object.keys(o)) if (k in BASE && k !== "type" && k !== "particles") base[k] = o[k];
-    if (o.particles === false) base.particles = 0;
-    else if (typeof o.particles === "number") base.particles = o.particles;
-    const cfg = scaleConfig(base, before.clip.w, before.clip.h);
+    const cfg = resolveConfig(PRESETS[this._variant(before)] || BASE, o, before.clip.w, before.clip.h);
     this.cfg = cfg;
     this.before = before;
     this.dpr = oldShot.dpr;
@@ -1443,7 +1476,7 @@ var WaveTransition = class {
     if (ACTIVE.get(this.target) === this) ACTIVE.delete(this.target);
   }
   _abort(err) {
-    console.warn("[distortion-wave] repli sans animation :", err);
+    console.warn("[distortion-wave] falling back to a plain update:", err);
     this._done = true;
     this._show();
     this._release();
@@ -1471,6 +1504,7 @@ export {
   frameState,
   prepareWave,
   scaleConfig,
+  setWaveDefaults,
   snapshotElement,
   totalDuration,
   warmupWave,

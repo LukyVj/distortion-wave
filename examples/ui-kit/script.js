@@ -1,4 +1,8 @@
-import { distortionWave, waveOnClick, warmupWave } from 'https://cdn.jsdelivr.net/npm/distortion-wave@0.1/+esm';
+import { distortionWave as runWave, waveOnClick, warmupWave, setWaveDefaults } from 'https://cdn.jsdelivr.net/npm/distortion-wave@0.2/+esm';
+
+// The Options panel (bottom right) can force one palette on every component.
+let forcedPalette = '';
+const distortionWave = (target, update, options = {}) => runWave(target, update, forcedPalette ? { ...options, palette: forcedPalette } : options);
 
 // Every block below follows the same pattern:
 //   distortionWave(target, () => { /* change the DOM */ }, { source, focus: event })
@@ -470,3 +474,32 @@ waveOnClick(theme, app, () => {
   theme.setAttribute('aria-checked', dark);
   theme.setAttribute('aria-label', dark ? 'Dark theme' : 'Light theme');
 });
+
+// ═════════════════════════ Options panel ═════════════════════════
+// Duration, easing and intensity go through setWaveDefaults(): every wave on the page picks them up.
+
+const tweaks = $('#tweaks');
+const tweaksToggle = $('.tweaks-toggle');
+const tweaksBody = $('#tweaksBody');
+tweaksToggle.addEventListener('click', (e) => {
+  const open = tweaksBody.hidden;
+  distortionWave(tweaks, () => {
+    tweaksBody.hidden = !open;
+    tweaksToggle.setAttribute('aria-expanded', open);
+  }, { source: tweaksToggle, focus: e, palette: 'ocean' });
+});
+const applyTweaks = () => {
+  const duration = +$('#tDur').value, intensity = +$('#tInt').value, easing = $('#tEase').value;
+  forcedPalette = $('#tPal').value;
+  $('#tDurOut').textContent = duration ? `${duration} ms` : 'auto';
+  $('#tIntOut').textContent = intensity.toFixed(1);
+  const opts = { duration: duration || undefined, easing, intensity };
+  setWaveDefaults(null); setWaveDefaults(opts);
+  const shown = Object.entries(opts)
+    .filter(([k, v]) => v !== undefined && !(k === 'intensity' && v === 1) && !(k === 'easing' && v.startsWith('cubic-bezier(0.2, 1')))
+    .map(([k, v]) => `${k}: ${typeof v === 'string' ? `'${v}'` : v}`);
+  $('#tCode').textContent = `setWaveDefaults({ ${shown.join(', ')} })`.replace('({  })', '({})')
+    + (forcedPalette ? `\n// and on every call: { palette: '${forcedPalette}' }` : '');
+};
+['#tDur', '#tInt', '#tEase', '#tPal'].forEach((id) => $(id).addEventListener('input', applyTweaks));
+applyTweaks();

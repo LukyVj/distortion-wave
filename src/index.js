@@ -14,7 +14,7 @@
 // soon as the wave has passed).
 
 import { snapshotElement } from './capture.js';
-import { BASE, PRESETS, PALETTES, scaleConfig, totalDuration, frameState, makeParticles, particleAt, clamp, lerp, hasVisibleBox } from './core.js';
+import { BASE, PRESETS, PALETTES, scaleConfig, totalDuration, frameState, makeParticles, particleAt, clamp, lerp, hasVisibleBox, resolveConfig } from './core.js';
 import { acquire, release, warmupWave } from './renderer.js';
 import { captureFocus, restoreFocus } from './focus.js';
 
@@ -100,10 +100,17 @@ function takePrepared(target, m) {
 // ═══ Orchestration ═══════════════════════════════════════════════════════════
 const ACTIVE = new WeakMap();
 const DEFAULTS = { variant: 'auto', palette: 'aurora', speed: 1, particles: true, reducedMotion: null, timeout: 3000, preserveFocus: true };
+let USER_DEFAULTS = {};
+const merge = (...objs) => { const out = {}; for (const o of objs) for (const k in o) if (o[k] !== undefined) out[k] = o[k]; return out; };
+/** Options applied to every wave, under the per-call ones. `setWaveDefaults(null)` resets them. Returns the current defaults. */
+export function setWaveDefaults(options) {
+  USER_DEFAULTS = options ? merge(USER_DEFAULTS, options) : {};
+  return { ...USER_DEFAULTS };
+}
 
 class WaveTransition {
   constructor(target, update, opts) {
-    this.target = target; this.update = update || (() => {}); this.o = { ...DEFAULTS, ...opts };
+    this.target = target; this.update = update || (() => {}); this.o = merge(DEFAULTS, USER_DEFAULTS, opts);
     this._d = { ready: deferred(), update: deferred(), covered: deferred(), finished: deferred() };
     this.ready = this._d.ready.p; this.updateCallbackDone = this._d.update.p; this.covered = this._d.covered.p; this.finished = this._d.finished.p;
     this.metrics = {};
@@ -139,10 +146,7 @@ class WaveTransition {
     if (this._skipped) return this._plain();
 
     // 2 · config scaled to the target + initial geometry
-    const base = { ...(PRESETS[this._variant(before)] || BASE) };
-    for (const k of Object.keys(o)) if (k in BASE && k !== 'type' && k !== 'particles') base[k] = o[k];
-    if (o.particles === false) base.particles = 0; else if (typeof o.particles === 'number') base.particles = o.particles;
-    const cfg = scaleConfig(base, before.clip.w, before.clip.h);
+    const cfg = resolveConfig(PRESETS[this._variant(before)] || BASE, o, before.clip.w, before.clip.h);
     this.cfg = cfg; this.before = before; this.dpr = oldShot.dpr;
     this.particles = makeParticles(cfg.particles, cfg); this.dots = new Float32Array(Math.max(this.particles.length, 1) * 4);
     this.origin = this._originPage(before);                               // source/touch in page coordinates
@@ -287,7 +291,7 @@ class WaveTransition {
   }
   _release() { if (this.r) { release(this.r); this.r = null; } if (ACTIVE.get(this.target) === this) ACTIVE.delete(this.target); }
   _abort(err) {
-    console.warn('[distortion-wave] repli sans animation :', err);
+    console.warn('[distortion-wave] falling back to a plain update:', err);
     this._done = true; this._show(); this._release();
     (this._updated ? Promise.resolve() : this._runUpdate()).catch(() => {}).finally(() => {
       this._d.ready.res(); this._d.covered.res(); this._d.finished.res();

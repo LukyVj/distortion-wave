@@ -284,3 +284,18 @@
     </section>
   </main>
 </div>
+
+<aside class="tweaks" id="tweaks">
+  <button class="tweaks-toggle" aria-expanded="false" aria-controls="tweaksBody"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Options</button>
+  <div class="tweaks-body" id="tweaksBody" hidden>
+    <label>Duration <output id="tDurOut">auto</output><input id="tDur" type="range" min="0" max="4000" step="100" value="0"></label>
+    <label>Intensity <output id="tIntOut">1.0</output><input id="tInt" type="range" min="0" max="2" step="0.1" value="1"></label>
+    <label>Easing
+      <select id="tEase"><option>cubic-bezier(0.2, 1, 0.3, 1)</option><option>ease-in-out</option><option>ease-out</option><option>linear</option></select>
+    </label>
+    <label>Palette
+      <select id="tPal"><option value="">each component's own</option><option>aurora</option><option>ocean</option><option>mint</option><option>ember</option></select>
+    </label>
+    <pre><code id="tCode">setWaveDefaults({})</code></pre>
+  </div>
+</aside>

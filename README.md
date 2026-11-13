@@ -76,25 +76,37 @@ Only the part visible in the viewport is captured and animated, so a long page c
 
 ### React
 
-The DOM has to be updated when your callback returns, so wrap the state change in `flushSync` (same as with View Transitions):
+The DOM has to be updated when your callback returns, so the state change goes through `flushSync` (same as with View Transitions). A small hook keeps that in one place:
 
 ```jsx
+import { useCallback } from 'react';
 import { flushSync } from 'react-dom';
 import { distortionWave } from 'distortion-wave';
 
-function Checkout() {
-  const screen = useRef(null);
-  const [sent, setSent] = useState(false);
+export function useWave(defaults) {
+  return useCallback((target, update, options) => {
+    const el = target && 'current' in target ? target.current : target;
+    if (!el) { update(); return null; }
+    return distortionWave(el, () => flushSync(update), { ...defaults, ...options });
+  }, [defaults]);
+}
+```
+
+```jsx
+function Pricing() {
+  const wave = useWave();
+  const panel = useRef(null);
+  const [plan, setPlan] = useState('monthly');
   return (
-    <div ref={screen} className="screen">
-      {sent ? <Receipt /> : <Review />}
-      <button onClick={(e) => distortionWave(screen.current, () => flushSync(() => setSent(true)), { source: e.currentTarget, focus: e })}>
-        Confirm
-      </button>
-    </div>
+    <>
+      <button onClick={(e) => wave(panel, () => setPlan('yearly'), { source: e.currentTarget, focus: e })}>Yearly</button>
+      <div ref={panel}>{plan === 'yearly' ? <Yearly /> : <Monthly />}</div>
+    </>
   );
 }
 ```
+
+Pass `defaults` from a `useMemo` (or a constant) so the callback stays stable. The full example is in [`examples/react/`](examples/react/).
 
 ### Shortcut
 
@@ -108,7 +120,8 @@ waveOnClick(trigger, target, (event) => { /* update */ }, { palette: 'ocean' });
 ## Examples
 
 - [`demo/`](demo/): a payment screen, a single button, a tab panel, a media card, an element that changes size and a whole-page theme switch.
-- [`examples/ui-kit/`](examples/ui-kit/): about 40 clickable UI pieces in five groups (buttons, toggles and selection, commerce, navigation and content, forms and feedback), plus a theme switch that waves the whole page. `index.html`, `style.css` and `script.js` paste straight into CodePen; `standalone.html` opens from disk.
+- [`examples/ui-kit/`](examples/ui-kit/): about 40 clickable UI pieces in five groups (buttons, toggles and selection, commerce, navigation and content, forms and feedback), plus a theme switch that waves the whole page and an Options panel (duration, easing, intensity, palette). `index.html`, `style.css` and `script.js` paste straight into CodePen; `standalone.html` opens from disk.
+- [`examples/react/`](examples/react/): React 19 + Vite, with the `useWave` hook, a like button, tabs, a list that grows, a theme switch and live options. `npm install && npm run dev` in that folder. `codepen.jsx` is the same app for CodePen (JS preprocessor: Babel).
 
 ## API
 
@@ -116,18 +129,52 @@ waveOnClick(trigger, target, (event) => { /* update */ }, { palette: 'ocean' });
 
 | Option | Default | |
 |---|---|---|
-| `source` | touch point, else center | `Element`, `DOMRect`, `{ x, y }` |
-| `focus` | `null` | the `PointerEvent`/`MouseEvent` (or `{ x, y }`). Keyboard clicks are ignored: the wave starts centered |
+| `source` | touch point, else center | where the wave starts: an `Element` (inside or outside the target), a `DOMRect` or `{ x, y }` |
+| `focus` | `null` | the `PointerEvent`/`MouseEvent` (or `{ x, y }`): the wave leans toward it. Keyboard clicks are ignored |
 | `variant` | `'auto'` | `'vertical'`, `'horizontal'`, `'center'`. Auto: wide source → vertical, tall → horizontal, square or point → center |
-| `palette` | `'aurora'` | `'aurora'`, `'ocean'`, `'mint'`, `'ember'`, or up to 8 hex colours (interpolated in OKLab) |
-| `speed` | `1` | `0.3` for slow motion |
+| `palette` | `'aurora'` | `'aurora'`, `'ocean'`, `'mint'`, `'ember'`, or up to 8 colours (interpolated in OKLab) |
+| `duration` | auto | total length in ms, until `finished`. By default it depends on the size: about 2 s for a button, 4 s for a whole page, the last half being the glow fading out |
+| `easing` | `'cubic-bezier(0.2, 1, 0.3, 1)'` | how the front travels: a CSS keyword (`'linear'`, `'ease-out'`…), `'cubic-bezier(…)'`, `[x1, y1, x2, y2]` or a function |
+| `speed` | `1` | time multiplier on the automatic duration (`0.3` = slow motion). Ignored when `duration` is set |
+| `intensity` | `1` | strength of the distortion (displacement, bulge, chromatic aberration). `0` keeps only the colours |
 | `particles` | `true` | `false`, or a count |
 | `reducedMotion` | follows `prefers-reduced-motion` | `true` gives a 220 ms crossfade |
 | `preserveFocus` | `true` | move focus to the equivalent control if the update replaced the focused one |
 | `timeout` | `3000` | max ms to wait for the "after" capture |
 | `onLaunch`, `onCovered`, `onSettled`, `onEnd(metrics)` | | callbacks |
 
-Any preset key (`amplitude`, `blur`, `rimWidth`, `lead`, `tail`, `swell`, `aberration`…) can be overridden too. Values are given for a 360×740 screen and scaled to the target, so a button gets a thinner rim and a shorter wave.
+```js
+distortionWave(card, update, { duration: 1400, easing: 'ease-in-out', intensity: 0.5, palette: ['#ff5a7a', '#ffffff'] });
+```
+
+**Defaults for the whole app.** `setWaveDefaults({ duration: 900, palette: 'ocean' })` applies to every wave; options passed to a call still win. `setWaveDefaults(null)` resets.
+
+<details>
+<summary><b>Fine tuning</b>: every key of the presets</summary>
+
+Values are given for a 360×740 screen and scaled to the target, so a button gets a thinner rim and a shorter wave. Lengths in px, times in seconds (all times are stretched together when you set `duration`).
+
+| Key | Default | |
+|---|---|---|
+| `anticipation` | `0.45` | the "inhale" before the wave leaves the source |
+| `travel` | `2.2` | time for the front to cross the target |
+| `linger`, `rimFade` | `-0.3`, `2.8` | when the glowing edge starts to clear (relative to the end of the travel), and how long it takes |
+| `amplitude` | `32` | displacement under the front |
+| `lensWidth` | `140` | width of the lens band |
+| `swell` | `20` | how much the front bulges outward |
+| `aberration` | `0.75` | chromatic split |
+| `blur`, `blurNear` | `18`, `6` | max blur, and the blur right next to the front |
+| `blurAhead`, `blurBehind` | `90`, `230` | how far the blur reaches before and after the front |
+| `lead`, `tail`, `band` | `120`, `280`, `0.9` | the colour band: length ahead, length behind, strength |
+| `rimWidth`, `rimSoftness`, `rimStrength` | `14`, `320`, `0.85` | the glow on the element's edge |
+| `hairWidth` | `1.5` | the thin line on the edge |
+| `lean` | `0.9` | how much the front tilts toward the touch point (0 to 1) |
+| `pull`, `inhale` | `22`, `50` | how much the content is pulled toward the source during the anticipation |
+| `particleSize`, `particleLife`, `reach`, `spread` | `1.8`, `2.1`, `140`, `1` | the sparks |
+
+The `center` variant has its own values: see `PRESETS.center`.
+
+</details>
 
 `WaveTransition` mirrors `ViewTransition`:
 
@@ -142,6 +189,7 @@ Any preset key (`amplitude`, `blur`, `rimWidth`, `lead`, `tail`, `swell`, `aberr
 
 ### Other exports
 
+- `setWaveDefaults(options)`: options for every wave (see above).
 - `warmupWave()`: creates a WebGL context and compiles the shaders ahead of time.
 - `prepareWave(target)`: pre-captures a target. Invalidated by any mutation.
 - `snapshotElement(el, { dpr, clip })`: the DOM → canvas capture on its own.

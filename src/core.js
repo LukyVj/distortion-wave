@@ -93,6 +93,33 @@ export function scaleConfig(c, w, h) {
 }
 export const totalDuration = (c) => c.anticipation + Math.max(c.travel * 0.6, c.linger + c.rimFade, c.linger + c.hairDelay + c.hairFade, c.particleLife);
 
+/** Stretches every time key so the whole transition lasts `seconds`. Mutates and returns `c`. Pure otherwise. */
+export function retime(c, seconds) {
+  const f = seconds / totalDuration(c);
+  for (const key of T_KEYS) c[key] *= f;
+  return c;
+}
+const EASINGS = { linear: [0, 0, 1, 1], ease: [0.25, 0.1, 0.25, 1], 'ease-in': [0.42, 0, 1, 1], 'ease-out': [0, 0, 0.58, 1], 'ease-in-out': [0.42, 0, 0.58, 1] };
+/** CSS-like easing for the wave front: a keyword, 'cubic-bezier(a, b, c, d)', [a, b, c, d] or a function. null if invalid. */
+export function parseEasing(e) {
+  if (typeof e === 'function') return e;
+  let v = Array.isArray(e) ? e : EASINGS[e];
+  if (!v && typeof e === 'string') { const m = e.match(/cubic-bezier\(([^)]+)\)/); if (m) v = m[1].split(',').map(Number); }
+  return v && v.length === 4 && v.every(Number.isFinite) ? cubicBezier(...v) : null;
+}
+const INTENSITY_KEYS = ['amplitude', 'swell', 'pull', 'inhale', 'aberration'];
+/** Options → final config for a target of w×h CSS px: tuning keys, intensity, size scaling, then duration and easing. */
+export function resolveConfig(preset, o, w, h) {
+  const base = { ...preset };
+  for (const k of Object.keys(o)) if (k in BASE && k !== 'type' && k !== 'particles' && o[k] != null) base[k] = o[k];
+  if (o.particles === false) base.particles = 0; else if (typeof o.particles === 'number') base.particles = o.particles;
+  if (o.intensity != null) for (const k of INTENSITY_KEYS) base[k] *= Math.max(0, o.intensity);
+  const c = scaleConfig(base, w, h);
+  if (o.duration > 0) retime(c, o.duration / 1000);
+  c.ease = parseEasing(o.easing);
+  return c;
+}
+
 // ═══ Pure timeline: (t, config, geometry) → frame state ══════════════════════
 function farthestCorner(ox, oy, tilt, squash, w, h) {
   const c = Math.cos(tilt), s = Math.sin(tilt);
@@ -111,7 +138,7 @@ export function frameState(t, c, g) {
   const ring = c.type === 'center', horiz = c.type === 'horizontal';
   const T = totalDuration(c), time = clamp(t, 0, T);
   const fly = time - c.anticipation, pre = smooth(0, c.anticipation, time);
-  const prog = clamp(fly / c.travel), e = easeLaunch(prog);
+  const prog = clamp(fly / c.travel), e = (c.ease || easeLaunch)(prog);
   const s = g.src, cx = s.x + s.w / 2, cy = s.y + s.h / 2;
   const r0 = Math.max(Math.min(s.w, s.h) / 2, 1);
   const half = (horiz ? s.h : s.w) / 2, perp = (horiz ? s.w : s.h) / 2;

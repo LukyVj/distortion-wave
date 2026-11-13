@@ -25,8 +25,14 @@ export interface DistortionWaveOptions {
   variant?: Variant;
   /** A named palette or up to 8 hex colours. Interpolated in OKLab. */
   palette?: PaletteName | string[];
-  /** Time multiplier (0.3 = slow motion). Default 1. */
+  /** Total length in ms, until `finished`. Default: from the size of the target (about 2 s for a button, 4 s for a page, the last half being the glow fading out). */
+  duration?: number;
+  /** How the front travels: 'linear', 'ease', 'ease-in', 'ease-out', 'ease-in-out', 'cubic-bezier(…)', [x1, y1, x2, y2] or a function. */
+  easing?: string | [number, number, number, number] | ((t: number) => number);
+  /** Time multiplier on the automatic duration (0.3 = slow motion). Ignored when `duration` is set. Default 1. */
   speed?: number;
+  /** Strength of the distortion (displacement, bulge, chromatic aberration). 0 keeps only the colours. Default 1. */
+  intensity?: number;
   /** false to disable particles, or a particle count at reference scale. */
   particles?: boolean | number;
   /** Force reduced motion on/off. Default: follows prefers-reduced-motion. */
@@ -39,8 +45,14 @@ export interface DistortionWaveOptions {
   onCovered?: () => void;
   onSettled?: () => void;
   onEnd?: (metrics: Metrics) => void;
-  /** Any tuning key from the presets (amplitude, blur, rimWidth, lead, tail…), at reference scale. */
-  [tuning: string]: unknown;
+  // Fine tuning, at reference scale (360×740 px): lengths in px, times in seconds. See the README.
+  anticipation?: number; travel?: number; linger?: number; rimFade?: number;
+  amplitude?: number; lensWidth?: number; swell?: number; aberration?: number;
+  blur?: number; blurNear?: number; blurAhead?: number; blurBehind?: number;
+  lead?: number; tail?: number; band?: number;
+  rimWidth?: number; rimSoftness?: number; rimStrength?: number; hairWidth?: number;
+  lean?: number; pull?: number; inhale?: number;
+  particleSize?: number; particleLife?: number; reach?: number; spread?: number;
 }
 
 export interface WaveTransition {
@@ -62,6 +74,9 @@ export function distortionWave(target: Element, update?: () => void | Promise<vo
 
 /** Click `trigger` → wave on `target`, starting from `trigger` at the touch point. Pre-captures on hover/focus. */
 export function waveOnClick(trigger: Element, target: Element, update: (event: MouseEvent) => void | Promise<void>, options?: DistortionWaveOptions): void;
+
+/** Options applied to every wave, under the per-call options. `null` resets them. Returns the current defaults. */
+export function setWaveDefaults(options: DistortionWaveOptions | null): DistortionWaveOptions;
 
 /** Pre-captures `target` (e.g. on hover) to hide the "before" capture latency. Invalidated by any DOM mutation. */
 export function prepareWave(target: Element): Promise<unknown>;
