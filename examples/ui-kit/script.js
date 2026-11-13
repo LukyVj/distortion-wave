@@ -475,6 +475,54 @@ waveOnClick(theme, app, () => {
   theme.setAttribute('aria-label', dark ? 'Dark theme' : 'Light theme');
 });
 
+// ═════════════════════════ React ═════════════════════════
+// React is loaded from esm.sh on demand (htm instead of JSX, so no build step).
+// useWave() renders the state change with flushSync: the DOM is up to date when the "after" capture runs.
+
+const reactRoot = $('#react-root');
+Promise.all([
+  import('https://esm.sh/react@19'),
+  import('https://esm.sh/react-dom@19'),
+  import('https://esm.sh/react-dom@19/client'),
+  import('https://esm.sh/htm@3'),
+]).then(([{ default: React }, { flushSync }, { createRoot }, { default: htm }]) => {
+  const { useCallback, useRef, useState } = React;
+  const html = htm.bind(React.createElement);
+  const useWave = () => useCallback((ref, update, options) => distortionWave(ref.current, () => flushSync(update), options), []);
+
+  function Star() {
+    const wave = useWave();
+    const ref = useRef(null);
+    const [on, setOn] = useState(false);
+    return html`<button ref=${ref} className="btn bookmark" aria-pressed=${on}
+      onClick=${(e) => wave(ref, () => setOn((v) => !v), { focus: e, palette: 'ember' })}>
+      <span>${on ? '★ Starred · 1,205' : '☆ Star · 1,204'}</span>
+    </button>`;
+  }
+
+  const PLANS = { Hobby: ['$0', '1 project, community support'], Pro: ['$12', 'Unlimited projects, priority support'], Team: ['$40', '10 seats, SSO, audit log'] };
+  function Plans() {
+    const wave = useWave();
+    const panel = useRef(null);
+    const [plan, setPlan] = useState('Hobby');
+    return html`<div className="react-root">
+      <div className="segmented" role="tablist">
+        ${Object.keys(PLANS).map((k) => html`<button key=${k} role="tab" aria-selected=${plan === k}
+          onClick=${(e) => plan !== k && wave(panel, () => setPlan(k), { source: e.currentTarget, focus: e })}>${k}</button>`)}
+      </div>
+      <div className="react-panel" ref=${panel}>
+        <b>${PLANS[plan][0]} <small>/ month</small></b>
+        <small>${PLANS[plan][1]}</small>
+      </div>
+    </div>`;
+  }
+
+  createRoot(reactRoot).render(html`<div className="react-root"><div className="react-row"><${Star} /></div><${Plans} /></div>`);
+}).catch((err) => {
+  reactRoot.innerHTML = '<p class="react-note">This part loads React from esm.sh, it needs a network connection.</p>';
+  console.info('[ui-kit] React demo not loaded:', err);
+});
+
 // ═════════════════════════ Options panel ═════════════════════════
 // Duration, easing and intensity go through setWaveDefaults(): every wave on the page picks them up.
 

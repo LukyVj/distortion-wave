@@ -26,12 +26,42 @@ h1 { margin: 0; font-size: 17px; letter-spacing: -.01em; }
 .top-actions { display: flex; gap: 12px; align-items: center; }
 
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; max-width: 1180px; margin: 0 auto; }
-.sec { grid-column: 1 / -1; margin: 22px 0 0; font-size: 13px; font-weight: 650; color: var(--muted); }
+.sec { grid-column: 1 / -1; margin: 22px 0 0; font-size: 13px; font-weight: 650; color: var(--muted); scroll-margin-top: 20px; }
 .cell { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 18px; display: flex; flex-direction: column; gap: 14px; align-items: flex-start; min-width: 0; }
 .cell.span2 { grid-column: span 2; }
 @media (max-width: 540px) { .cell.span2 { grid-column: span 1; } }
-h2 { margin: 0; font-size: 11px; text-transform: uppercase; letter-spacing: .09em; color: var(--muted); font-weight: 600; }
+.cell h3 { margin: 0; font-size: 11px; text-transform: uppercase; letter-spacing: .09em; color: var(--muted); font-weight: 600; }
+.cell h3 small { text-transform: none; letter-spacing: 0; font-weight: 500; }
 small { color: var(--muted); }
+
+.brand { min-width: 0; }
+.brand > div { min-width: 0; }
+.brand p code { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--text); overflow-wrap: anywhere; }
+
+/* ── intro ─────────────────────────────────────────────── */
+.intro { max-width: 1180px; margin: 18px auto 6px; display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 14px 28px; align-items: center; }
+.snippet { margin: 0; padding: 16px 18px; border-radius: 16px; background: #0d0d10; border: 1px solid var(--line); color: #d6d6e0; font: 12.5px/1.7 ui-monospace, SFMono-Regular, Menlo, monospace; overflow-x: auto; }
+.snippet.small { width: 100%; font-size: 12px; }
+.snippet .k { color: #c792ea; } .snippet .s { color: #a6e3a1; } .snippet .c { color: #6b6b78; font-style: italic; }
+.facts { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; color: var(--muted); font-size: 13px; }
+.facts li::before { content: "✦ "; color: var(--accent); }
+kbd { font: 600 11px ui-monospace, SFMono-Regular, Menlo, monospace; padding: 2px 6px; border-radius: 6px; border: 1px solid var(--line); border-bottom-width: 2px; background: var(--panel2); color: var(--text); }
+.links { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; }
+.links a { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); color: var(--text); text-decoration: none; font-weight: 600; font-size: 13px; }
+.links a:hover { background: var(--panel2); }
+@media (max-width: 760px) { .intro { grid-template-columns: 1fr; } }
+
+/* ── React ─────────────────────────────────────────────── */
+.react-root { width: 100%; display: grid; gap: 12px; }
+.react-note { margin: 0; color: var(--muted); font-size: 13px; }
+.react-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.react-panel { width: 100%; padding: 14px 16px; border-radius: 14px; background: var(--panel2); display: grid; gap: 4px; }
+.react-panel b { font-size: 22px; letter-spacing: -.02em; }
+.react-panel small { color: var(--muted); }
+
+/* ── footer ────────────────────────────────────────────── */
+.foot { max-width: 1180px; margin: 28px auto 0; color: var(--muted); font-size: 12.5px; }
+.foot a { color: var(--text); }
 
 /* ── shared controls ───────────────────────────────────── */
 .btn { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel2); font-weight: 600; white-space: nowrap; }

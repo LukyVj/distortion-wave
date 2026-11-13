@@ -16,7 +16,7 @@ const browser = await chromium.launch({
 const page = await (await browser.newContext({ viewport: { width: 1280, height: 900 } })).newPage();
 const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
-page.on('console', (m) => { if ((m.type() === 'error' || m.type() === 'warning') && !/GL Driver Message/.test(m.text())) errors.push(m.text()); });   // SwiftShader perf notes are noise
+page.on('console', (m) => { if ((m.type() === 'error' || m.type() === 'warning') && !/GL Driver Message|Failed to load resource|esm\.sh/.test(m.text())) errors.push(m.text()); });   // SwiftShader perf notes, and the React part (esm.sh is offline here)
 
 // Count running transitions: wrap the global before the page script destructures it.
 await page.addInitScript(() => {
@@ -98,6 +98,12 @@ await step('order step', '.next-step', () => document.querySelectorAll('#order .
 await step('notifications', '.mark', () => document.querySelectorAll('#notifs .unread').length === 0);
 await step('chat', '#composer button', () => document.querySelector('#thread .msg:last-child').textContent === 'This is so smooth 🔥');
 await step('player', '#player .play', () => document.querySelector('#player').classList.contains('playing'));
+
+// React part (React comes from esm.sh: skipped when offline)
+if (await page.waitForSelector('#react-root .bookmark', { timeout: 15000 }).catch(() => null)) {
+  await step('react: star', '#react-root .bookmark', () => document.querySelector('#react-root .bookmark').textContent.includes('Starred'));
+  await step('react: plan tabs', '#react-root [role=tab]:nth-child(2)', () => document.querySelector('#react-root .react-panel b').textContent.startsWith('$12'));
+} else results.push('skip react (esm.sh not reachable)');
 
 // keyboard: Delete with Enter, focus must land on the new Undo button
 try {
