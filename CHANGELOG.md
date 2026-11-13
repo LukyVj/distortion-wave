@@ -3,6 +3,7 @@
 ## 0.1.1 — 2026-11-13
 
 - Password fields are captured as masked dots instead of rendering empty during the wave. The real value never goes into the snapshot.
+- Fonts loaded from a `data:` URL (or any URL with a `;`) no longer break the snapshot's CSS. Before, every `::before` / `::after` after the `@font-face` was lost during the wave.
 - UI kit example: 40 components (buttons, toggles, commerce, navigation, forms).
 
 ## 0.1.0 — 2026-11-12

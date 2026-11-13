@@ -155,7 +155,9 @@ async function buildFontCss(faces) {
     if (!m) continue;
     try {
       const data = await fetchDataURL(new URL(m[2], base).href);
-      out.push(r.cssText.replace(/src\s*:[^;}]+;?/, `src:url("${data}");`));
+      // rebuilt from the descriptors: a regex on cssText breaks on URLs that contain ";" (data:font/woff2;base64,…)
+      const desc = [...r.style].filter((p) => p !== 'src').map((p) => `${p}:${r.style.getPropertyValue(p)};`).join('');
+      out.push(`@font-face{${desc}src:url("${data}");}`);
     } catch {}
   }
   return out.join('\n');

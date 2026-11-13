@@ -110,5 +110,29 @@ await check('update still runs when no new WebGL context can be created', async 
   assert.equal(pressed, 'b');
 });
 
+// Subset of JetBrains Mono ("$ab" only), © 2020 The JetBrains Mono Project Authors, SIL Open Font License 1.1.
+const TINY_FONT = 'data:font/woff;base64,d09GRgABAAAAAAVoAA8AAAAABfAAAQABAAAAAAAAAAAAAAAAAAAAAAAAAABHREVGAAAEuAAAABMAAAAUAA8AAkdQT1MAAATMAAAAIAAAACBEdkx1R1NVQgAABOwAAAAqAAAAKrj6uPRPUy8yAAADVAAAAE4AAABgE3ZYDVNUQVQAAAUYAAAATwAAAF7mY9MfY21hcAAAA6QAAAAzAAAAPACzAENnYXNwAAAEsAAAAAgAAAAIAAAAEGdseWYAAAFYAAABagAAAXjOvmQZaGVhZAAAAvAAAAA2AAAANhSQ8UNoaGVhAAADNAAAACAAAAAkAcoBFWhtdHgAAAMoAAAACgAAAAoC4QC2bG9jYQAAAuQAAAAKAAAACgD1AG9tYXhwAAACxAAAAB0AAAAgAHwCb25hbWUAAAPYAAAAwAAAAWIhIDY/cG9zdAAABJgAAAAXAAAAIP9oADN4nCXPTS8DQRyA8f9OdXYrJBo7swmC7LCraWu7nZ1Zjaq2Gu+EtqiNkLARjaYJcXWqODn3zE18Hid3X0EcRAWf4Pc8gKDU+1C+UQbGwAYwTEt4knPhWczEKpOSZymJM8Gwiu2sFIKZmOj06yAM914W5txyNIjdHJy0G0p0xvGL1ee0t9h/uLnV8LmfYCv10/r3fdOdYCvF7HY2OSsAEBz1PlAEvQGFKYCoaVs2IyzOicql/+cR/d/6iyBEp8pmJWFiJQhQBLPEUi0Mr3Llcs4vlfqnxzNN9PZ460xMt0+ejtvblWK3WFkudAvLABFY7d2gocg5MEgCB4gKy7K5To24bf2e+oITSg3mWTYxKCU6VomQUniWgwTGRDeoMnx8iYJ5Obqxe1bP10IlcNMzazvNhiud1EA+5U4aDx2tue8WVAVrRmtt50K762gXVWde/Rw02uvVVqzzquUzqfJg3/W7KpMeG/kBY8tOzwAAeJxjYGRgYGBh3MGQx7CFgY0BxEMAZgYmACvxAe0AAAAAAAAAADkAbwC8AAAAAQAAAAI2BBD0ToZfDzz1AAMD6AAAAADb0qaaAAAAANva0PL5Of7UBJID/AAAAAYAAgAAAAAAAAJYAFoAQQBcAEgAAHicY2BkYGD+8+8KAwPLhp+Wf/tZJjEwMqACRgCvswbdeJxjYGGKYpzAwMrAwNTFFMHAwOANoRnjGIwYHRgYmBgYOBlggJEBCXg5MTAwHGBQYUhi/vPvCgMD8x9GHZgaJjWmWwwMDAoMrADh8QrlAAB4nB3KSw3AIAAFsPIJCpDAYbY2ZXOGlEfCqZeiomFqyrV7MHRFtXwJljfJzn8XDpBNCPAAeJx9zzFKxFAUheEvOiDKoC7AIqU2Rizt1EpBkEEQposhJJExb8gkhXubhbgCF+ACRHhGsRgsLvwczr3nXOyY25ZMdrFm5MSR9chb9r19c8LU+8iTP/qBqY+RD+35dC1YetVpVGq91LmzOKkHtVLqVql3pZNrtFZSd4JWkLrXCZ6Virh/adCrBV10Hse7vaWVC5lMpYmOwZNTheBFtiFlk/aTe/Jvq5lSZbCQ6zwqf/+70cstNAqzmJxrvwC9DzeAeJxjYGYAg/+pDEYMDAyMDGgAACWjAZsAAAEAAf//AA94nGNgZGBg4GGAAEYIBAAA6wASAAABAAAACgAcAB4AAURGTFQACAAEAAAAAP//AAAAAAAAAAEAAAAKACYAKAACREZMVAAObGF0bgAYAAQAAAAA//8AAAAAAAAAAAAAAAB4nC3LMQ6CYBQE4W8fxNhBQUVt5aFMrICEkoRreCArT2b843YzmRVxVZh0uKlzWY9gO557BnExu7em0udFHuRDe/xdvRtHZfRb+AJ0Nwc3AA==';
+await check('a data: URL font does not break the CSS of the snapshot (::before survives)', async () => {
+  const { page } = await open();
+  const r = await page.evaluate(async (font) => {
+    const st = document.createElement('style');
+    st.textContent = `@font-face{font-family:Tiny;src:url(${font}) format('woff')} .tiny{font-family:Tiny} .tiny::before{content:"$ "}`;
+    document.head.append(st);
+    const el = document.createElement('code'); el.className = 'tiny'; el.textContent = 'ab'; document.querySelector('main').prepend(el);
+    await document.fonts.load('16px Tiny');
+    let svg = '';
+    const d = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
+    Object.defineProperty(HTMLImageElement.prototype, 'src', { configurable: true, get() { return d.get.call(this); }, set(v) { if (v.startsWith('data:image/svg')) svg = decodeURIComponent(v.split(',')[1]); d.set.call(this, v); } });
+    await __dw.snapshotElement(el);
+    Object.defineProperty(HTMLImageElement.prototype, 'src', d);
+    const css = new DOMParser().parseFromString(svg, 'image/svg+xml').querySelector('style').textContent;
+    const sheet = new CSSStyleSheet(); sheet.replaceSync(css);
+    const rules = [...sheet.cssRules];
+    return { fontFaces: rules.filter((x) => x instanceof CSSFontFaceRule).length, before: rules.some((x) => /::before/.test(x.selectorText || '') && /"\$ "/.test(x.cssText)) };
+  }, TINY_FONT);
+  assert.ok(r.fontFaces >= 1, 'font embedded');
+  assert.ok(r.before, '::before rule parsed after the @font-face');
+});
+
 await browser.close();
 console.log(results.join('\n'));
