@@ -20,5 +20,28 @@ const standalone = html
 if (standalone === html) throw new Error('demo import line not found');
 await writeFile('demo/standalone.html', standalone);
 
+// Offline copy of the CodePen example (examples/ui-kit): same HTML/CSS/JS, library inlined.
+const kit = (f) => readFile(`examples/ui-kit/${f}`, 'utf8');
+const [kHtml, kCss, kJs] = await Promise.all([kit('index.html'), kit('style.css'), kit('script.js')]);
+const kitJs = kJs.replace(/import \{([^}]+)\} from '[^']+';/, 'const {$1} = window.DistortionWave;');
+if (kitJs === kJs) throw new Error('ui-kit import line not found');
+await writeFile('examples/ui-kit/standalone.html', `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>distortion-wave · UI kit</title>
+<style>
+${kCss}</style>
+</head>
+<body>
+${kHtml}<script>${iife}</script>
+<script type="module">
+${kitJs}document.body.dataset.ready = '1';
+</script>
+</body>
+</html>
+`);
+
 const sizes = await Promise.all(['dist/distortion-wave.js', 'dist/distortion-wave.min.js', 'dist/distortion-wave.iife.min.js'].map(async (f) => `${f} ${((await readFile(f)).length / 1024).toFixed(1)} kB`));
 console.log(sizes.join('\n'));

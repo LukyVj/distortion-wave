@@ -15,19 +15,22 @@ Inspired by Jakub Antalik's [Distortion Waves](https://libraries.dev/waves) for 
 
 ## Install
 
-Not on npm yet. From GitHub:
-
 ```sh
-npm i github:LukyVj/distortion-wave
+npm i distortion-wave
 ```
 
-Or drop the IIFE build in a page:
+From a CDN, no build step (CodePen, a plain HTML page…):
 
 ```html
-<script src="dist/distortion-wave.iife.min.js"></script>
-<script>
-  const { distortionWave } = window.DistortionWave;
+<script type="module">
+  import { distortionWave } from 'https://cdn.jsdelivr.net/npm/distortion-wave@0.1/+esm';
 </script>
+```
+
+Or the IIFE build, which exposes `window.DistortionWave`:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/distortion-wave@0.1/dist/distortion-wave.iife.min.js"></script>
 ```
 
 ## Usage
@@ -101,6 +104,11 @@ waveOnClick(trigger, target, (event) => { /* update */ }, { palette: 'ocean' });
 ```
 
 `waveOnClick` also pre-captures the target when the pointer enters the trigger or it gets focus, so the "before" capture costs nothing at click time.
+
+## Examples
+
+- [`demo/`](demo/): a payment screen, a single button, a tab panel, a media card, an element that changes size and a whole-page theme switch.
+- [`examples/ui-kit/`](examples/ui-kit/): buttons and UI elements (like, follow, status pill, copy, filter chips, a settings switch, add to cart, pricing tabs, a newsletter form, theme switch). `index.html`, `style.css` and `script.js` paste straight into CodePen; `standalone.html` opens from disk.
 
 ## API
 

@@ -15,21 +15,45 @@
   },
   "unpkg": "./dist/distortion-wave.iife.min.js",
   "jsdelivr": "./dist/distortion-wave.iife.min.js",
-  "files": ["dist", "src", "types", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "src",
+    "types",
+    "README.md",
+    "LICENSE"
+  ],
   "sideEffects": false,
   "scripts": {
     "build": "node scripts/build.mjs",
     "test": "node --test test/*.test.js",
     "test:browser": "node scripts/browser-test.mjs",
     "lint": "eslint src test scripts",
-    "demo": "npm run build && npx --yes serve ."
+    "demo": "npm run build && npx --yes serve .",
+    "prepublishOnly": "npm run build && npm test"
   },
-  "keywords": ["webgl", "webgl2", "transition", "view-transitions", "shader", "distortion", "animation", "dom", "creative-coding"],
+  "keywords": [
+    "webgl",
+    "webgl2",
+    "transition",
+    "view-transitions",
+    "shader",
+    "distortion",
+    "animation",
+    "dom",
+    "creative-coding"
+  ],
   "author": "Lucas Bonomi (https://lucasbonomi.com)",
   "license": "MIT",
-  "private": true,
-  "repository": { "type": "git", "url": "git+https://github.com/LukyVj/distortion-wave.git" },
-  "engines": { "node": ">=18" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LukyVj/distortion-wave.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18"
+  },
   "devDependencies": {
     "esbuild": "^0.25.0",
     "eslint": "^9.0.0",

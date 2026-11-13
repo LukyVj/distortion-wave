@@ -1,0 +1,98 @@
+<div id="app" data-theme="dark">
+  <header class="top">
+    <div class="brand">
+      <span class="logo" aria-hidden="true"></span>
+      <div>
+        <h1>distortion-wave</h1>
+        <p>Click anything. Every element is plain HTML/CSS.</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="icon-btn cart" aria-label="Cart, 0 items"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h15l-1.6 8.2a2 2 0 0 1-2 1.6H9.1a2 2 0 0 1-2-1.7L5.4 3.8A1 1 0 0 0 4.4 3H3"/><circle cx="9.5" cy="20" r="1.4"/><circle cx="17.5" cy="20" r="1.4"/></svg><b class="badge" hidden>0</b></button>
+      <button class="switch" id="theme" role="switch" aria-checked="true" aria-label="Dark theme"></button>
+    </div>
+  </header>
+
+  <main class="grid">
+    <!-- Like -->
+    <section class="cell">
+      <h2>Like</h2>
+      <button class="like" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span class="n">128</span></button>
+    </section>
+
+    <!-- Follow -->
+    <section class="cell">
+      <h2>Follow</h2>
+      <div class="profile">
+        <span class="avatar" aria-hidden="true">LB</span>
+        <div><b>Lucas Bonomi</b><small>@LukyVj</small></div>
+        <button class="btn follow">Follow</button>
+      </div>
+    </section>
+
+    <!-- Status pill -->
+    <section class="cell">
+      <h2>Status</h2>
+      <button class="pill" data-i="0"><i></i><span>Online</span></button>
+    </section>
+
+    <!-- Copy -->
+    <section class="cell">
+      <h2>Copy</h2>
+      <div class="code"><code>npm i distortion-wave</code><button class="btn ghost copy">Copy</button></div>
+    </section>
+
+    <!-- Chips -->
+    <section class="cell">
+      <h2>Filters</h2>
+      <div class="chips">
+        <button class="chip" aria-pressed="true">Design</button>
+        <button class="chip" aria-pressed="false">WebGL</button>
+        <button class="chip" aria-pressed="false">CSS</button>
+        <button class="chip" aria-pressed="false">Motion</button>
+      </div>
+    </section>
+
+    <!-- Settings row -->
+    <section class="cell">
+      <h2>Settings</h2>
+      <div class="setting" id="notif">
+        <div><b>Email notifications</b><small>Weekly digest, mentions and replies.</small></div>
+        <button class="switch sm" role="switch" aria-checked="true" aria-label="Email notifications"></button>
+      </div>
+    </section>
+
+    <!-- Product card -->
+    <section class="cell span2">
+      <h2>Add to cart</h2>
+      <article class="product" id="product">
+        <div class="art" aria-hidden="true"></div>
+        <div class="info">
+          <small>Desk lamp · Walnut</small>
+          <b>Halo Lamp</b>
+          <p class="price">$49</p>
+          <button class="btn primary add">Add to cart</button>
+        </div>
+      </article>
+    </section>
+
+    <!-- Pricing -->
+    <section class="cell span2">
+      <h2>Pricing</h2>
+      <div class="segmented" role="tablist">
+        <button role="tab" aria-selected="true" data-plan="monthly">Monthly</button>
+        <button role="tab" aria-selected="false" data-plan="yearly">Yearly</button>
+      </div>
+      <div class="plan" id="plan"></div>
+    </section>
+
+    <!-- Newsletter -->
+    <section class="cell span2">
+      <h2>Newsletter</h2>
+      <form class="newsletter" id="newsletter">
+        <input type="email" name="email" placeholder="you@example.com" aria-label="Email" required>
+        <button class="btn primary">Subscribe</button>
+      </form>
+    </section>
+  </main>
+</div>
