@@ -27,7 +27,7 @@
     "build": "node scripts/build.mjs",
     "test": "node --test test/*.test.js",
     "test:browser": "node scripts/browser-test.mjs",
-    "lint": "eslint src test scripts",
+    "lint": "eslint src test scripts skill",
     "demo": "npm run build && npx --yes serve .",
     "prepublishOnly": "npm run build && npm test",
     "test:ui-kit": "node scripts/ui-kit-test.mjs"

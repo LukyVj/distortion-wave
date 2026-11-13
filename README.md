@@ -123,6 +123,10 @@ waveOnClick(trigger, target, (event) => { /* update */ }, { palette: 'ocean' });
 - [`examples/ui-kit/`](examples/ui-kit/): about 40 clickable UI pieces in five groups (buttons, toggles and selection, commerce, navigation and content, forms and feedback), plus a theme switch that waves the whole page and an Options panel (duration, easing, intensity, palette). `index.html`, `style.css` and `script.js` paste straight into CodePen; `standalone.html` opens from disk.
 - [`examples/react/`](examples/react/): React 19 + Vite, with the `useWave` hook, a like button, tabs, a list that grows, a theme switch and live options. `npm install && npm run dev` in that folder. `codepen.jsx` is the same app for CodePen (JS preprocessor: Babel).
 
+## AI agents
+
+[`skill/`](skill/) holds an Agent Skill for coding agents (Claude Code, Cursor, Codex…): how to pick the target and the source, framework patterns, options, troubleshooting, and a script that films a wave frame by frame. Install notes in [`skill/README.md`](skill/README.md).
+
 ## API
 
 ### `distortionWave(target, update?, options?) → WaveTransition`
