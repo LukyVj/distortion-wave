@@ -1,7 +1,7 @@
 // Unit tests for the pure core (no DOM, no GPU): node --test test/
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { PRESETS, scaleConfig, totalDuration, frameState, makeParticles, particleAt } from '../src/core.js';
+import { PRESETS, scaleConfig, totalDuration, frameState, makeParticles, particleAt, colorAlpha, hasVisibleBox } from '../src/core.js';
 
 const button = { x: 20, y: 662, w: 320, h: 54 };
 const geom = (cfg, touchX = null) => ({
@@ -66,4 +66,25 @@ test('scaleConfig shrinks a button and keeps a phone screen at reference scale',
   assert.ok(Math.abs(screen.k - 1) < 0.01);
   assert.ok(btn.k < 0.2 && btn.rimWidth >= 2.5 && btn.lead < screen.lead);
   assert.ok(totalDuration(btn) < totalDuration(screen));
+});
+
+test('colorAlpha reads the alpha of computed colours', () => {
+  assert.equal(colorAlpha('rgba(0, 0, 0, 0)'), 0);
+  assert.equal(colorAlpha('rgb(19, 19, 22)'), 1);
+  assert.equal(colorAlpha('transparent'), 0);
+  assert.equal(colorAlpha('oklab(0.5 0.1 0.1 / 0.18)'), 0.18);
+  assert.equal(colorAlpha('color(srgb 1 0 0 / 50%)'), 0.5);
+});
+
+test('hasVisibleBox: a transparent grid has no box, a card has one', () => {
+  const none = { backgroundColor: 'rgba(0, 0, 0, 0)', backgroundImage: 'none', boxShadow: 'none',
+    borderTopWidth: '0px', borderRightWidth: '0px', borderBottomWidth: '0px', borderLeftWidth: '0px',
+    borderTopStyle: 'none', borderRightStyle: 'none', borderBottomStyle: 'none', borderLeftStyle: 'none',
+    borderTopColor: 'rgb(237, 237, 242)', borderRightColor: 'rgb(237, 237, 242)', borderBottomColor: 'rgb(237, 237, 242)', borderLeftColor: 'rgb(237, 237, 242)' };
+  assert.equal(hasVisibleBox(none), false);
+  assert.equal(hasVisibleBox({ ...none, backgroundColor: 'rgb(19, 19, 22)' }), true);
+  assert.equal(hasVisibleBox({ ...none, backgroundImage: 'linear-gradient(red, blue)' }), true);
+  assert.equal(hasVisibleBox({ ...none, boxShadow: 'rgba(0, 0, 0, 0.3) 0px 1px 3px 0px' }), true);
+  assert.equal(hasVisibleBox({ ...none, borderTopWidth: '1px', borderTopStyle: 'solid' }), true);
+  assert.equal(hasVisibleBox({ ...none, borderTopWidth: '1px', borderTopStyle: 'solid', borderTopColor: 'rgba(0, 0, 0, 0)' }), false);
 });

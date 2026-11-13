@@ -14,7 +14,7 @@
 // soon as the wave has passed).
 
 import { snapshotElement } from './capture.js';
-import { BASE, PRESETS, PALETTES, scaleConfig, totalDuration, frameState, makeParticles, particleAt, clamp, lerp } from './core.js';
+import { BASE, PRESETS, PALETTES, scaleConfig, totalDuration, frameState, makeParticles, particleAt, clamp, lerp, hasVisibleBox } from './core.js';
 import { acquire, release, warmupWave } from './renderer.js';
 import { captureFocus, restoreFocus } from './focus.js';
 
@@ -32,7 +32,7 @@ function measure(el) {
   const x0 = Math.max(rect.left, 0), y0 = Math.max(rect.top, 0), x1 = Math.min(rect.right, innerWidth), y1 = Math.min(rect.bottom, innerHeight);
   const fixed = isFixed(el), sx = fixed ? 0 : scrollX, sy = fixed ? 0 : scrollY;
   return {
-    w, h, fixed, opacity: cs.opacity, radii: parseRadii(cs, w, h), visible: x1 > x0 && y1 > y0,
+    w, h, fixed, opacity: cs.opacity, radii: parseRadii(cs, w, h), boxless: !hasVisibleBox(cs), visible: x1 > x0 && y1 > y0,
     clip: { x: x0 - rect.left, y: y0 - rect.top, w: x1 - x0, h: y1 - y0 },          // visible part, element space
     page: { x: x0 + sx, y: y0 + sy, w: x1 - x0, h: y1 - y0 },                   // same, page space (scroll-stable)
     el: { x: rect.left + sx, y: rect.top + sy, w: rect.width, h: rect.height },
@@ -119,7 +119,7 @@ class WaveTransition {
     this.particles = makeParticles(cfg.particles, cfg); this.dots = new Float32Array(Math.max(this.particles.length, 1) * 4);
     this.origin = this._originPage(before);                               // source/touch in page coordinates
     this.canvasPage = before.page;
-    this.rects = { old: rel(before.page, before.page), new: null, shape: rel(before.el, before.page), radii: before.radii };
+    this.rects = { old: rel(before.page, before.page), new: null, shape: rel(before.el, before.page), radii: before.radii, boxless: before.boxless };
     t0 = performance.now();
     r.setLayer('old', oldShot.canvas, cfg.blurNear * this.dpr, cfg.blur * this.dpr);
     this.metrics.upload = Math.round(performance.now() - t0);
@@ -145,7 +145,7 @@ class WaveTransition {
     // 4 · open the gate: the canvas covers the union of before/after
     this.after = after;
     this.canvasPage = union(before.page, after.page);
-    this.rects = { old: rel(before.page, this.canvasPage), new: rel(after.page, this.canvasPage), shape: rel(before.el, this.canvasPage), radii: before.radii };
+    this.rects = { old: rel(before.page, this.canvasPage), new: rel(after.page, this.canvasPage), shape: rel(before.el, this.canvasPage), radii: before.radii, boxless: before.boxless && after.boxless };
     this.shapes = { from: rel(before.el, this.canvasPage), to: rel(after.el, this.canvasPage), r0: before.radii, r1: after.radii };
     this._resizeCanvas();
     this.gateOpen = true;

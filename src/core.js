@@ -28,6 +28,24 @@ export function hexToOklab(hex) {
 }
 
 // ═══ Config ══════════════════════════════════════════════════════════════════
+// Does the element paint a box of its own (background, border, shadow)? If not, the wave must light up its
+// content only: a rim or a band drawn on the bounding rectangle would show a rectangle nobody ever saw.
+export function colorAlpha(c) {
+  if (!c || c === 'transparent') return 0;
+  const m = String(c).match(/\(([^)]*)\)/);
+  if (!m) return 1;
+  const parts = m[1].includes('/') ? [m[1].split('/')[1]] : m[1].split(',').length === 4 ? [m[1].split(',')[3]] : null;
+  if (!parts) return 1;
+  const v = parts[0].trim();
+  return v.endsWith('%') ? parseFloat(v) / 100 : parseFloat(v);
+}
+export function hasVisibleBox(cs) {
+  if (colorAlpha(cs.backgroundColor) > 0.02) return true;
+  if (cs.backgroundImage && cs.backgroundImage !== 'none') return true;
+  if (cs.boxShadow && cs.boxShadow !== 'none') return true;
+  return ['Top', 'Right', 'Bottom', 'Left'].some((s) => parseFloat(cs[`border${s}Width`]) > 0 && cs[`border${s}Style`] !== 'none' && cs[`border${s}Style`] !== 'hidden' && colorAlpha(cs[`border${s}Color`]) > 0.02);
+}
+
 export const PALETTES = {
   aurora: ['#FF4FD8', '#A35BFF', '#5B7CFF', '#38D9FF', '#FFD36B', '#FF7A5C'],
   ocean: ['#3A7BFF', '#2EE6D6', '#7C5CFF', '#1FB6FF', '#B8F2FF'],

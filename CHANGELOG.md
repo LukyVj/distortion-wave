@@ -3,6 +3,7 @@
 ## 0.1.1 — 2026-11-13
 
 - Password fields are captured as masked dots instead of rendering empty during the wave. The real value never goes into the snapshot.
+- Elements with no background, border or shadow (a transparent grid, a row of labels) no longer get a rim and a coloured band on their invisible bounding box. The wave now lights up their content only.
 - Fonts loaded from a `data:` URL (or any URL with a `;`) no longer break the snapshot's CSS. Before, every `::before` / `::after` after the `@font-face` was lost during the wave.
 - UI kit example: 40 components (buttons, toggles, commerce, navigation, forms).
 

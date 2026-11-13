@@ -25,7 +25,7 @@ uniform vec2 uSize, uRes;
 uniform sampler2D uOld0, uOld1, uOld2, uNew0, uNew1, uNew2;
 uniform vec4 uOldRect, uNewRect, uShape, uRadii;   // rects in canvas CSS px; radii (br, tr, bl, tl)
 uniform int uMode;                                 // 0 before · 1 live · 2 after · 3 crossfade · 4 effects only (live DOM below)
-uniform float uFade;
+uniform float uFade, uBoxless;                      // uBoxless: the element paints no box → light up its content only
 uniform bool uLaunched, uRing;
 uniform vec2 uOrigin;
 uniform float uTilt, uSpine, uRadius, uSquash, uTime, uSwell, uEnergy, uPull, uGlow, uRim, uClear, uHairClear, uHold, uK, uSeam;
@@ -120,6 +120,12 @@ void main() {
   vec2 c = p - (uShape.xy + uShape.zw * 0.5);
   float sd = sdRoundBox(c, uShape.zw * 0.5, uRadii);
   float mask = clamp(0.5 - sd * (uRes.x / uSize.x), 0.0, 1.0);
+  if (uBoxless > 0.5) {
+    // no background, border or shadow: the band lights the content and a soft halo around it, never the bounding box
+    float sharp = max(tap(uNew0, uNewRect, p, p).a, tap(uOld0, uOldRect, p, p).a);
+    float halo = max(tap(uNew2, uNewRect, p, p).a, tap(uOld2, uOldRect, p, p).a);
+    mask *= max(sharp, smoothstep(0.02, 0.5, halo) * 0.8);
+  }
   float inset = max(-sd, 0.0);
   float along = f.q.x * 0.0065 / uK, ang = atan(f.q.y, f.q.x);
   float lobes = uRing ? 0.5 + 0.5 * sin(2.0 * ang + uTime * 1.4) * cos(ang - uTime * 0.6 + 0.8)
@@ -132,7 +138,7 @@ void main() {
   }
   float around = atan(c.y / uShape.w, c.x / uShape.z);
   float rimA = 0.0, hairA = 0.0, shimmer = 0.5;
-  if (uRim > 0.0 && inset < uRimW * 4.5) {
+  if (uRim > 0.0 && uBoxless < 0.5 && inset < uRimW * 4.5) {
     float lumps = 0.5 * sin(around * 3.0 + uTime * 0.7) + 0.3 * sin(around * 5.0 - uTime * 1.2 + 2.0) + 0.2 * sin(around * 9.0 + uTime * 2.3 + 4.0);
     float thick = max(1.0 + uUneven * 0.55 * lumps, 0.15);
     float hk = inset / (uRimW * thick);
@@ -253,7 +259,7 @@ class Renderer {
     gl.uniform2f(u('uSize'), f.w, f.h); gl.uniform2f(u('uRes'), W, H);
     v4('uOldRect', R.old); v4('uNewRect', R.new || R.old); v4('uShape', R.shape);
     gl.uniform4f(u('uRadii'), R.radii.br, R.radii.tr, R.radii.bl, R.radii.tl);
-    gl.uniform1i(u('uMode'), f.mode); gl.uniform1f(u('uFade'), f.fade || 0);
+    gl.uniform1i(u('uMode'), f.mode); gl.uniform1f(u('uFade'), f.fade || 0); gl.uniform1f(u('uBoxless'), R.boxless ? 1 : 0);
     const s = f.s, c = f.cfg;
     if (s) {
       gl.uniform1i(u('uLaunched'), s.launched ? 1 : 0); gl.uniform1i(u('uRing'), s.ring ? 1 : 0);

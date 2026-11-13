@@ -338,6 +338,21 @@ function hexToOklab(hex) {
   const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
   return [0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s, 1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s, 0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s];
 }
+function colorAlpha(c) {
+  if (!c || c === "transparent") return 0;
+  const m = String(c).match(/\(([^)]*)\)/);
+  if (!m) return 1;
+  const parts = m[1].includes("/") ? [m[1].split("/")[1]] : m[1].split(",").length === 4 ? [m[1].split(",")[3]] : null;
+  if (!parts) return 1;
+  const v = parts[0].trim();
+  return v.endsWith("%") ? parseFloat(v) / 100 : parseFloat(v);
+}
+function hasVisibleBox(cs) {
+  if (colorAlpha(cs.backgroundColor) > 0.02) return true;
+  if (cs.backgroundImage && cs.backgroundImage !== "none") return true;
+  if (cs.boxShadow && cs.boxShadow !== "none") return true;
+  return ["Top", "Right", "Bottom", "Left"].some((s) => parseFloat(cs[`border${s}Width`]) > 0 && cs[`border${s}Style`] !== "none" && cs[`border${s}Style`] !== "hidden" && colorAlpha(cs[`border${s}Color`]) > 0.02);
+}
 var PALETTES = {
   aurora: ["#FF4FD8", "#A35BFF", "#5B7CFF", "#38D9FF", "#FFD36B", "#FF7A5C"],
   ocean: ["#3A7BFF", "#2EE6D6", "#7C5CFF", "#1FB6FF", "#B8F2FF"],
@@ -588,7 +603,7 @@ uniform vec2 uSize, uRes;
 uniform sampler2D uOld0, uOld1, uOld2, uNew0, uNew1, uNew2;
 uniform vec4 uOldRect, uNewRect, uShape, uRadii;   // rects in canvas CSS px; radii (br, tr, bl, tl)
 uniform int uMode;                                 // 0 before \xB7 1 live \xB7 2 after \xB7 3 crossfade \xB7 4 effects only (live DOM below)
-uniform float uFade;
+uniform float uFade, uBoxless;                      // uBoxless: the element paints no box \u2192 light up its content only
 uniform bool uLaunched, uRing;
 uniform vec2 uOrigin;
 uniform float uTilt, uSpine, uRadius, uSquash, uTime, uSwell, uEnergy, uPull, uGlow, uRim, uClear, uHairClear, uHold, uK, uSeam;
@@ -683,6 +698,12 @@ void main() {
   vec2 c = p - (uShape.xy + uShape.zw * 0.5);
   float sd = sdRoundBox(c, uShape.zw * 0.5, uRadii);
   float mask = clamp(0.5 - sd * (uRes.x / uSize.x), 0.0, 1.0);
+  if (uBoxless > 0.5) {
+    // no background, border or shadow: the band lights the content and a soft halo around it, never the bounding box
+    float sharp = max(tap(uNew0, uNewRect, p, p).a, tap(uOld0, uOldRect, p, p).a);
+    float halo = max(tap(uNew2, uNewRect, p, p).a, tap(uOld2, uOldRect, p, p).a);
+    mask *= max(sharp, smoothstep(0.02, 0.5, halo) * 0.8);
+  }
   float inset = max(-sd, 0.0);
   float along = f.q.x * 0.0065 / uK, ang = atan(f.q.y, f.q.x);
   float lobes = uRing ? 0.5 + 0.5 * sin(2.0 * ang + uTime * 1.4) * cos(ang - uTime * 0.6 + 0.8)
@@ -695,7 +716,7 @@ void main() {
   }
   float around = atan(c.y / uShape.w, c.x / uShape.z);
   float rimA = 0.0, hairA = 0.0, shimmer = 0.5;
-  if (uRim > 0.0 && inset < uRimW * 4.5) {
+  if (uRim > 0.0 && uBoxless < 0.5 && inset < uRimW * 4.5) {
     float lumps = 0.5 * sin(around * 3.0 + uTime * 0.7) + 0.3 * sin(around * 5.0 - uTime * 1.2 + 2.0) + 0.2 * sin(around * 9.0 + uTime * 2.3 + 4.0);
     float thick = max(1.0 + uUneven * 0.55 * lumps, 0.15);
     float hk = inset / (uRimW * thick);
@@ -874,6 +895,7 @@ var Renderer = class {
     gl.uniform4f(u("uRadii"), R.radii.br, R.radii.tr, R.radii.bl, R.radii.tl);
     gl.uniform1i(u("uMode"), f.mode);
     gl.uniform1f(u("uFade"), f.fade || 0);
+    gl.uniform1f(u("uBoxless"), R.boxless ? 1 : 0);
     const s = f.s, c = f.cfg;
     if (s) {
       gl.uniform1i(u("uLaunched"), s.launched ? 1 : 0);
@@ -1049,6 +1071,7 @@ function measure(el) {
     fixed,
     opacity: cs.opacity,
     radii: parseRadii(cs, w, h),
+    boxless: !hasVisibleBox(cs),
     visible: x1 > x0 && y1 > y0,
     clip: { x: x0 - rect.left, y: y0 - rect.top, w: x1 - x0, h: y1 - y0 },
     // visible part, element space
@@ -1164,7 +1187,7 @@ var WaveTransition = class {
     this.dots = new Float32Array(Math.max(this.particles.length, 1) * 4);
     this.origin = this._originPage(before);
     this.canvasPage = before.page;
-    this.rects = { old: rel(before.page, before.page), new: null, shape: rel(before.el, before.page), radii: before.radii };
+    this.rects = { old: rel(before.page, before.page), new: null, shape: rel(before.el, before.page), radii: before.radii, boxless: before.boxless };
     t0 = performance.now();
     r.setLayer("old", oldShot.canvas, cfg.blurNear * this.dpr, cfg.blur * this.dpr);
     this.metrics.upload = Math.round(performance.now() - t0);
@@ -1191,7 +1214,7 @@ var WaveTransition = class {
     r.setLayer("new", newShot.canvas, cfg.blurNear * this.dpr, cfg.blur * this.dpr);
     this.after = after;
     this.canvasPage = union(before.page, after.page);
-    this.rects = { old: rel(before.page, this.canvasPage), new: rel(after.page, this.canvasPage), shape: rel(before.el, this.canvasPage), radii: before.radii };
+    this.rects = { old: rel(before.page, this.canvasPage), new: rel(after.page, this.canvasPage), shape: rel(before.el, this.canvasPage), radii: before.radii, boxless: before.boxless && after.boxless };
     this.shapes = { from: rel(before.el, this.canvasPage), to: rel(after.el, this.canvasPage), r0: before.radii, r1: after.radii };
     this._resizeCanvas();
     this.gateOpen = true;
