@@ -49,6 +49,10 @@
     "type": "git",
     "url": "git+https://github.com/LukyVj/distortion-wave.git"
   },
+  "homepage": "https://github.com/LukyVj/distortion-wave#readme",
+  "bugs": {
+    "url": "https://github.com/LukyVj/distortion-wave/issues"
+  },
   "publishConfig": {
     "access": "public"
   },

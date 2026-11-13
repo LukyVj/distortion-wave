@@ -1,0 +1,42 @@
+# Publishes to npm when a version tag is pushed (git tag v0.2.1 && git push origin v0.2.1).
+# No npm token and no 2FA prompt: npm trusts this workflow through OIDC ("trusted publishing").
+# One-time setup on npmjs.com: package → Settings → Trusted publishing → GitHub Actions,
+# user LukyVj, repository distortion-wave, workflow publish.yml, no environment.
+name: Publish to npm
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+  id-token: write          # the OIDC token npm checks
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22   # no registry-url: it would make npm look for a token instead of OIDC
+
+      - name: npm ≥ 11.5.1 (trusted publishing)
+        run: npm install -g npm@latest
+
+      - name: The tag matches package.json
+        run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
+
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+      - run: npm run test:browser
+
+      - name: Publish
+        run: npm publish
+        env:
+          # Provenance needs a public repository. Set to true once the repo is public.
+          NPM_CONFIG_PROVENANCE: false
