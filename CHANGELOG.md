@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1 — 2026-11-13
+
+- Before the launch, the content is pulled toward the source. On thin elements (a 26 px row of small text) that pull squashed and tore the letters. It is now capped by the element's smallest side. Big elements are unchanged.
+
 ## 0.2.0 — 2026-11-13
 
 - `duration`: total length of the transition in ms, whatever the size of the element.

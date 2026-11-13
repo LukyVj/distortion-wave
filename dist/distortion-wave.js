@@ -461,6 +461,7 @@ function scaleConfig(c, w, h) {
   o.rimWidth = Math.max(o.rimWidth, 2.5);
   o.seam = Math.max(o.seam, 4);
   o.anticipation = Math.max(o.anticipation, 0.2 / (c.speed || 1));
+  o.pull = Math.min(o.pull, Math.min(w, h) * 0.065);
   o.particles = Math.round(c.particles * clamp(k, 0.3, 1.5));
   o.particleSize = c.particleSize * clamp(0.6 + 0.4 * k, 0.7, 1.3);
   return o;

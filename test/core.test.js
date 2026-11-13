@@ -128,3 +128,10 @@ test('intensity scales the distortion only, tuning keys still win over the prese
   assert.equal(resolveConfig(PRESETS.vertical, { blur: 0 }, 360, 740).blurNear >= 1.2, true);
   assert.ok(Math.abs(resolveConfig(PRESETS.vertical, { rimWidth: 30, palette: undefined }, 360, 740).rimWidth - 30) < 0.05);
 });
+
+test('the pre-launch pull stays small on thin elements, unchanged on big ones', () => {
+  const row = scaleConfig(PRESETS.vertical, 290, 26);
+  assert.ok(row.pull <= 26 * 0.065 + 1e-9, `row pull ${row.pull}`);
+  const screen = scaleConfig(PRESETS.vertical, 360, 740);
+  assert.ok(Math.abs(screen.pull - PRESETS.vertical.pull * screen.k) < 1e-9);
+});

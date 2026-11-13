@@ -87,6 +87,9 @@ export function scaleConfig(c, w, h) {
   o.blurNear = Math.max(o.blurNear, 1.2); o.blur = Math.max(o.blur, o.blurNear);
   o.rimWidth = Math.max(o.rimWidth, 2.5); o.seam = Math.max(o.seam, 4);
   o.anticipation = Math.max(o.anticipation, 0.2 / (c.speed || 1));
+  // the pull toward the source before the launch is capped by the smallest side: on a 26 px row of 11 px text,
+  // a 4 px pull squashes and tears the glyphs
+  o.pull = Math.min(o.pull, Math.min(w, h) * 0.065);
   o.particles = Math.round(c.particles * clamp(k, 0.3, 1.5));
   o.particleSize = c.particleSize * clamp(0.6 + 0.4 * k, 0.7, 1.3);
   return o;
