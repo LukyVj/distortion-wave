@@ -8,6 +8,7 @@ const LOOKS = {
   burn: ['roughness', 'scale', 'char', 'heat', 'embers', 'smoke'],
   ink: ['bleed', 'scale', 'misregister', 'grain', 'zone', 'ink'],
   halftone: ['cell', 'angle', 'zone', 'size', 'ink'],
+  metal: ['thickness', 'wobble', 'ripple', 'shine', 'reflect'],
 };
 const BEHAVIOUR = ['anticipation', 'travel', 'linger', 'amplitude', 'lensWidth', 'swell', 'aberration', 'blur', 'blurNear', 'blurAhead', 'blurBehind', 'pull', 'inhale', 'lean', 'speed', 'particles'];
 const HEX = /^#[0-9a-f]{6}$/i;

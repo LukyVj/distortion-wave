@@ -35,6 +35,10 @@
       "types": "./types/halftone.d.ts",
       "import": "./dist/halftone.js"
     },
+    "./metal": {
+      "types": "./types/metal.d.ts",
+      "import": "./dist/metal.js"
+    },
     "./src/*": "./src/*"
   },
   "unpkg": "./dist/distortion-wave.iife.min.js",
