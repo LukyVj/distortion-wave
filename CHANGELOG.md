@@ -7,6 +7,13 @@
   - `electric`: the wave with an electric look. The front is a crackling bolt, the colour band goes electric, and the outline charges with arcs as the front passes, then discharges. Keys: `jag`, `scale`, `crackle`, `chaos`, `boltWidth`, `boltGlow`, `bolts`, `rimBolts`.
   - `electricBorder(el, options)`: a live electric arc on the outline, always on, on hover or on focus. All borders share one canvas and one WebGL context.
 - `distortion-wave/pixel`, a new entry (~1.2 kB gzipped): `pixel`, the wave with a pixel look. Near the front the content turns into small pixels that flip cell by cell, some light up and flicker, the outline is drawn in pixels that go out one by one, sparks are square. Keys: `cell`, `gap`, `zone`, `density`, `rate`, `lit`, `rimPixels`.
+- Six more looks, each its own entry (1 to 1.3 kB gzipped), each with its own keys and their defaults:
+  - `distortion-wave/glass`: a thick slab of glass trails the front, bends the content like a lens, splits it into RGB and catches the light. Keys: `thickness`, `refraction`, `dispersion`, `shine`, `tint`.
+  - `distortion-wave/burn`: the front burns the old content away along a ragged edge, with scorch, a white-hot rim, smoke and embers. Keys: `roughness`, `scale`, `char`, `heat`, `embers`, `smoke`.
+  - `distortion-wave/ink`: risograph. The front bleeds like ink and the content around it is reprinted in two inks, out of register, with paper grain. Keys: `bleed`, `scale`, `misregister`, `grain`, `zone`, `ink`.
+  - `distortion-wave/halftone`: near the front the content becomes a dot screen sized by its tone. Keys: `cell`, `angle`, `zone`, `size`, `ink`.
+  - `distortion-wave/metal`: the front is a rolling bead of liquid chrome. Keys: `thickness`, `wobble`, `ripple`, `shine`, `reflect`.
+  - `distortion-wave/water`: ripples, refraction, caustics and foam. Keys: `wavelength`, `refraction`, `caustics`, `foam`, `tint`.
 - `electric` and `pixel` palettes.
 - Smaller bundle, with the same pixels. The core goes from 18.7 to 17.3 kB gzipped (15.6 kB brotli):
   - the shaders are minified at build time (comments and indentation out);

@@ -174,6 +174,58 @@ distortionWave(card, update, { effect: pixel, source: button, focus: event });
 
 CDN: `https://cdn.jsdelivr.net/npm/distortion-wave@0.3/dist/pixel.js`, or `dist/pixel.iife.min.js` for `window.DistortionWavePixel`.
 
+### More looks
+
+Six more entries, each about 1 to 1.3 kB gzipped, same pattern: `import { glass } from 'distortion-wave/glass'`, then `effect: glass`. Every wave option still applies; each look adds its own keys (sizes at the 360 × 740 reference scale) and exports their defaults (`GLASS`, `BURN`, `INK`, `HALFTONE`, `METAL`, `WATER`). A key shared by two looks means the same thing in both.
+
+**`distortion-wave/glass`** (~1.0 kB gzipped, `window.DistortionWaveGlass` from `dist/glass.iife.min.js`). Behind the front a thick slab of glass bends the content like a lens, splits it into RGB at its slopes and catches the light on its faces. Pale glass palette.
+
+| Key | Default | |
+|---|---|---|
+| `thickness` | `90` px | width of the slab behind the front |
+| `refraction`, `dispersion` | `26`, `5` px | how far the slab bends what's under it, RGB split at its slopes |
+| `shine`, `tint` | `1`, `0.25` | highlights, palette tint of the glass (0 = none, clear) |
+
+**`distortion-wave/burn`** (~1.3 kB gzipped, `window.DistortionWaveBurn` from `dist/burn.iife.min.js`). The front burns the old content away along a ragged edge pinned to the content: scorch ahead, a white-hot rim, smoke and embers drifting up behind. Made for a delete. Palette `'ember'`.
+
+| Key | Default | |
+|---|---|---|
+| `roughness`, `scale` | `32`, `100` px | how ragged the edge is, one noise cell |
+| `char`, `heat` | `70`, `11` px | scorched zone ahead, width of the glowing edge |
+| `embers`, `smoke` | `1`, `0.5` | embers and smoke behind the edge (0 = none) |
+
+**`distortion-wave/ink`** (~1.3 kB gzipped, `window.DistortionWaveInk` from `dist/ink.iife.min.js`). Risograph. The front bleeds like ink soaking into paper; around it the content is reprinted in two inks (the palette's first two colours), out of register, dithered by the paper's grain. Riso palette (fluorescent pink, blue, yellow, green).
+
+| Key | Default | |
+|---|---|---|
+| `bleed`, `scale` | `30`, `110` px | how far the ink spreads, one noise cell |
+| `misregister`, `ink` | `3`, `36` px | offset between the two inks, width of the wet ink behind the front |
+| `grain`, `zone` | `1`, `1.2` | paper grain (0 to 1), printed zone × the band's `lead` |
+
+**`distortion-wave/halftone`** (~1.0 kB gzipped, `window.DistortionWaveHalftone` from `dist/halftone.iife.min.js`). Near the front the content turns into a rotated dot screen: dark dots on light content, light dots on dark, sized by its tone, swelling with the wave and inked in the palette at its peak. CMYK-like palette.
+
+| Key | Default | |
+|---|---|---|
+| `cell`, `angle` | `7` px, `45`° | one cell of the screen, its angle |
+| `zone`, `size` | `1.1`, `1.2` | screen zone × the band's `lead`, largest dot × the cell |
+| `ink` | `0.7` | palette ink at the front (0 = the content's own colours) |
+
+**`distortion-wave/metal`** (~1.1 kB gzipped, `window.DistortionWaveMetal` from `dist/metal.iife.min.js`). Liquid metal. The front is a rolling bead of chrome that wobbles, mirrors a procedural studio and, faintly, the content. Best on a dark page. Chrome palette that tints the reflections.
+
+| Key | Default | |
+|---|---|---|
+| `thickness`, `wobble` | `46`, `14` px | width of the bead, slow wobble of the front |
+| `ripple`, `shine` | `0.6`, `1` | ripples on the surface, specular highlight |
+| `reflect` | `0.35` | how much of the content the metal mirrors (0 to 1) |
+
+**`distortion-wave/water`** (~1.2 kB gzipped, `window.DistortionWaveWater` from `dist/water.iife.min.js`). Ripples trail the front and refract the content, the water tints it, caustics dance on it and foam breaks on the front. Palette `'ocean'`.
+
+| Key | Default | |
+|---|---|---|
+| `wavelength`, `refraction` | `44`, `9` px | distance between ripples, how far they bend the content |
+| `caustics`, `foam` | `1`, `1` | light patterns, foam on the front (0 = none) |
+| `tint` | `0.35` | palette tint of the water (0 = clear) |
+
 ## Examples
 
 - [`demo/`](demo/): a payment screen, a single button, a tab panel, a media card, an element that changes size and a whole-page theme switch.
@@ -257,6 +309,7 @@ The `center` variant has its own values: see `PRESETS.center`.
 - `PALETTES`, `PRESETS`, `scaleConfig`, `totalDuration`, `frameState`: the pure core, if you want to drive your own renderer.
 - `distortion-wave/electric`: `electric`, `electricBorder`, `ELECTRIC`, `BORDER` (see Effects).
 - `distortion-wave/pixel`: `pixel`, `PIXEL` (see Effects).
+- `distortion-wave/glass`, `/burn`, `/ink`, `/halftone`, `/metal`, `/water`: the look and its defaults, like `glass` and `GLASS` (see More looks).
 
 ## How it works
 
@@ -276,7 +329,7 @@ The rendering cost is one full-screen pass per frame (up to ~18 texture reads pe
 
 ### Bundle size
 
-The core is ~17 kB gzipped, shaders included (`distortion-wave/electric` adds ~6 kB, `distortion-wave/pixel` ~1.2 kB). If the wave only plays on a few interactions, keep it out of the initial bundle and load it on the first one:
+The core is ~17 kB gzipped, shaders included (`distortion-wave/electric` adds ~6 kB, `distortion-wave/pixel` ~1.2 kB, the other looks 1 to 1.3 kB each). If the wave only plays on a few interactions, keep it out of the initial bundle and load it on the first one:
 
 ```js
 let lib;
