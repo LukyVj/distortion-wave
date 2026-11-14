@@ -19,30 +19,113 @@ import {
   type PaletteName,
 } from "distortion-wave";
 
+export const TUNING = {
+  timing: {
+    label: "Timing",
+    keys: [
+      { key: "anticipation", label: "Inhale before launch", min: 0, max: 1.5, step: 0.05, unit: "s" },
+      { key: "travel", label: "Travel across", min: 0.4, max: 5, step: 0.1, unit: "s" },
+      { key: "linger", label: "Edge clears after", min: -1, max: 1.5, step: 0.05, unit: "s" },
+      { key: "rimFade", label: "Edge fade", min: 0.2, max: 5, step: 0.1, unit: "s" },
+    ],
+  },
+  lens: {
+    label: "Lens",
+    keys: [
+      { key: "amplitude", label: "Displacement", min: 0, max: 90, step: 1, unit: "px" },
+      { key: "lensWidth", label: "Lens width", min: 20, max: 400, step: 5, unit: "px" },
+      { key: "swell", label: "Bulge", min: 0, max: 60, step: 1, unit: "px" },
+      { key: "aberration", label: "Colour split", min: 0, max: 2.5, step: 0.05, unit: "" },
+      { key: "lean", label: "Lean to the touch", min: 0, max: 1, step: 0.05, unit: "" },
+    ],
+  },
+  blur: {
+    label: "Blur",
+    keys: [
+      { key: "blur", label: "Strength", min: 0, max: 40, step: 1, unit: "px" },
+      { key: "blurNear", label: "At the front", min: 0, max: 20, step: 0.5, unit: "px" },
+      { key: "blurAhead", label: "Reach ahead", min: 0, max: 300, step: 5, unit: "px" },
+      { key: "blurBehind", label: "Reach behind", min: 0, max: 500, step: 10, unit: "px" },
+    ],
+  },
+  band: {
+    label: "Colour band",
+    keys: [
+      { key: "band", label: "Strength", min: 0, max: 1.5, step: 0.05, unit: "" },
+      { key: "lead", label: "Length ahead", min: 0, max: 300, step: 5, unit: "px" },
+      { key: "tail", label: "Length behind", min: 0, max: 600, step: 10, unit: "px" },
+    ],
+  },
+  edge: {
+    label: "Edge",
+    keys: [
+      { key: "rimStrength", label: "Glow strength", min: 0, max: 1.5, step: 0.05, unit: "" },
+      { key: "rimWidth", label: "Glow width", min: 0, max: 40, step: 1, unit: "px" },
+      { key: "rimSoftness", label: "Glow reach", min: 0, max: 600, step: 10, unit: "px" },
+      { key: "hairWidth", label: "Hairline", min: 0, max: 4, step: 0.1, unit: "px" },
+    ],
+  },
+  pull: {
+    label: "Pull",
+    keys: [
+      { key: "pull", label: "Pull to the source", min: 0, max: 60, step: 1, unit: "px" },
+      { key: "inhale", label: "Inhale ring", min: 0, max: 120, step: 1, unit: "px" },
+    ],
+  },
+  sparks: {
+    label: "Sparks",
+    keys: [
+      { key: "particleSize", label: "Size", min: 0.5, max: 5, step: 0.1, unit: "px" },
+      { key: "particleLife", label: "Life", min: 0.3, max: 5, step: 0.1, unit: "s" },
+      { key: "reach", label: "Reach", min: 0, max: 300, step: 5, unit: "px" },
+      { key: "spread", label: "Spread", min: 0, max: 3, step: 0.05, unit: "" },
+    ],
+  },
+} as const;
+
+export type TuneKey = (typeof TUNING)[keyof typeof TUNING]["keys"][number]["key"];
+
 export type Settings = {
   duration: number | null;
-  intensity: number;
+  speed: number;
   easing: string;
-  palette: PaletteName | "demo";
+  intensity: number;
+  variant: "auto" | "vertical" | "horizontal" | "center";
+  palette: PaletteName | "demo" | "custom";
+  custom: [string, string, string];
   particles: boolean;
+  particleCount: number | null;
+  motion: "system" | "wave" | "fade";
+  tuning: Partial<Record<TuneKey, number>>;
 };
 
 export const DEFAULT_SETTINGS: Settings = {
   duration: null,
-  intensity: 1,
+  speed: 1,
   easing: "default",
+  intensity: 1,
+  variant: "auto",
   palette: "demo",
+  custom: ["#ff4fd8", "#5b7cff", "#ffd36b"],
   particles: true,
+  particleCount: null,
+  motion: "system",
+  tuning: {},
 };
 
 export function toDefaults(s: Settings): DistortionWaveOptions {
   const o: DistortionWaveOptions = {};
   if (s.duration != null) o.duration = s.duration;
-  if (s.intensity !== 1) o.intensity = s.intensity;
+  else if (s.speed !== 1) o.speed = s.speed;
   if (s.easing !== "default") o.easing = s.easing;
-  if (s.palette !== "demo") o.palette = s.palette;
+  if (s.intensity !== 1) o.intensity = s.intensity;
+  if (s.variant !== "auto") o.variant = s.variant;
+  if (s.palette === "custom") o.palette = [...s.custom];
+  else if (s.palette !== "demo") o.palette = s.palette;
   if (!s.particles) o.particles = false;
-  return o;
+  else if (s.particleCount != null) o.particles = s.particleCount;
+  if (s.motion !== "system") o.reducedMotion = s.motion === "fade";
+  return { ...o, ...s.tuning };
 }
 
 type Ctx = { settings: Settings; setSettings: (s: Settings) => void };

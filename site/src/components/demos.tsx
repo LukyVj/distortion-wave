@@ -2,6 +2,23 @@
 
 import { useRef, useState, type MouseEvent } from "react";
 import { Button } from "@ui-sdk/react/button";
+import { Checkbox, CheckboxIndicator } from "@ui-sdk/react/checkbox";
+import {
+  NumberInput,
+  NumberInputControl,
+  NumberInputDecrement,
+  NumberInputGroup,
+  NumberInputIncrement,
+} from "@ui-sdk/react/number-input";
+import {
+  Pagination,
+  PaginationItem,
+  PaginationLink,
+  PaginationList,
+  PaginationNext,
+  PaginationPrevious,
+} from "@ui-sdk/react/pagination";
+import { Radio, RadioGroup, RadioIndicator } from "@ui-sdk/react/radio";
 import { Rating, RatingItem } from "@ui-sdk/react/rating";
 import {
   SegmentedControl,
@@ -10,7 +27,7 @@ import {
 } from "@ui-sdk/react/segmented-control";
 import { Switch, SwitchThumb } from "@ui-sdk/react/switch";
 import { Tabs, TabsList, TabsPanel, TabsTab } from "@ui-sdk/react/tabs";
-import { Toggle } from "@ui-sdk/react/toggle";
+import { Toggle, ToggleGroup } from "@ui-sdk/react/toggle";
 import { highlight } from "./code";
 import { origin, useWave } from "./wave";
 
@@ -274,6 +291,218 @@ function Snippet() {
   );
 }
 
+const TASKS = [
+  { id: "copy", label: "Write the launch post" },
+  { id: "demo", label: "Record the demo" },
+  { id: "ship", label: "Publish to npm" },
+];
+
+function Checklist() {
+  const list = useRef<HTMLDivElement>(null);
+  const [done, setDone] = useState<string[]>(["copy"]);
+  const wave = useWave();
+
+  return (
+    <div ref={list} className="checklist target">
+      <p className="checklist-head">
+        Launch <span>{done.length === TASKS.length ? "All done" : `${done.length} of ${TASKS.length} done`}</span>
+      </p>
+      {TASKS.map((t) => (
+        <label key={t.id} className="task" data-done={done.includes(t.id) || undefined}>
+          <Checkbox
+            checked={done.includes(t.id)}
+            onCheckedChange={(checked) =>
+              wave(
+                list,
+                () => setDone((d) => (checked ? [...d, t.id] : d.filter((x) => x !== t.id))),
+                { ...origin('[data-slot="checkbox"]'), palette: "mint" },
+              )
+            }
+          >
+            <CheckboxIndicator />
+          </Checkbox>
+          {t.label}
+        </label>
+      ))}
+    </div>
+  );
+}
+
+const SPEEDS = {
+  standard: { label: "Standard", when: "Arrives Thursday", price: 0 },
+  express: { label: "Express", when: "Arrives tomorrow", price: 12 },
+  pickup: { label: "Pick up in store", when: "Ready in 2 hours", price: 0 },
+};
+
+function Shipping() {
+  const card = useRef<HTMLDivElement>(null);
+  const [speed, setSpeed] = useState<keyof typeof SPEEDS>("standard");
+  const wave = useWave();
+  const current = SPEEDS[speed];
+
+  return (
+    <div ref={card} className="shipping target">
+      <RadioGroup
+        aria-label="Delivery"
+        className="radios"
+        value={speed}
+        onValueChange={(value) => {
+          if (!value || value === speed) return;
+          wave(card, () => setSpeed(value as keyof typeof SPEEDS), {
+            ...origin('[data-slot="radio"]'),
+            palette: "ocean",
+          });
+        }}
+      >
+        {Object.entries(SPEEDS).map(([value, o]) => (
+          <label key={value} className="radio-row">
+            <Radio value={value}>
+              <RadioIndicator />
+            </Radio>
+            {o.label}
+          </label>
+        ))}
+      </RadioGroup>
+      <p className="shipping-sum">
+        <span>{current.when}</span>
+        <strong>{current.price ? `$${current.price}` : "Free"}</strong>
+      </p>
+    </div>
+  );
+}
+
+function Quantity() {
+  const card = useRef<HTMLDivElement>(null);
+  const [qty, setQty] = useState<number | null>(2);
+  const wave = useWave();
+  const n = qty ?? 0;
+
+  return (
+    <div ref={card} className="quantity target">
+      <div>
+        <p className="quantity-name">Ticket, early bird</p>
+        <p className="quantity-total">
+          ${n * 24} <span>for {n} {n === 1 ? "ticket" : "tickets"}</span>
+        </p>
+      </div>
+      <NumberInput
+        value={qty}
+        min={0}
+        max={9}
+        onValueChange={(value, details) => {
+          if (details.reason === "increment-press" || details.reason === "decrement-press" || details.reason === "step-key") {
+            wave(card, () => setQty(value), {
+              ...origin('[data-slot="number-input-increment"], [data-slot="number-input-decrement"]'),
+              palette: (value ?? 0) > n ? "mint" : "ember",
+            });
+          } else setQty(value);
+        }}
+      >
+        <NumberInputGroup>
+          <NumberInputDecrement aria-label="Fewer tickets" />
+          <NumberInputControl aria-label="Tickets" />
+          <NumberInputIncrement aria-label="More tickets" />
+        </NumberInputGroup>
+      </NumberInput>
+    </div>
+  );
+}
+
+const ALIGN = ["left", "center", "right"] as const;
+
+function Align() {
+  const text = useRef<HTMLParagraphElement>(null);
+  const [align, setAlign] = useState<(typeof ALIGN)[number]>("left");
+  const wave = useWave();
+
+  return (
+    <div className="align">
+      <ToggleGroup
+        className="align-tools"
+        aria-label="Text alignment"
+        value={[align]}
+        onValueChange={(value) => {
+          const next = value[value.length - 1] as (typeof ALIGN)[number] | undefined;
+          if (!next || next === align) return;
+          wave(text, () => setAlign(next), { ...origin('[data-slot="toggle"]'), intensity: 0.7 });
+        }}
+      >
+        {ALIGN.map((a) => (
+          <Toggle key={a} value={a} aria-label={`Align ${a}`}>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              {a === "left" && <path d="M4 6h16M4 10h10M4 14h16M4 18h10" />}
+              {a === "center" && <path d="M4 6h16M7 10h10M4 14h16M7 18h10" />}
+              {a === "right" && <path d="M4 6h16M10 10h10M4 14h16M10 18h10" />}
+            </svg>
+          </Toggle>
+        ))}
+      </ToggleGroup>
+      <p ref={text} className="align-text target" style={{ textAlign: align }}>
+        The source sits outside the target: the wave leaves the toolbar and crosses the paragraph.
+      </p>
+    </div>
+  );
+}
+
+const RELEASES = [
+  ["0.2.1", "Thin rows of text keep their letters"],
+  ["0.2.0", "Duration, easing, intensity, app-wide defaults"],
+  ["0.1.2", "Rounded corners from clipping parents"],
+  ["0.1.1", "No box around transparent elements"],
+  ["0.1.0", "First version"],
+];
+
+function Releases() {
+  const list = useRef<HTMLDivElement>(null);
+  const [page, setPage] = useState(1);
+  const wave = useWave();
+  const shown = RELEASES.slice((page - 1) * 2, page * 2);
+
+  return (
+    <div className="releases">
+      <div ref={list} className="release-list target">
+        {shown.map(([v, t]) => (
+          <p key={v}>
+            <strong>{v}</strong> {t}
+          </p>
+        ))}
+      </div>
+      <Pagination
+        aria-label="Releases"
+        pageCount={3}
+        page={page}
+        onPageChange={(next) => {
+          if (next === page) return;
+          wave(list, () => setPage(next), {
+            ...origin('[data-slot="pagination-link"], [data-slot="pagination-previous"], [data-slot="pagination-next"]'),
+            intensity: 0.7,
+          });
+        }}
+      >
+        <PaginationList>
+          {({ items }) => (
+            <>
+              <PaginationItem>
+                <PaginationPrevious>Newer</PaginationPrevious>
+              </PaginationItem>
+              {items.map((item) =>
+                typeof item === "number" ? (
+                  <PaginationItem key={item}>
+                    <PaginationLink page={item} />
+                  </PaginationItem>
+                ) : null,
+              )}
+              <PaginationItem>
+                <PaginationNext>Older</PaginationNext>
+              </PaginationItem>
+            </>
+          )}
+        </PaginationList>
+      </Pagination>
+    </div>
+  );
+}
+
 export function Demos() {
   return (
     <div className="demos">
@@ -297,6 +526,21 @@ export function Demos() {
       </Demo>
       <Demo className="d-snippet" title="Copy." how="Waves the code, then the label goes back without a wave.">
         <Snippet />
+      </Demo>
+      <Demo className="d-check" title="Checklist." how="Waves the list, since the count in its header changes too.">
+        <Checklist />
+      </Demo>
+      <Demo className="d-ship" title="Delivery." how="Waves the card, from the radio you picked.">
+        <Shipping />
+      </Demo>
+      <Demo className="d-qty" title="Quantity." how="The + and − buttons wave the card. Typing a number doesn't.">
+        <Quantity />
+      </Demo>
+      <Demo className="d-align" title="Alignment." how="Waves the paragraph only, from the toolbar above it.">
+        <Align />
+      </Demo>
+      <Demo className="d-pages" title="Pages." how="Waves the list, from the page you picked below it.">
+        <Releases />
       </Demo>
     </div>
   );
