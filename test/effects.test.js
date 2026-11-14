@@ -2,13 +2,14 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { BASE, resolveConfig } from '../src/core.js';
 
-// The looks added after electric and pixel: each is the wave with another look, nothing else.
+// The six looks added after electric and pixel: each is the wave with another look, nothing else.
 const LOOKS = {
   glass: ['thickness', 'refraction', 'dispersion', 'shine', 'tint'],
   burn: ['roughness', 'scale', 'char', 'heat', 'embers', 'smoke'],
   ink: ['bleed', 'scale', 'misregister', 'grain', 'zone', 'ink'],
   halftone: ['cell', 'angle', 'zone', 'size', 'ink'],
   metal: ['thickness', 'wobble', 'ripple', 'shine', 'reflect'],
+  water: ['wavelength', 'refraction', 'caustics', 'foam', 'tint'],
 };
 const BEHAVIOUR = ['anticipation', 'travel', 'linger', 'amplitude', 'lensWidth', 'swell', 'aberration', 'blur', 'blurNear', 'blurAhead', 'blurBehind', 'pull', 'inhale', 'lean', 'speed', 'particles'];
 const HEX = /^#[0-9a-f]{6}$/i;
@@ -39,3 +40,11 @@ for (const [name, keys] of Object.entries(LOOKS)) {
   });
 }
 
+test('the looks scale with the element: a button gets a thinner glass slab and a smaller bead', async () => {
+  const { glass } = await import('../src/effects/glass.js'), { metal } = await import('../src/effects/metal.js');
+  const at = (fx, w, h) => { const c = resolveConfig({ ...BASE, ...fx.preset }, {}, w, h); fx.tune(c, {}); return c; };
+  assert.ok(at(glass, 120, 40).thickness < at(glass, 360, 740).thickness);
+  assert.ok(at(metal, 120, 40).thickness >= 10);
+  const { halftone } = await import('../src/effects/halftone.js');
+  assert.ok(Math.abs(at(halftone, 360, 740).angle - Math.PI / 4) < 1e-9);
+});

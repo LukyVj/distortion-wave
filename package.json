@@ -39,6 +39,10 @@
       "types": "./types/metal.d.ts",
       "import": "./dist/metal.js"
     },
+    "./water": {
+      "types": "./types/water.d.ts",
+      "import": "./dist/water.js"
+    },
     "./src/*": "./src/*"
   },
   "unpkg": "./dist/distortion-wave.iife.min.js",
