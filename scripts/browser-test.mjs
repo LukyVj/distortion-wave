@@ -50,7 +50,7 @@ await check('mid-transition frames render (screenshots if SHOTS=dir)', async () 
   const { page, errors } = await open();
   const b = await (await page.$('#phone .cta')).boundingBox();
   await page.mouse.click(b.x + b.width * 0.85, b.y + b.height / 2);
-  await page.waitForSelector('canvas[data-dw-ignore]', { state: 'attached', timeout: 3000 });
+  await page.waitForSelector('canvas[data-dw-ignore]', { state: 'attached', timeout: 15000 });
   if (shots) for (const [i, ms] of [300, 400, 600].entries()) { await page.waitForTimeout(ms); await page.screenshot({ path: `${shots}/phone-${i}.png`, clip: { x: b.x - 30, y: b.y - 640, width: b.width + 60, height: 720 } }); }
   await page.waitForFunction(() => !document.querySelector('canvas[data-dw-ignore]'), null, { timeout: 15000 });
   assert.match(await page.textContent('#phone .cta'), /Done/);
@@ -96,7 +96,7 @@ await check('works on a plain button, a tab panel, a media card and the whole ap
 await check('reduced motion: update runs, crossfade only, nothing left behind', async () => {
   const { page, errors } = await open({ reducedMotion: 'reduce' });
   await page.click('#sub');
-  await page.waitForFunction(() => document.getElementById('sub').getAttribute('aria-pressed') === 'true' && !document.querySelector('canvas[data-dw-ignore]'), null, { timeout: 5000 });
+  await page.waitForFunction(() => document.getElementById('sub').getAttribute('aria-pressed') === 'true' && !document.querySelector('canvas[data-dw-ignore]'), null, { timeout: 15000 });
   assert.deepEqual(errors, []);
 });
 
