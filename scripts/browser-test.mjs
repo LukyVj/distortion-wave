@@ -204,7 +204,7 @@ await check('pixel: the same wave with a pixel look, square sparks, DOM restored
   assert.deepEqual(errors, []);
 });
 
-for (const [name, Global] of [['glass', 'Glass'], ['burn', 'Burn']]) {
+for (const [name, Global] of [['glass', 'Glass'], ['burn', 'Burn'], ['ink', 'Ink']]) {
   await check(`${name}: the same wave with the ${name} look, its shader compiles minified, DOM restored`, async () => {
     const { page, errors } = await open();
     await page.addScriptTag({ path: resolve(`dist/${name}.iife.min.js`) });

@@ -27,6 +27,10 @@
       "types": "./types/burn.d.ts",
       "import": "./dist/burn.js"
     },
+    "./ink": {
+      "types": "./types/ink.d.ts",
+      "import": "./dist/ink.js"
+    },
     "./src/*": "./src/*"
   },
   "unpkg": "./dist/distortion-wave.iife.min.js",
