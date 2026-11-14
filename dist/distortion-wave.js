@@ -614,8 +614,7 @@ function particleAt(P, s, c) {
 
 // src/gl.js
 var VS_FULL = `#version 300 es
-out vec2 vUv;
-void main() { vec2 p = vec2(float((gl_VertexID << 1) & 2), float(gl_VertexID & 2)); vUv = p; gl_Position = vec4(p * 2.0 - 1.0, 0.0, 1.0); }`;
+out vec2 vUv; void main(){vec2 p=vec2(float((gl_VertexID<<1)&2),float(gl_VertexID&2));vUv=p;gl_Position=vec4(p*2.0 - 1.0,0.0,1.0);}`;
 function program(gl, vs, fs) {
   const sh = (type, src) => {
     const s = gl.createShader(type);
@@ -638,190 +637,31 @@ function program(gl, vs, fs) {
 
 // src/renderer.js
 var FS_COPY = `#version 300 es
-precision highp float; in vec2 vUv; uniform sampler2D uTex; uniform float uLod; out vec4 o;
-void main() { o = textureLod(uTex, vUv, uLod); }`;
+precision highp float;in vec2 vUv;uniform sampler2D uTex;uniform float uLod;out vec4 o; void main(){o=textureLod(uTex,vUv,uLod);}`;
 var FS_BLUR = `#version 300 es
-precision highp float; in vec2 vUv; uniform sampler2D uTex; uniform vec2 uStep; uniform float uSigma; out vec4 o;
-void main() {
-  float R = min(ceil(uSigma * 3.0), 32.0); vec4 acc = vec4(0.0); float ws = 0.0;
-  for (int i = -32; i <= 32; i++) { float fi = float(i); if (abs(fi) > R) continue;
-    float w = exp(-0.5 * fi * fi / (uSigma * uSigma)); acc += textureLod(uTex, vUv + uStep * fi, 0.0) * w; ws += w; }
-  o = acc / ws;
-}`;
+precision highp float;in vec2 vUv;uniform sampler2D uTex;uniform vec2 uStep;uniform float uSigma;out vec4 o; void main(){ float R=min(ceil(uSigma*3.0),32.0);vec4 acc=vec4(0.0);float ws=0.0; for(int i=-32;i<=32;i++){float fi=float(i);if(abs(fi)>R)continue; float w=exp(-0.5*fi*fi/(uSigma*uSigma));acc +=textureLod(uTex,vUv + uStep*fi,0.0)*w;ws +=w;} o=acc/ws; }`;
 var FS_MAIN = `#version 300 es
-precision highp float; precision highp int;
-uniform vec2 uSize, uRes;
-uniform sampler2D uOld0, uOld1, uOld2, uNew0, uNew1, uNew2;
-uniform vec4 uOldRect, uNewRect, uShape, uRadii;   // rects in canvas CSS px; radii (br, tr, bl, tl)
-uniform int uMode;                                 // 0 before \xB7 1 live \xB7 2 after \xB7 3 crossfade \xB7 4 effects only (live DOM below)
-uniform bool uClip;                                 // an ancestor clips the element: mask everything by the shape
-uniform float uFade, uBoxless;                      // uBoxless: the element paints no box \u2192 light up its content only
-uniform bool uLaunched, uRing;
-uniform vec2 uOrigin;
-uniform float uTilt, uSpine, uRadius, uSquash, uTime, uSwell, uEnergy, uPull, uGlow, uRim, uClear, uHairClear, uHold, uK, uSeam;
-uniform float uAmp, uLensW, uAberr, uBlurMax, uBlurNear, uBlurAhead, uBlurBehind;
-uniform float uLead, uTail, uBand, uRimW, uRimSoft, uUneven, uHairW;
-uniform vec3 uPal[8]; uniform int uPalN;
-out vec4 outColor;
-const float TAU = 6.28318530718;
+precision highp float;precision highp int; uniform vec2 uSize,uRes; uniform sampler2D uOld0,uOld1,uOld2,uNew0,uNew1,uNew2; uniform vec4 uOldRect,uNewRect,uShape,uRadii; uniform int uMode; uniform bool uClip; uniform float uFade,uBoxless; uniform bool uLaunched,uRing; uniform vec2 uOrigin; uniform float uTilt,uSpine,uRadius,uSquash,uTime,uSwell,uEnergy,uPull,uGlow,uRim,uClear,uHairClear,uHold,uK,uSeam; uniform float uAmp,uLensW,uAberr,uBlurMax,uBlurNear,uBlurAhead,uBlurBehind; uniform float uLead,uTail,uBand,uRimW,uRimSoft,uUneven,uHairW; uniform vec3 uPal[8];uniform int uPalN; out vec4 outColor; const float TAU=6.28318530718;
 #ifdef FX
-float fxFront(vec2 q, vec2 p);                     // effects (distortion-wave/electric\u2026) bend the front\u2026
-vec4 fxOver(vec4 o, vec2 p, vec2 c, float sd, float fd, vec2 fq, float fg);   // \u2026and paint over the result
+float fxFront(vec2 q,vec2 p); vec4 fxOver(vec4 o,vec2 p,vec2 c,float sd,float fd,vec2 fq,float fg);
 #endif
-
-mat2 rot(float a) { float c = cos(a), s = sin(a); return mat2(c, s, -s, c); }
-float ign(vec2 p) { return fract(52.9829189 * fract(dot(p, vec2(0.06711056, 0.00583715)))); }
-float h11(float x) { return fract(sin(x * 127.1) * 43758.5453); }
-float vnoise(float x) { float i = floor(x), f = fract(x); return mix(h11(i), h11(i + 1.0), f * f * (3.0 - 2.0 * f)) * 2.0 - 1.0; }
-float sdRoundBox(vec2 p, vec2 b, vec4 r) {         // y-down space: r = (bottom-right, top-right, bottom-left, top-left)
-  r.xy = (p.x > 0.0) ? r.xy : r.zw; r.x = (p.y > 0.0) ? r.x : r.y;
-  vec2 q = abs(p) - b + r.x; return min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - r.x;
-}
-struct Front { float d; vec2 n; vec2 q; float g; };
-Front front(vec2 p) {
-  vec2 q = rot(-uTilt) * (p - uOrigin); float mx = q.x * uSquash;
-  vec2 v = vec2(max(abs(mx) - uSpine, 0.0), q.y); float len = max(length(v), 1e-3);
-  vec2 grad = vec2(v.x * sign(q.x) * uSquash, v.y) / len; float g = max(length(grad), 1e-3);
-  float wob;
-  if (uRing) { float a = atan(q.y, q.x); wob = 0.5 * sin(3.0 * a + uTime * 1.3) + 0.3 * sin(5.0 * a - uTime * 0.9 + 2.1) + 0.2 * sin(2.0 * a + uTime * 2.0); }
-  else { float s = mx * 0.005 / uK; wob = 0.7 * vnoise(s + uTime * 0.8) + 0.3 * vnoise(s * 2.3 - uTime * 1.1 + 5.0); }
-  Front f; f.d = (len - uRadius) / g + uSwell * wob; f.n = rot(uTilt) * (grad / g); f.q = q; f.g = g;
+mat2 rot(float a){float c=cos(a),s=sin(a);return mat2(c,s,-s,c);} float ign(vec2 p){return fract(52.9829189*fract(dot(p,vec2(0.06711056,0.00583715))));} float h11(float x){return fract(sin(x*127.1)*43758.5453);} float vnoise(float x){float i=floor(x),f=fract(x);return mix(h11(i),h11(i + 1.0),f*f*(3.0 - 2.0*f))*2.0 - 1.0;} float sdRoundBox(vec2 p,vec2 b,vec4 r){ r.xy=(p.x>0.0)?r.xy:r.zw;r.x=(p.y>0.0)?r.x:r.y; vec2 q=abs(p)- b + r.x;return min(max(q.x,q.y),0.0)+ length(max(q,0.0))- r.x; } struct Front{float d;vec2 n;vec2 q;float g;}; Front front(vec2 p){ vec2 q=rot(-uTilt)*(p - uOrigin);float mx=q.x*uSquash; vec2 v=vec2(max(abs(mx)- uSpine,0.0),q.y);float len=max(length(v),1e-3); vec2 grad=vec2(v.x*sign(q.x)*uSquash,v.y)/len;float g=max(length(grad),1e-3); float wob; if(uRing){float a=atan(q.y,q.x);wob=0.5*sin(3.0*a + uTime*1.3)+ 0.3*sin(5.0*a - uTime*0.9 + 2.1)+ 0.2*sin(2.0*a + uTime*2.0);} else{float s=mx*0.005/uK;wob=0.7*vnoise(s + uTime*0.8)+ 0.3*vnoise(s*2.3 - uTime*1.1 + 5.0);} Front f;f.d=(len - uRadius)/g + uSwell*wob;f.n=rot(uTilt)*(grad/g);f.q=q;f.g=g;
 #ifdef FX
-  f.d += fxFront(q, p);
+f.d +=fxFront(q,p);
 #endif
-  return f;
-}
-// The silhouette is decided by p (undisplaced); the sample by sp (displaced, clamped to the rect).
-// \u2192 content bends INSIDE the element, never revealing transparency or bleeding outside.
-vec4 tap(sampler2D s, vec4 rect, vec2 p, vec2 sp) {
-  vec2 q = (p - rect.xy) / rect.zw;
-  if (q.x < 0.0 || q.y < 0.0 || q.x > 1.0 || q.y > 1.0) return vec4(0.0);
-  return textureLod(s, clamp((sp - rect.xy) / rect.zw, 0.0, 1.0), 0.0);
-}
-vec4 fetch3(sampler2D s0, sampler2D s1, sampler2D s2, vec4 rect, vec2 p, vec2 sp, float tn, float tf) {
-  vec4 c = tap(s0, rect, p, sp);
-  if (tn > 0.0) c = mix(c, tap(s1, rect, p, sp), tn);
-  if (tf > 0.0) c = mix(c, tap(s2, rect, p, sp), tf);
-  return c;
-}
-vec4 layerOld(vec2 p, vec2 sp, vec2 sl, float tn, float tf) {
-  if (dot(sl, sl) < 0.01) return fetch3(uOld0, uOld1, uOld2, uOldRect, p, sp, tn, tf);
-  vec4 r = fetch3(uOld0, uOld1, uOld2, uOldRect, p, sp + sl, tn, tf), g = fetch3(uOld0, uOld1, uOld2, uOldRect, p, sp, tn, tf), b = fetch3(uOld0, uOld1, uOld2, uOldRect, p, sp - sl, tn, tf);
-  return vec4(r.r, g.g, b.b, max(max(r.a, g.a), b.a));
-}
-vec4 layerNew(vec2 p, vec2 sp, vec2 sl, float tn, float tf) {
-  if (dot(sl, sl) < 0.01) return fetch3(uNew0, uNew1, uNew2, uNewRect, p, sp, tn, tf);
-  vec4 r = fetch3(uNew0, uNew1, uNew2, uNewRect, p, sp + sl, tn, tf), g = fetch3(uNew0, uNew1, uNew2, uNewRect, p, sp, tn, tf), b = fetch3(uNew0, uNew1, uNew2, uNewRect, p, sp - sl, tn, tf);
-  return vec4(r.r, g.g, b.b, max(max(r.a, g.a), b.a));
-}
-vec3 paletteAt(float u) {
-  float x = fract(u) * float(uPalN); int i = min(int(floor(x)), uPalN - 1); int j = (i + 1) % uPalN;
-  return mix(uPal[i], uPal[j], smoothstep(0.0, 1.0, fract(x)));
-}
-vec3 oklabToSrgb(vec3 c) {
-  float l = c.x + 0.3963377774 * c.y + 0.2158037573 * c.z, m = c.x - 0.1055613458 * c.y - 0.0638541728 * c.z, s = c.x - 0.0894841775 * c.y - 1.2914855480 * c.z;
-  l = l * l * l; m = m * m * m; s = s * s * s;
-  vec3 lin = clamp(vec3(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s, -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s, -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s), 0.0, 1.0);
-  return mix(12.92 * lin, 1.055 * pow(lin, vec3(1.0 / 2.4)) - 0.055, step(vec3(0.0031308), lin));
-}
+return f; } vec4 tap(sampler2D s,vec4 rect,vec2 p,vec2 sp){ vec2 q=(p - rect.xy)/rect.zw; if(q.x<0.0||q.y<0.0||q.x>1.0||q.y>1.0)return vec4(0.0); return textureLod(s,clamp((sp - rect.xy)/rect.zw,0.0,1.0),0.0); } vec4 fetch3(sampler2D s0,sampler2D s1,sampler2D s2,vec4 rect,vec2 p,vec2 sp,float tn,float tf){ vec4 c=tap(s0,rect,p,sp); if(tn>0.0)c=mix(c,tap(s1,rect,p,sp),tn); if(tf>0.0)c=mix(c,tap(s2,rect,p,sp),tf); return c; } vec4 layerOld(vec2 p,vec2 sp,vec2 sl,float tn,float tf){ if(dot(sl,sl)<0.01)return fetch3(uOld0,uOld1,uOld2,uOldRect,p,sp,tn,tf); vec4 r=fetch3(uOld0,uOld1,uOld2,uOldRect,p,sp + sl,tn,tf),g=fetch3(uOld0,uOld1,uOld2,uOldRect,p,sp,tn,tf),b=fetch3(uOld0,uOld1,uOld2,uOldRect,p,sp - sl,tn,tf); return vec4(r.r,g.g,b.b,max(max(r.a,g.a),b.a)); } vec4 layerNew(vec2 p,vec2 sp,vec2 sl,float tn,float tf){ if(dot(sl,sl)<0.01)return fetch3(uNew0,uNew1,uNew2,uNewRect,p,sp,tn,tf); vec4 r=fetch3(uNew0,uNew1,uNew2,uNewRect,p,sp + sl,tn,tf),g=fetch3(uNew0,uNew1,uNew2,uNewRect,p,sp,tn,tf),b=fetch3(uNew0,uNew1,uNew2,uNewRect,p,sp - sl,tn,tf); return vec4(r.r,g.g,b.b,max(max(r.a,g.a),b.a)); } vec3 paletteAt(float u){ float x=fract(u)*float(uPalN);int i=min(int(floor(x)),uPalN - 1);int j=(i + 1)%uPalN; return mix(uPal[i],uPal[j],smoothstep(0.0,1.0,fract(x))); } vec3 oklabToSrgb(vec3 c){ float l=c.x + 0.3963377774*c.y + 0.2158037573*c.z,m=c.x - 0.1055613458*c.y - 0.0638541728*c.z,s=c.x - 0.0894841775*c.y - 1.2914855480*c.z; l=l*l*l;m=m*m*m;s=s*s*s; vec3 lin=clamp(vec3(4.0767416621*l - 3.3077115913*m + 0.2309699292*s,-1.2684380046*l + 2.6097574011*m - 0.3413193965*s,-0.0041960863*l - 0.7034186147*m + 1.7076147010*s),0.0,1.0); return mix(12.92*lin,1.055*pow(lin,vec3(1.0/2.4))- 0.055,step(vec3(0.0031308),lin)); } 
 /*@FX*/
-vec4 fin(vec4 o, vec2 p, vec2 c, float sd, Front f) {
+ vec4 fin(vec4 o,vec2 p,vec2 c,float sd,Front f){
 #ifdef FX
-  o = fxOver(o, p, c, sd, f.d, f.q, f.g);
+o=fxOver(o,p,c,sd,f.d,f.q,f.g);
 #endif
-  return o;
-}
-void main() {
-  vec2 p = vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y) * (uSize.x / uRes.x);
-  float dn = (ign(gl_FragCoord.xy) - 0.5) / 255.0;
-  // element shape (per-corner radii, clipped by overflow ancestors): mask + rim
-  vec2 c = p - (uShape.xy + uShape.zw * 0.5);
-  float sd = sdRoundBox(c, uShape.zw * 0.5, uRadii);
-  float mask = clamp(0.5 - sd * (uRes.x / uSize.x), 0.0, 1.0);
-  float clipM = uClip ? mask : 1.0;
-  if (uMode == 0 || uMode == 2 || uMode == 3) {
-    vec4 a = tap(uOld0, uOldRect, p, p), b = tap(uNew0, uNewRect, p, p);
-    vec4 v = (uMode == 0 ? a : uMode == 2 ? b : mix(a, b, uFade)) * clipM;
-    outColor = vec4(v.rgb + dn * v.a, v.a); return;
-  }
-  Front f = front(p);
-  vec2 r = p - uOrigin; float rl = max(length(r), 1.0);
-  float held = uHold > 0.0 ? smoothstep(uHold * 0.9, uHold * 1.8, rl) : 1.0;
-  vec4 col = vec4(0.0);
-  if (uMode == 1) {
-    float k = f.d / (uLensW * (f.d > 0.0 ? 0.8 : 1.6));
-    vec2 bulge = f.n * (uEnergy * uAmp * exp(-k * k) * held);
-    vec2 suck = (r / rl) * (uPull * (rl / (rl + 60.0 * uK)) * exp(-rl / (700.0 * uK)) * held);
-    vec2 sp = p - bulge + suck;
-    vec2 sl = (bulge * 0.5 - suck * exp(-rl / (240.0 * uK))) * uAberr;
-    float kb = f.d / (f.d > 0.0 ? uBlurAhead : uBlurBehind);
-    float bpx = uEnergy * uBlurMax * exp(-kb * kb) * held;
-    float tn = smoothstep(0.0, uBlurNear, bpx);
-    float tf = uBlurMax > uBlurNear ? smoothstep(uBlurNear, uBlurMax, bpx) : 0.0;
-    float cover = uLaunched ? smoothstep(-uSeam, uSeam, f.d) : 1.0;
-    if (cover >= 0.999) col = layerOld(p, sp, sl, tn, tf);
-    else if (cover <= 0.001) col = layerNew(p, sp, sl, tn, tf);
-    else col = mix(layerNew(p, sp, sl, tn, tf), layerOld(p, sp, sl, tn, tf), cover);
-    // the UNdisplaced alpha fixes the silhouette (rounded corners, transparent areas): no fill-in, no fringe outside
-    float aU = mix(tap(uNew0, uNewRect, p, p).a, tap(uOld0, uOldRect, p, p).a, cover);
-    col *= min(1.0, aU / max(col.a, 1e-4)) * clipM;
-  }
-  if (uBoxless > 0.5) {
-    // no background, border or shadow: the band lights the content and a soft halo around it, never the bounding box
-    float sharp = max(tap(uNew0, uNewRect, p, p).a, tap(uOld0, uOldRect, p, p).a);
-    float halo = max(tap(uNew2, uNewRect, p, p).a, tap(uOld2, uOldRect, p, p).a);
-    mask *= max(sharp, smoothstep(0.02, 0.5, halo) * 0.8);
-  }
-  float inset = max(-sd, 0.0);
-  float along = f.q.x * 0.0065 / uK, ang = atan(f.q.y, f.q.x);
-  float lobes = uRing ? 0.5 + 0.5 * sin(2.0 * ang + uTime * 1.4) * cos(ang - uTime * 0.6 + 0.8)
-                      : 0.5 + 0.5 * sin(along * 1.4 + uTime * 1.3) * cos(along * 0.7 - uTime * 0.6 + 0.8);
-  float bandA = 0.0;
-  if (uGlow > 0.0 && f.d < uLead) {
-    if (f.d >= 0.0) { float x = f.d / uLead; bandA = exp(-4.5 * x * x); }
-    else { float x = clamp(-f.d / (uTail * mix(0.55, 1.35, lobes)), 0.0, 1.0); bandA = pow(1.0 - x, 2.4); }
-    bandA *= uGlow * uBand * held;
-  }
-  float around = atan(c.y / uShape.w, c.x / uShape.z);
-  float rimA = 0.0, hairA = 0.0, shimmer = 0.5;
-  if (uRim > 0.0 && uBoxless < 0.5 && inset < uRimW * 4.5) {
-    float lumps = 0.5 * sin(around * 3.0 + uTime * 0.7) + 0.3 * sin(around * 5.0 - uTime * 1.2 + 2.0) + 0.2 * sin(around * 9.0 + uTime * 2.3 + 4.0);
-    float thick = max(1.0 + uUneven * 0.55 * lumps, 0.15);
-    float hk = inset / (uRimW * thick);
-    float reached = 1.0 - smoothstep(-uLead * 0.6, uLead * 0.4, f.d);
-    float kept = smoothstep(-uRimSoft, uRimSoft, f.d + (uRadius - uClear) / f.g);
-    shimmer = 0.5 + 0.5 * sin(uTime * 3.2 - around * 4.0);
-    rimA = exp(-hk * hk) * reached * kept * uRim * (0.72 + 0.28 * shimmer);
-    float line = 1.0 - smoothstep(uHairW * 0.5, uHairW * 0.5 + 0.8, inset);
-    float hairKept = smoothstep(-uRimSoft, uRimSoft, f.d + (uRadius - uHairClear) / f.g);
-    hairA = line * reached * hairKept * uRim * 0.85 * mix(0.55, 1.0, smoothstep(0.2, 1.4, thick));
-  }
-  float a = (1.0 - (1.0 - bandA) * (1.0 - rimA)) * mask;
-  hairA *= mask;
-  if (a + hairA < 0.0005) { outColor = fin(vec4(col.rgb + dn * col.a, col.a), p, c, sd, f); return; }
-  float flow = 0.6 + (uRing ? ang / TAU : along * 0.22) + uTime * 0.12 + f.d * 0.0016 / uK;
-  vec3 lab = paletteAt(flow);
-  lab.x += 0.10 * exp(-pow((f.d - 28.0 * uK) / (48.0 * uK), 2.0)) - 0.12 * exp(-pow((f.d + 90.0 * uK) / (70.0 * uK), 2.0));
-  lab.yz *= 1.2;
-  lab = mix(lab, vec3(0.985, 0.0, 0.0), 0.65 * exp(-pow((f.d + 6.0 * uK) / max(24.0 * uK, 3.0), 2.0)));
-  vec3 rimLab = paletteAt(around / TAU + uTime * 0.25 + inset * 0.0012 / uK); rimLab.yz *= 1.1;
-  lab = mix(lab, rimLab, rimA / (rimA + bandA + 1e-4));
-  float ea = clamp(a, 0.0, 1.0);
-  vec4 o = vec4(oklabToSrgb(lab) * ea, ea) + col * (1.0 - ea);
-  float ha = clamp(hairA, 0.0, 1.0);
-  o = vec4(mix(oklabToSrgb(rimLab), vec3(1.0), 0.6 + 0.35 * shimmer) * ha, ha) + o * (1.0 - ha);
-  outColor = fin(vec4(o.rgb + dn * 2.0 * o.a, o.a), p, c, sd, f);
-}`;
+return o; } void main(){ vec2 p=vec2(gl_FragCoord.x,uRes.y - gl_FragCoord.y)*(uSize.x/uRes.x); float dn=(ign(gl_FragCoord.xy)- 0.5)/255.0; vec2 c=p -(uShape.xy + uShape.zw*0.5); float sd=sdRoundBox(c,uShape.zw*0.5,uRadii); float mask=clamp(0.5 - sd*(uRes.x/uSize.x),0.0,1.0); float clipM=uClip?mask:1.0; if(uMode==0||uMode==2||uMode==3){ vec4 a=tap(uOld0,uOldRect,p,p),b=tap(uNew0,uNewRect,p,p); vec4 v=(uMode==0?a:uMode==2?b:mix(a,b,uFade))*clipM; outColor=vec4(v.rgb + dn*v.a,v.a);return; } Front f=front(p); vec2 r=p - uOrigin;float rl=max(length(r),1.0); float held=uHold>0.0?smoothstep(uHold*0.9,uHold*1.8,rl):1.0; vec4 col=vec4(0.0); if(uMode==1){ float k=f.d/(uLensW*(f.d>0.0?0.8:1.6)); vec2 bulge=f.n*(uEnergy*uAmp*exp(-k*k)*held); vec2 suck=(r/rl)*(uPull*(rl/(rl + 60.0*uK))*exp(-rl/(700.0*uK))*held); vec2 sp=p - bulge + suck; vec2 sl=(bulge*0.5 - suck*exp(-rl/(240.0*uK)))*uAberr; float kb=f.d/(f.d>0.0?uBlurAhead:uBlurBehind); float bpx=uEnergy*uBlurMax*exp(-kb*kb)*held; float tn=smoothstep(0.0,uBlurNear,bpx); float tf=uBlurMax>uBlurNear?smoothstep(uBlurNear,uBlurMax,bpx):0.0; float cover=uLaunched?smoothstep(-uSeam,uSeam,f.d):1.0; if(cover>=0.999)col=layerOld(p,sp,sl,tn,tf); else if(cover<=0.001)col=layerNew(p,sp,sl,tn,tf); else col=mix(layerNew(p,sp,sl,tn,tf),layerOld(p,sp,sl,tn,tf),cover); float aU=mix(tap(uNew0,uNewRect,p,p).a,tap(uOld0,uOldRect,p,p).a,cover); col*=min(1.0,aU/max(col.a,1e-4))*clipM; } if(uBoxless>0.5){ float sharp=max(tap(uNew0,uNewRect,p,p).a,tap(uOld0,uOldRect,p,p).a); float halo=max(tap(uNew2,uNewRect,p,p).a,tap(uOld2,uOldRect,p,p).a); mask*=max(sharp,smoothstep(0.02,0.5,halo)*0.8); } float inset=max(-sd,0.0); float along=f.q.x*0.0065/uK,ang=atan(f.q.y,f.q.x); float lobes=uRing?0.5 + 0.5*sin(2.0*ang + uTime*1.4)*cos(ang - uTime*0.6 + 0.8) :0.5 + 0.5*sin(along*1.4 + uTime*1.3)*cos(along*0.7 - uTime*0.6 + 0.8); float bandA=0.0; if(uGlow>0.0&&f.d<uLead){ if(f.d>=0.0){float x=f.d/uLead;bandA=exp(-4.5*x*x);} else{float x=clamp(-f.d/(uTail*mix(0.55,1.35,lobes)),0.0,1.0);bandA=pow(1.0 - x,2.4);} bandA*=uGlow*uBand*held; } float around=atan(c.y/uShape.w,c.x/uShape.z); float rimA=0.0,hairA=0.0,shimmer=0.5; if(uRim>0.0&&uBoxless<0.5&&inset<uRimW*4.5){ float lumps=0.5*sin(around*3.0 + uTime*0.7)+ 0.3*sin(around*5.0 - uTime*1.2 + 2.0)+ 0.2*sin(around*9.0 + uTime*2.3 + 4.0); float thick=max(1.0 + uUneven*0.55*lumps,0.15); float hk=inset/(uRimW*thick); float reached=1.0 - smoothstep(-uLead*0.6,uLead*0.4,f.d); float kept=smoothstep(-uRimSoft,uRimSoft,f.d +(uRadius - uClear)/f.g); shimmer=0.5 + 0.5*sin(uTime*3.2 - around*4.0); rimA=exp(-hk*hk)*reached*kept*uRim*(0.72 + 0.28*shimmer); float line=1.0 - smoothstep(uHairW*0.5,uHairW*0.5 + 0.8,inset); float hairKept=smoothstep(-uRimSoft,uRimSoft,f.d +(uRadius - uHairClear)/f.g); hairA=line*reached*hairKept*uRim*0.85*mix(0.55,1.0,smoothstep(0.2,1.4,thick)); } float a=(1.0 -(1.0 - bandA)*(1.0 - rimA))*mask; hairA*=mask; if(a + hairA<0.0005){outColor=fin(vec4(col.rgb + dn*col.a,col.a),p,c,sd,f);return;} float flow=0.6 +(uRing?ang/TAU:along*0.22)+ uTime*0.12 + f.d*0.0016/uK; vec3 lab=paletteAt(flow); lab.x +=0.10*exp(-pow((f.d - 28.0*uK)/(48.0*uK),2.0))- 0.12*exp(-pow((f.d + 90.0*uK)/(70.0*uK),2.0)); lab.yz*=1.2; lab=mix(lab,vec3(0.985,0.0,0.0),0.65*exp(-pow((f.d + 6.0*uK)/max(24.0*uK,3.0),2.0))); vec3 rimLab=paletteAt(around/TAU + uTime*0.25 + inset*0.0012/uK);rimLab.yz*=1.1; lab=mix(lab,rimLab,rimA/(rimA + bandA + 1e-4)); float ea=clamp(a,0.0,1.0); vec4 o=vec4(oklabToSrgb(lab)*ea,ea)+ col*(1.0 - ea); float ha=clamp(hairA,0.0,1.0); o=vec4(mix(oklabToSrgb(rimLab),vec3(1.0),0.6 + 0.35*shimmer)*ha,ha)+ o*(1.0 - ha); outColor=fin(vec4(o.rgb + dn*2.0*o.a,o.a),p,c,sd,f); }`;
 var VS_DOTS = `#version 300 es
-layout(location = 0) in vec4 aDot; uniform vec2 uSize; uniform float uDpr; out float vA; out float vR; out float vPt;
-void main() { gl_Position = vec4(aDot.x / uSize.x * 2.0 - 1.0, 1.0 - aDot.y / uSize.y * 2.0, 0.0, 1.0);
-  vPt = ceil((aDot.z + 1.0) * uDpr) + 2.0; gl_PointSize = vPt; vR = aDot.z * 0.5 * uDpr; vA = aDot.w; }`;
+layout(location=0)in vec4 aDot;uniform vec2 uSize;uniform float uDpr;out float vA;out float vR;out float vPt; void main(){gl_Position=vec4(aDot.x/uSize.x*2.0 - 1.0,1.0 - aDot.y/uSize.y*2.0,0.0,1.0); vPt=ceil((aDot.z + 1.0)*uDpr)+ 2.0;gl_PointSize=vPt;vR=aDot.z*0.5*uDpr;vA=aDot.w;}`;
 var FS_DOTS = `#version 300 es
-precision highp float; in float vA; in float vR; in float vPt; out vec4 o;
-void main() { float r = length(gl_PointCoord - 0.5) * vPt; float cov = clamp(vR - r + 0.5, 0.0, 1.0); o = vec4(vec3(cov * vA), cov * vA); }`;
+precision highp float;in float vA;in float vR;in float vPt;out vec4 o; void main(){float r=length(gl_PointCoord - 0.5)*vPt;float cov=clamp(vR - r + 0.5,0.0,1.0);o=vec4(vec3(cov*vA),cov*vA);}`;
 var FS_DOTS_SQUARE = `#version 300 es
-precision highp float; in float vA; in float vR; in float vPt; out vec4 o;
-void main() { vec2 d = abs(gl_PointCoord - 0.5) * vPt; float cov = clamp(vR - max(d.x, d.y) + 0.5, 0.0, 1.0); o = vec4(vec3(cov * vA), cov * vA); }`;
+precision highp float;in float vA;in float vR;in float vPt;out vec4 o; void main(){vec2 d=abs(gl_PointCoord - 0.5)*vPt;float cov=clamp(vR - max(d.x,d.y)+ 0.5,0.0,1.0);o=vec4(vec3(cov*vA),cov*vA);}`;
 var Renderer = class {
   constructor() {
     this.canvas = document.createElement("canvas");

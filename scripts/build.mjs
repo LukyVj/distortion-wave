@@ -2,9 +2,10 @@
 // (one self-contained file that opens straight from disk, no server needed).
 import { build } from 'esbuild';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { glslMin } from './glsl-min.mjs';
 
 const banner = { js: '/*! distortion-wave · MIT © Lucas Bonomi · https://github.com/LukyVj/distortion-wave */' };
-const common = { entryPoints: ['src/index.js'], bundle: true, target: 'es2022', banner, logLevel: 'warning' };
+const common = { entryPoints: ['src/index.js'], bundle: true, target: 'es2022', banner, logLevel: 'warning', plugins: [glslMin] };
 
 await mkdir('dist', { recursive: true });
 await build({ ...common, format: 'esm', outfile: 'dist/distortion-wave.js' });

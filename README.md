@@ -274,6 +274,24 @@ Capture times measured in headless Chrome at DPR 1, warm: a button ~2 ms, a card
 
 The rendering cost is one full-screen pass per frame (up to ~18 texture reads per pixel near the wave front, far fewer elsewhere). The DPR is capped at 2 and textures at ~4 Mpx. Up to 4 WebGL contexts are pooled and reused.
 
+### Bundle size
+
+The core is ~18 kB gzipped, shaders included (`distortion-wave/electric` adds ~6.6 kB, `distortion-wave/pixel` ~1.3 kB). If the wave only plays on a few interactions, keep it out of the initial bundle and load it on the first one:
+
+```js
+let lib;
+const load = () => (lib ??= import('distortion-wave').catch(() => null));
+
+button.addEventListener('pointerenter', load, { once: true });   // starts the download on hover
+button.addEventListener('click', async (e) => {
+  const dw = await load();
+  if (!dw) return render(next);                                   // offline or blocked: just update
+  dw.distortionWave(card, () => render(next), { source: button, focus: e });
+});
+```
+
+On touch screens `pointerdown` comes before `click`, so the download starts there too. Bundlers split the dynamic `import()` into its own chunk.
+
 ## Accessibility
 
 - `prefers-reduced-motion` gives a short crossfade, no distortion.

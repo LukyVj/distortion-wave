@@ -3,11 +3,13 @@
 ## 0.3.0 — unreleased
 
 - Effects: `effect` option on `distortionWave()` and `setWaveDefaults()`. An effect keeps the wave's behaviour (timing, lens, blur, sparks) and changes its look. The plain wave stays the default and the only look in the core bundle.
-- `distortion-wave/electric`, a new entry (~7 kB gzipped):
+- `distortion-wave/electric`, a new entry (~6.6 kB gzipped):
   - `electric`: the wave with an electric look. The front is a crackling bolt, the colour band goes electric, and the outline charges with arcs as the front passes, then discharges. Keys: `jag`, `scale`, `crackle`, `chaos`, `boltWidth`, `boltGlow`, `bolts`, `rimBolts`.
   - `electricBorder(el, options)`: a live electric arc on the outline, always on, on hover or on focus. All borders share one canvas and one WebGL context.
-- `distortion-wave/pixel`, a new entry (~1.5 kB gzipped): `pixel`, the wave with a pixel look. Near the front the content turns into small pixels that flip cell by cell, some light up and flicker, the outline is drawn in pixels that go out one by one, sparks are square. Keys: `cell`, `gap`, `zone`, `density`, `rate`, `lit`, `rimPixels`.
+- `distortion-wave/pixel`, a new entry (~1.3 kB gzipped): `pixel`, the wave with a pixel look. Near the front the content turns into small pixels that flip cell by cell, some light up and flicker, the outline is drawn in pixels that go out one by one, sparks are square. Keys: `cell`, `gap`, `zone`, `density`, `rate`, `lit`, `rimPixels`.
 - `electric` and `pixel` palettes.
+- Smaller bundle: the shaders are minified at build time (comments and indentation out). The core goes from 18.7 to 17.9 kB gzipped, with the same pixels.
+- README: how to load the library on the first interaction instead of with the page.
 
 ## 0.2.1 — 2026-11-13
 
