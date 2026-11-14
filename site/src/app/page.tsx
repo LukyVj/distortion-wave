@@ -1,6 +1,7 @@
 import { Code } from "@/components/code";
 import { Toasts } from "@/components/copy";
 import { Demos } from "@/components/demos";
+import { Effects } from "@/components/effects";
 import { Faq } from "@/components/faq";
 import { Hero } from "@/components/hero";
 import { Shell } from "@/components/shell";
@@ -32,6 +33,18 @@ export default function Home() {
               </p>
             </div>
             <Demos />
+          </section>
+
+          <section className="section" aria-labelledby="effects">
+            <div className="section-head">
+              <h2 id="effects">Electric</h2>
+              <p>
+                A second effect, from its own entry: an arc that follows the element&apos;s outline, rounded
+                corners included. As a border that stays on, and as a transition.{" "}
+                <code>distortion-wave/electric</code> adds about 9 kB.
+              </p>
+            </div>
+            <Effects />
           </section>
 
           <section className="section" aria-labelledby="tune">

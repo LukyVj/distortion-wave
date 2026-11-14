@@ -18,6 +18,7 @@ import {
   type DistortionWaveOptions,
   type PaletteName,
 } from "distortion-wave";
+import { electric } from "distortion-wave/electric";
 
 export const TUNING = {
   timing: {
@@ -83,9 +84,54 @@ export const TUNING = {
   },
 } as const;
 
-export type TuneKey = (typeof TUNING)[keyof typeof TUNING]["keys"][number]["key"];
+export const TUNING_ELECTRIC = {
+  timing: {
+    label: "Timing",
+    keys: [
+      { key: "charge", label: "Arcs run round", min: 0.1, max: 2, step: 0.05, unit: "s" },
+      { key: "surge", label: "Content crackles", min: 0.05, max: 1.5, step: 0.05, unit: "s" },
+      { key: "discharge", label: "Outline discharges", min: 0.1, max: 3, step: 0.05, unit: "s" },
+    ],
+  },
+  arc: {
+    label: "Arc",
+    keys: [
+      { key: "thickness", label: "Core", min: 0.4, max: 6, step: 0.1, unit: "px" },
+      { key: "glow", label: "Glow", min: 0, max: 50, step: 1, unit: "px" },
+      { key: "chaos", label: "Stray", min: 0, max: 20, step: 0.5, unit: "px" },
+      { key: "scale", label: "Noise cell", min: 6, max: 120, step: 1, unit: "px" },
+      { key: "crackle", label: "Crackle speed", min: 0, max: 6, step: 0.1, unit: "" },
+      { key: "offset", label: "Offset", min: -20, max: 20, step: 1, unit: "px" },
+      { key: "head", label: "Head length", min: 0, max: 120, step: 2, unit: "px" },
+    ],
+  },
+  glitch: {
+    label: "Glitch",
+    keys: [
+      { key: "glitch", label: "Row jump", min: 0, max: 60, step: 1, unit: "px" },
+      { key: "rows", label: "Row height", min: 4, max: 60, step: 1, unit: "px" },
+    ],
+  },
+  sparks: {
+    label: "Sparks",
+    keys: [
+      { key: "particleSize", label: "Size", min: 0.5, max: 5, step: 0.1, unit: "px" },
+      { key: "particleLife", label: "Life", min: 0.1, max: 3, step: 0.05, unit: "s" },
+    ],
+  },
+} as const;
+
+type Groups = typeof TUNING | typeof TUNING_ELECTRIC;
+export type TuneKey =
+  | (typeof TUNING)[keyof typeof TUNING]["keys"][number]["key"]
+  | (typeof TUNING_ELECTRIC)[keyof typeof TUNING_ELECTRIC]["keys"][number]["key"];
+export type TuneGroup = { label: string; keys: readonly { key: TuneKey; label: string; min: number; max: number; step: number; unit: string }[] };
+export function tuningFor(effect: Settings["effect"]): Record<string, TuneGroup> {
+  return (effect === "electric" ? TUNING_ELECTRIC : TUNING) as Groups as Record<string, TuneGroup>;
+}
 
 export type Settings = {
+  effect: "wave" | "electric";
   duration: number | null;
   speed: number;
   easing: string;
@@ -100,6 +146,7 @@ export type Settings = {
 };
 
 export const DEFAULT_SETTINGS: Settings = {
+  effect: "wave",
   duration: null,
   speed: 1,
   easing: "default",
@@ -115,17 +162,20 @@ export const DEFAULT_SETTINGS: Settings = {
 
 export function toDefaults(s: Settings): DistortionWaveOptions {
   const o: DistortionWaveOptions = {};
+  if (s.effect === "electric") o.effect = electric;
   if (s.duration != null) o.duration = s.duration;
   else if (s.speed !== 1) o.speed = s.speed;
   if (s.easing !== "default") o.easing = s.easing;
   if (s.intensity !== 1) o.intensity = s.intensity;
-  if (s.variant !== "auto") o.variant = s.variant;
+  if (s.variant !== "auto" && s.effect === "wave") o.variant = s.variant;
   if (s.palette === "custom") o.palette = [...s.custom];
   else if (s.palette !== "demo") o.palette = s.palette;
   if (!s.particles) o.particles = false;
   else if (s.particleCount != null) o.particles = s.particleCount;
   if (s.motion !== "system") o.reducedMotion = s.motion === "fade";
-  return { ...o, ...s.tuning };
+  const keys = Object.values(tuningFor(s.effect)).flatMap((g) => g.keys.map((k) => k.key as string));
+  const tuning = Object.fromEntries(Object.entries(s.tuning).filter(([k]) => keys.includes(k)));
+  return { ...o, ...tuning };
 }
 
 type Ctx = { settings: Settings; setSettings: (s: Settings) => void };

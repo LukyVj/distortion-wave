@@ -117,6 +117,45 @@ waveOnClick(trigger, target, (event) => { /* update */ }, { palette: 'ocean' });
 
 `waveOnClick` also pre-captures the target when the pointer enters the trigger or it gets focus, so the "before" capture costs nothing at click time.
 
+## Effects
+
+The wave is built in. Other effects ship as their own entry, so the core stays at ~18 kB gzipped when you don't use them.
+
+### Electric
+
+`distortion-wave/electric` (~9 kB gzipped) brings two things: a transition and a border.
+
+```js
+import { distortionWave } from 'distortion-wave';
+import { electric, electricBorder } from 'distortion-wave/electric';
+
+// Transition: two arcs leave the source and run round the outline, the content crackles to the new state
+distortionWave(card, update, { effect: electric, source: button, focus: event });
+
+// Border: a live arc on the outline, rounded corners included
+const border = electricBorder(card, { trigger: 'hover', color: '#7df9ff' });
+border.destroy();   // fades out, removes the listeners
+```
+
+Without a bundler: `https://cdn.jsdelivr.net/npm/distortion-wave@0.3/dist/electric.js` (ES module, no imports of its own), or `dist/electric.iife.min.js` for `window.DistortionWaveElectric`.
+
+**Transition options**: everything from the table below (`source`, `focus`, `duration`, `easing`, `speed`, `palette`, `particles`…), plus `color` (one colour instead of a palette) and these tuning keys, at the same reference scale:
+
+| Key | Default | |
+|---|---|---|
+| `charge` | `0.55` s | the arcs run round the outline |
+| `surge` | `0.38` s | the content crackles from the old state to the new one |
+| `discharge` | `1.1` s | the charged outline fades |
+| `thickness`, `glow` | `1.6`, `14` px | core of the arc, glow around it |
+| `chaos`, `scale`, `crackle` | `5` px, `34` px, `1.6` | how far it strays, how jagged (smaller = more), how fast it moves |
+| `offset` | `0` px | arc distance from the outline, + outside |
+| `glitch`, `rows` | `14` px, `16` px | sideways jump and height of the rows during the surge |
+| `head` | `26` px | length of the bright head of each arc |
+
+`intensity` scales `glitch` and `chaos`.
+
+**Border options**: `color` or `palette` (default `'electric'`), `trigger` (`'always'`, `'hover'`, `'focus'`, `'hover focus'`, `'manual'`), `thickness`, `glow`, `chaos`, `scale`, `crackle`, `offset`, `intensity`, `fadeIn`, `fadeOut`, `zIndex`. The controller has `start()`, `stop()`, `set(options)`, `destroy()` and `active`. Every border of the page draws in one shared canvas: a grid of cards costs one WebGL context. With `prefers-reduced-motion`, the arc stays still.
+
 ## Examples
 
 - [`demo/`](demo/): a payment screen, a single button, a tab panel, a media card, an element that changes size and a whole-page theme switch.
@@ -198,6 +237,7 @@ The `center` variant has its own values: see `PRESETS.center`.
 - `prepareWave(target)`: pre-captures a target. Invalidated by any mutation.
 - `snapshotElement(el, { dpr, clip })`: the DOM → canvas capture on its own.
 - `PALETTES`, `PRESETS`, `scaleConfig`, `totalDuration`, `frameState`: the pure core, if you want to drive your own renderer.
+- `distortion-wave/electric`: `electric`, `electricBorder`, and the outline helpers `perimeterLength`, `pointAt`, `paramAt` (see Effects).
 
 ## How it works
 

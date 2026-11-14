@@ -2,11 +2,10 @@
 // Part of distortion-wave · MIT © Lucas Bonomi
 
 import { PALETTES, hexToOklab } from './core.js';
+import { VS_FULL, program } from './gl.js';
 
 // ═══ Shaders (GLSL ES 3.00) ══════════════════════════════════════════════════
-const VS_FULL = `#version 300 es
-out vec2 vUv;
-void main() { vec2 p = vec2(float((gl_VertexID << 1) & 2), float(gl_VertexID & 2)); vUv = p; gl_Position = vec4(p * 2.0 - 1.0, 0.0, 1.0); }`;
+
 const FS_COPY = `#version 300 es
 precision highp float; in vec2 vUv; uniform sampler2D uTex; uniform float uLod; out vec4 o;
 void main() { o = textureLod(uTex, vUv, uLod); }`;
@@ -177,15 +176,6 @@ precision highp float; in float vA; in float vR; in float vPt; out vec4 o;
 void main() { float r = length(gl_PointCoord - 0.5) * vPt; float cov = clamp(vR - r + 0.5, 0.0, 1.0); o = vec4(vec3(cov * vA), cov * vA); }`;
 
 // ═══ WebGL2 renderer (one canvas per active transition, pooled) ══════════════
-function program(gl, vs, fs) {
-  const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
-    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s) || 'compile'); return s; };
-  const p = gl.createProgram();
-  gl.attachShader(p, sh(gl.VERTEX_SHADER, vs)); gl.attachShader(p, sh(gl.FRAGMENT_SHADER, fs)); gl.linkProgram(p);
-  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p) || 'link');
-  const locs = new Map();
-  return { p, u: (n) => { if (!locs.has(n)) locs.set(n, gl.getUniformLocation(p, n)); return locs.get(n); } };
-}
 class Renderer {
   constructor() {
     this.canvas = document.createElement('canvas');
@@ -245,10 +235,27 @@ class Renderer {
     if (!this.ok) return;
     this.dropLayer(name);
     const sharp = this.tex(src.width, src.height, src, true);
-    this.layers[name] = { sharp, near: this.blurred(sharp, src.width, src.height, sigmaNear), far: this.blurred(sharp, src.width, src.height, sigmaFar) };
+    this.layers[name] = sigmaFar == null ? { sharp, near: sharp, far: sharp }      // effects that never blur
+      : { sharp, near: this.blurred(sharp, src.width, src.height, sigmaNear), far: this.blurred(sharp, src.width, src.height, sigmaFar) };
   }
-  dropLayer(name) { const L = this.layers[name]; if (!L || !this.gl) return; for (const t of [L.sharp, L.near, L.far]) this.gl.deleteTexture(t); delete this.layers[name]; }
+  dropLayer(name) { const L = this.layers[name]; if (!L || !this.gl) return; for (const t of new Set([L.sharp, L.near, L.far])) this.gl.deleteTexture(t); delete this.layers[name]; }
   clear() { for (const n of Object.keys(this.layers)) this.dropLayer(n); }
+  palette(prog, palette) {
+    const gl = this.gl, cols = Array.isArray(palette) ? palette : PALETTES[palette] || PALETTES.aurora;
+    const key = cols.join();
+    if (this.palKey !== key) { this.palKey = key; this.pal.fill(0); cols.slice(0, 8).forEach((h, i) => this.pal.set(hexToOklab(h), i * 3)); }
+    gl.uniform3fv(prog.u('uPal[0]'), this.pal); gl.uniform1i(prog.u('uPalN'), Math.min(cols.length, 8));
+  }
+  drawDots(f) {
+    if (!(f.dotCount > 0)) return;
+    const gl = this.gl, d = this.dots;
+    gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.useProgram(d.p); gl.uniform2f(d.u('uSize'), f.w, f.h); gl.uniform1f(d.u('uDpr'), f.dpr);
+    gl.bindVertexArray(this.dvao); gl.bindBuffer(gl.ARRAY_BUFFER, this.dbuf);
+    if (this.dcap < f.dots.length) { gl.bufferData(gl.ARRAY_BUFFER, f.dots.byteLength, gl.DYNAMIC_DRAW); this.dcap = f.dots.length; }
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, f.dots, 0, f.dotCount * 4);
+    gl.drawArrays(gl.POINTS, 0, f.dotCount); gl.disable(gl.BLEND);
+  }
   render(f) {
     if (!this.ok) return;
     const gl = this.gl, W = this.canvas.width, H = this.canvas.height, m = this.main, u = m.u;
@@ -272,21 +279,10 @@ class Renderer {
         uBlurBehind: c.blurBehind, uLead: c.lead, uTail: c.tail, uBand: c.band, uRimW: c.rimWidth, uRimSoft: c.rimSoftness,
         uUneven: c.uneven, uHairW: c.hairWidth };
       for (const k in fl) gl.uniform1f(u(k), fl[k]);
-      const cols = Array.isArray(c.palette) ? c.palette : PALETTES[c.palette] || PALETTES.aurora;
-      const key = cols.join();
-      if (this.palKey !== key) { this.palKey = key; cols.slice(0, 8).forEach((h, i) => this.pal.set(hexToOklab(h), i * 3)); }
-      gl.uniform3fv(u('uPal[0]'), this.pal); gl.uniform1i(u('uPalN'), Math.min(cols.length, 8));
+      this.palette(m, c.palette);
     }
     gl.bindVertexArray(this.vao); gl.drawArrays(gl.TRIANGLES, 0, 3);
-    if (f.dotCount > 0) {
-      const d = this.dots;
-      gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-      gl.useProgram(d.p); gl.uniform2f(d.u('uSize'), f.w, f.h); gl.uniform1f(d.u('uDpr'), f.dpr);
-      gl.bindVertexArray(this.dvao); gl.bindBuffer(gl.ARRAY_BUFFER, this.dbuf);
-      if (this.dcap < f.dots.length) { gl.bufferData(gl.ARRAY_BUFFER, f.dots.byteLength, gl.DYNAMIC_DRAW); this.dcap = f.dots.length; }
-      gl.bufferSubData(gl.ARRAY_BUFFER, 0, f.dots, 0, f.dotCount * 4);
-      gl.drawArrays(gl.POINTS, 0, f.dotCount); gl.disable(gl.BLEND);
-    }
+    this.drawDots(f);
     gl.bindVertexArray(null);
   }
 }

@@ -154,5 +154,79 @@ await check('a data: URL font does not break the CSS of the snapshot (::before s
   assert.ok(r.before, '::before rule parsed after the @font-face');
 });
 
+// ── electric (distortion-wave/electric) ──────────────────────────────────────
+const withElectric = async () => {
+  const o = await open();
+  await o.page.addScriptTag({ path: resolve('dist/electric.iife.min.js') });
+  return o;
+};
+// mean colour difference of a page region between two screenshots, measured in the page itself
+const shotDiff = async (page, clip, act) => {
+  const a = (await page.screenshot({ clip })).toString('base64');
+  await act();
+  const b = (await page.screenshot({ clip })).toString('base64');
+  return page.evaluate(async ([x, y]) => {
+    const px = async (b64) => { const i = new Image(); i.src = `data:image/png;base64,${b64}`; await i.decode();
+      const c = document.createElement('canvas'); c.width = i.width; c.height = i.height; const g = c.getContext('2d'); g.drawImage(i, 0, 0); return g.getImageData(0, 0, i.width, i.height).data; };
+    const [p, q] = await Promise.all([px(x), px(y)]); let d = 0;
+    for (let k = 0; k < p.length; k += 4) d += Math.abs(p[k] - q[k]) + Math.abs(p[k + 1] - q[k + 1]) + Math.abs(p[k + 2] - q[k + 2]);
+    return d / (p.length / 4) / 3;
+  }, [a, b]);
+};
+
+await check('electric transition: events in order, glow room around the element, DOM restored', async () => {
+  const { page, errors } = await withElectric();
+  const r = await page.evaluate(async () => {
+    const { electric } = window.DistortionWaveElectric;
+    const phone = document.getElementById('phone'), ev = [], b = phone.getBoundingClientRect();
+    const t = __dw.distortionWave(phone, () => { phone.querySelector('.cta').textContent = 'Zap'; }, {
+      effect: electric, source: phone.querySelector('.cta'), onLaunch: () => ev.push('launch'), onCovered: () => ev.push('covered'), onSettled: () => ev.push('settled'), onEnd: () => ev.push('end'),
+    });
+    await t.ready;
+    const c = document.querySelector('canvas[data-dw-ignore]'), cw = parseFloat(c.style.width), ch = parseFloat(c.style.height);
+    await t.finished; ev.push('finished');
+    return { ev, room: [cw - b.width, ch - b.height], canvases: document.querySelectorAll('canvas').length, opacity: phone.style.opacity, text: phone.querySelector('.cta').textContent };
+  });
+  assert.deepEqual(r.ev, ['launch', 'covered', 'settled', 'end', 'finished']);
+  assert.ok(r.room[0] > 20 && r.room[1] > 20, `canvas larger than the element: ${r.room}`);
+  assert.equal(r.canvases, 0); assert.equal(r.opacity, ''); assert.match(r.text, /Zap/);
+  assert.deepEqual(errors, []);
+});
+
+await check('unknown effect name: warns, then waves as usual', async () => {
+  const { page } = await open();
+  const r = await page.evaluate(async () => {
+    const warn = console.warn, seen = []; console.warn = (...a) => seen.push(a.join(' '));
+    const phone = document.getElementById('phone');
+    const t = __dw.distortionWave(phone, () => { phone.dataset.x = '1'; }, { effect: 'electric' });
+    await t.finished; console.warn = warn;
+    return { warned: seen.some((s) => /unknown effect/.test(s)), updated: phone.dataset.x === '1' };
+  });
+  assert.ok(r.warned && r.updated);
+});
+
+await check('electric border: draws around the element, hover trigger, destroy cleans up', async () => {
+  const { page, errors } = await withElectric();
+  const b = await (await page.$('#phone .cta')).boundingBox();
+  const clip = { x: b.x - 24, y: b.y - 24, width: b.width + 48, height: b.height + 48 };
+  const lit = await shotDiff(page, clip, async () => {
+    await page.evaluate(() => { window.__b = window.DistortionWaveElectric.electricBorder(document.querySelector('#phone .cta')); });
+    await page.waitForTimeout(600);
+  });
+  assert.ok(lit > 3, `border visible (mean diff ${lit.toFixed(2)})`);
+  const canvases = await page.evaluate(() => document.querySelectorAll('canvas[data-dw-ignore]').length);
+  assert.equal(canvases, 1, 'one shared canvas');
+  await page.evaluate(() => { window.__b.destroy(); });
+  await page.waitForTimeout(800);
+  assert.equal(await page.evaluate(() => document.querySelectorAll('canvas[data-dw-ignore]').length), 0, 'canvas removed after the fade');
+  await page.evaluate(() => { window.__h = window.DistortionWaveElectric.electricBorder(document.querySelector('#phone .cta'), { trigger: 'hover', color: '#ff8800' }); });
+  await page.waitForTimeout(300);
+  assert.equal(await page.evaluate(() => document.querySelectorAll('canvas[data-dw-ignore]').length), 0, 'hover: nothing before the pointer comes');
+  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+  await page.waitForTimeout(400);
+  assert.equal(await page.evaluate(() => window.__h.active), true);
+  assert.deepEqual(errors, []);
+});
+
 await browser.close();
 console.log(results.join('\n'));

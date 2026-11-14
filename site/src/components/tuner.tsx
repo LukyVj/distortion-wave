@@ -3,6 +3,7 @@
 import { useId, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { distortionWave, PALETTES, PRESETS, setWaveDefaults, type PaletteName } from "distortion-wave";
+import { ELECTRIC } from "distortion-wave/electric";
 import { Button } from "@ui-sdk/react/button";
 import {
   ColorPicker,
@@ -35,7 +36,7 @@ import {
   DEFAULT_SETTINGS,
   origin,
   toDefaults,
-  TUNING,
+  tuningFor,
   useWaveSettings,
   type Settings,
   type TuneKey,
@@ -60,6 +61,7 @@ const PALETTE_ITEMS: { value: Settings["palette"]; label: string }[] = [
 ];
 
 const BASE = PRESETS.vertical as Record<string, number>;
+const BASES = { wave: BASE, electric: ELECTRIC as Record<string, number> };
 const THUMB = '[data-slot="slider-thumb"]';
 const SEGMENT = '[data-slot="segmented-control-item"]';
 
@@ -76,7 +78,9 @@ function round(v: number) {
 function code(s: Settings) {
   const o = toDefaults(s) as Record<string, unknown>;
   const show = (v: unknown) =>
-    typeof v === "string"
+    v && typeof v === "object" && !Array.isArray(v)
+      ? (v as { name: string }).name
+      : typeof v === "string"
       ? `'${v}'`
       : Array.isArray(v)
         ? `[${v.map((c) => `'${c}'`).join(", ")}]`
@@ -84,7 +88,8 @@ function code(s: Settings) {
   const lines = Object.entries(o).map(([k, v]) => `  ${k}: ${show(v)},`);
   if (!lines.length)
     return "setWaveDefaults(null)\n// every option at its default: duration from the\n// element's size, aurora unless a call sets colours";
-  return `setWaveDefaults({\n${lines.join("\n")}\n})`;
+  const head = s.effect === "electric" ? "import { electric } from 'distortion-wave/electric'\n\n" : "";
+  return `${head}setWaveDefaults({\n${lines.join("\n")}\n})`;
 }
 
 type Apply = (next: Settings, selector?: string) => void;
@@ -190,7 +195,10 @@ function CustomColours({
 export function Tuner() {
   const { settings, setSettings } = useWaveSettings();
   const panel = useRef<HTMLDivElement>(null);
-  const [group, setGroup] = useState<keyof typeof TUNING>("timing");
+  const [picked, setGroup] = useState("timing");
+  const TUNING = tuningFor(settings.effect);
+  const group = picked in TUNING ? picked : Object.keys(TUNING)[0];
+  const base = BASES[settings.effect];
 
   const apply: Apply = (next, selector = "button") => {
     setWaveDefaults(null);
@@ -209,6 +217,21 @@ export function Tuner() {
   return (
     <div className="tuner">
       <div className="tuner-basics">
+        <div className="control">
+          <span className="control-name" id="effect-label">
+            Effect
+          </span>
+          <SegmentedControl
+            className="segmented"
+            aria-labelledby="effect-label"
+            value={settings.effect}
+            onValueChange={(v) => v && apply({ ...settings, effect: v as Settings["effect"] }, SEGMENT)}
+          >
+            <SegmentedControlIndicator />
+            <SegmentedControlItem value="wave">Wave</SegmentedControlItem>
+            <SegmentedControlItem value="electric">Electric</SegmentedControlItem>
+          </SegmentedControl>
+        </div>
         <label className="control-row">
           <span className="control-name">Duration from the element&apos;s size</span>
           <Switch
@@ -271,6 +294,7 @@ export function Tuner() {
           </SelectContent>
         </Select>
 
+        {settings.effect === "wave" && (
         <div className="control">
           <span className="control-name" id="direction-label">
             Direction
@@ -288,6 +312,7 @@ export function Tuner() {
             <SegmentedControlItem value="center">Ring</SegmentedControlItem>
           </SegmentedControl>
         </div>
+        )}
 
         <Select
           value={settings.palette}
@@ -325,7 +350,7 @@ export function Tuner() {
         {settings.particles && (
           <Range
             label="Number of sparks"
-            value={settings.particleCount ?? BASE.particles}
+            value={settings.particleCount ?? base.particles}
             min={0}
             max={240}
             step={4}
@@ -379,7 +404,7 @@ export function Tuner() {
         </p>
       </div>
 
-      <Tabs className="fine" value={group} onValueChange={(v) => v && setGroup(v as keyof typeof TUNING)}>
+      <Tabs className="fine" value={group} onValueChange={(v) => v && setGroup(v)}>
         <div className="fine-head">
           <h3>Fine tuning</h3>
           <p>Lengths are for a 360 × 740 element. They scale with the real size.</p>
@@ -398,7 +423,7 @@ export function Tuner() {
               <Range
                 key={k.key}
                 label={k.label}
-                value={settings.tuning[k.key] ?? BASE[k.key]}
+                value={settings.tuning[k.key] ?? base[k.key]}
                 min={k.min}
                 max={k.max}
                 step={k.step}

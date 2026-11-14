@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0 — unreleased
+
+- Effects. `effect` option on `distortionWave()` and `setWaveDefaults()`. The wave stays the default and the only effect in the core bundle.
+- `distortion-wave/electric`, a new entry (~9 kB gzipped):
+  - `electric`, a transition: two arcs leave the source and run round the element's outline, rows of content crackle from the old state to the new one, then the outline discharges. Same promises and callbacks as the wave; the arcs glow outside the element.
+  - `electricBorder(el, options)`: a live electric arc on the outline, always on, on hover or on focus. All borders share one canvas and one WebGL context.
+  - Outline helpers: `perimeterLength`, `pointAt`, `paramAt` for rounded boxes.
+- `electric` palette.
+
 ## 0.2.1 — 2026-11-13
 
 - Before the launch, the content is pulled toward the source. On thin elements (a 26 px row of small text) that pull squashed and tore the letters. It is now capped by the element's smallest side. Big elements are unchanged.

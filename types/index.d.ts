@@ -1,7 +1,7 @@
 // Type definitions for distortion-wave
 
 export type Variant = 'auto' | 'vertical' | 'horizontal' | 'center';
-export type PaletteName = 'aurora' | 'ocean' | 'mint' | 'ember';
+export type PaletteName = 'aurora' | 'ocean' | 'mint' | 'ember' | 'electric';
 export type Point = { x: number; y: number };
 export type RectLike = { x: number; y: number; width: number; height: number };
 
@@ -16,7 +16,14 @@ export interface Metrics {
   worstFrame?: number;
 }
 
+/** An effect from its own entry, like `electric` from 'distortion-wave/electric'. Opaque: pass it as `effect`. */
+export interface Effect {
+  readonly name: string;
+}
+
 export interface DistortionWaveOptions {
+  /** The transition to play. Default: the wave. Other effects come from their entry: `import { electric } from 'distortion-wave/electric'`. */
+  effect?: 'wave' | Effect;
   /** Where the wave starts. An element (inside or outside the target), a rect, a point, or nothing (touch point, else center). */
   source?: Element | RectLike | Point | null;
   /** Touch point: the wave starts there and leans that way. Pass the PointerEvent/MouseEvent. Keyboard clicks are ignored. */
@@ -53,6 +60,12 @@ export interface DistortionWaveOptions {
   rimWidth?: number; rimSoftness?: number; rimStrength?: number; hairWidth?: number;
   lean?: number; pull?: number; inhale?: number;
   particleSize?: number; particleLife?: number; reach?: number; spread?: number;
+  // Electric effect only (same reference scale). See 'distortion-wave/electric'.
+  /** One colour for the electric arc, instead of a palette. */
+  color?: string;
+  charge?: number; surge?: number; discharge?: number;
+  thickness?: number; glow?: number; chaos?: number; scale?: number; crackle?: number; offset?: number;
+  glitch?: number; rows?: number; head?: number;
 }
 
 export interface WaveTransition {

@@ -357,7 +357,8 @@ var PALETTES = {
   aurora: ["#FF4FD8", "#A35BFF", "#5B7CFF", "#38D9FF", "#FFD36B", "#FF7A5C"],
   ocean: ["#3A7BFF", "#2EE6D6", "#7C5CFF", "#1FB6FF", "#B8F2FF"],
   mint: ["#2BD67B", "#B6FF5C", "#1FC8A9", "#E8FFB0", "#3CE0C0"],
-  ember: ["#FF5A3C", "#FFB23C", "#FF3C8E", "#FFE07A", "#FF7F50"]
+  ember: ["#FF5A3C", "#FFB23C", "#FF3C8E", "#FFE07A", "#FF7F50"],
+  electric: ["#8FF7FF", "#3FA9FF", "#6B7CFF", "#C6FBFF"]
 };
 var BASE = {
   type: "vertical",
@@ -610,10 +611,31 @@ function particleAt(P, s, c) {
   return { x: s.ox + s.lx * lat + s.fx * fwd, y: s.oy + s.ly * lat + s.fy * fwd, a };
 }
 
-// src/renderer.js
+// src/gl.js
 var VS_FULL = `#version 300 es
 out vec2 vUv;
 void main() { vec2 p = vec2(float((gl_VertexID << 1) & 2), float(gl_VertexID & 2)); vUv = p; gl_Position = vec4(p * 2.0 - 1.0, 0.0, 1.0); }`;
+function program(gl, vs, fs) {
+  const sh = (type, src) => {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s) || "compile");
+    return s;
+  };
+  const p = gl.createProgram();
+  gl.attachShader(p, sh(gl.VERTEX_SHADER, vs));
+  gl.attachShader(p, sh(gl.FRAGMENT_SHADER, fs));
+  gl.linkProgram(p);
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p) || "link");
+  const locs = /* @__PURE__ */ new Map();
+  return { p, u: (n) => {
+    if (!locs.has(n)) locs.set(n, gl.getUniformLocation(p, n));
+    return locs.get(n);
+  } };
+}
+
+// src/renderer.js
 var FS_COPY = `#version 300 es
 precision highp float; in vec2 vUv; uniform sampler2D uTex; uniform float uLod; out vec4 o;
 void main() { o = textureLod(uTex, vUv, uLod); }`;
@@ -781,25 +803,6 @@ void main() { gl_Position = vec4(aDot.x / uSize.x * 2.0 - 1.0, 1.0 - aDot.y / uS
 var FS_DOTS = `#version 300 es
 precision highp float; in float vA; in float vR; in float vPt; out vec4 o;
 void main() { float r = length(gl_PointCoord - 0.5) * vPt; float cov = clamp(vR - r + 0.5, 0.0, 1.0); o = vec4(vec3(cov * vA), cov * vA); }`;
-function program(gl, vs, fs) {
-  const sh = (type, src) => {
-    const s = gl.createShader(type);
-    gl.shaderSource(s, src);
-    gl.compileShader(s);
-    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s) || "compile");
-    return s;
-  };
-  const p = gl.createProgram();
-  gl.attachShader(p, sh(gl.VERTEX_SHADER, vs));
-  gl.attachShader(p, sh(gl.FRAGMENT_SHADER, fs));
-  gl.linkProgram(p);
-  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p) || "link");
-  const locs = /* @__PURE__ */ new Map();
-  return { p, u: (n) => {
-    if (!locs.has(n)) locs.set(n, gl.getUniformLocation(p, n));
-    return locs.get(n);
-  } };
-}
 var Renderer = class {
   constructor() {
     this.canvas = document.createElement("canvas");
@@ -891,16 +894,45 @@ var Renderer = class {
     if (!this.ok) return;
     this.dropLayer(name);
     const sharp = this.tex(src.width, src.height, src, true);
-    this.layers[name] = { sharp, near: this.blurred(sharp, src.width, src.height, sigmaNear), far: this.blurred(sharp, src.width, src.height, sigmaFar) };
+    this.layers[name] = sigmaFar == null ? { sharp, near: sharp, far: sharp } : { sharp, near: this.blurred(sharp, src.width, src.height, sigmaNear), far: this.blurred(sharp, src.width, src.height, sigmaFar) };
   }
   dropLayer(name) {
     const L = this.layers[name];
     if (!L || !this.gl) return;
-    for (const t of [L.sharp, L.near, L.far]) this.gl.deleteTexture(t);
+    for (const t of /* @__PURE__ */ new Set([L.sharp, L.near, L.far])) this.gl.deleteTexture(t);
     delete this.layers[name];
   }
   clear() {
     for (const n of Object.keys(this.layers)) this.dropLayer(n);
+  }
+  palette(prog, palette) {
+    const gl = this.gl, cols = Array.isArray(palette) ? palette : PALETTES[palette] || PALETTES.aurora;
+    const key = cols.join();
+    if (this.palKey !== key) {
+      this.palKey = key;
+      this.pal.fill(0);
+      cols.slice(0, 8).forEach((h, i) => this.pal.set(hexToOklab(h), i * 3));
+    }
+    gl.uniform3fv(prog.u("uPal[0]"), this.pal);
+    gl.uniform1i(prog.u("uPalN"), Math.min(cols.length, 8));
+  }
+  drawDots(f) {
+    if (!(f.dotCount > 0)) return;
+    const gl = this.gl, d = this.dots;
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.useProgram(d.p);
+    gl.uniform2f(d.u("uSize"), f.w, f.h);
+    gl.uniform1f(d.u("uDpr"), f.dpr);
+    gl.bindVertexArray(this.dvao);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.dbuf);
+    if (this.dcap < f.dots.length) {
+      gl.bufferData(gl.ARRAY_BUFFER, f.dots.byteLength, gl.DYNAMIC_DRAW);
+      this.dcap = f.dots.length;
+    }
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, f.dots, 0, f.dotCount * 4);
+    gl.drawArrays(gl.POINTS, 0, f.dotCount);
+    gl.disable(gl.BLEND);
   }
   render(f) {
     if (!this.ok) return;
@@ -964,34 +996,11 @@ var Renderer = class {
         uHairW: c.hairWidth
       };
       for (const k in fl) gl.uniform1f(u(k), fl[k]);
-      const cols = Array.isArray(c.palette) ? c.palette : PALETTES[c.palette] || PALETTES.aurora;
-      const key = cols.join();
-      if (this.palKey !== key) {
-        this.palKey = key;
-        cols.slice(0, 8).forEach((h, i) => this.pal.set(hexToOklab(h), i * 3));
-      }
-      gl.uniform3fv(u("uPal[0]"), this.pal);
-      gl.uniform1i(u("uPalN"), Math.min(cols.length, 8));
+      this.palette(m, c.palette);
     }
     gl.bindVertexArray(this.vao);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
-    if (f.dotCount > 0) {
-      const d = this.dots;
-      gl.enable(gl.BLEND);
-      gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-      gl.useProgram(d.p);
-      gl.uniform2f(d.u("uSize"), f.w, f.h);
-      gl.uniform1f(d.u("uDpr"), f.dpr);
-      gl.bindVertexArray(this.dvao);
-      gl.bindBuffer(gl.ARRAY_BUFFER, this.dbuf);
-      if (this.dcap < f.dots.length) {
-        gl.bufferData(gl.ARRAY_BUFFER, f.dots.byteLength, gl.DYNAMIC_DRAW);
-        this.dcap = f.dots.length;
-      }
-      gl.bufferSubData(gl.ARRAY_BUFFER, 0, f.dots, 0, f.dotCount * 4);
-      gl.drawArrays(gl.POINTS, 0, f.dotCount);
-      gl.disable(gl.BLEND);
-    }
+    this.drawDots(f);
     gl.bindVertexArray(null);
   }
 };
@@ -1152,6 +1161,7 @@ function measure(el) {
     el: { x: rect.left + sx, y: rect.top + sy, w: rect.width, h: rect.height }
   };
 }
+var inflate = (r, m) => ({ x: r.x - m, y: r.y - m, w: r.w + 2 * m, h: r.h + 2 * m });
 var union = (a, b) => {
   const x = Math.min(a.x, b.x), y = Math.min(a.y, b.y);
   return { x, y, w: Math.max(a.x + a.w, b.x + b.w) - x, h: Math.max(a.y + a.h, b.y + b.h) - y };
@@ -1195,8 +1205,25 @@ function takePrepared(target, m) {
   if (e.dirty || !e.shot || performance.now() - e.at > 8e3 || !same(e.m.page, m.page)) return null;
   return e.shot;
 }
+var WAVE = {
+  name: "wave",
+  blur: true,
+  resolve: (o, m, tr) => resolveConfig(PRESETS[tr._variant(m)] || BASE, o, m.clip.w, m.clip.h),
+  margin: () => 0,
+  particles: (c) => makeParticles(c.particles, c),
+  state: frameState,
+  particle: (P, s, c) => particleAt(P, s, c),
+  morph: (s) => s.moved,
+  total: totalDuration,
+  render: (r, f) => r.render(f)
+};
+function effectOf(e) {
+  if (e && typeof e === "object" && typeof e.render === "function") return e;
+  if (e && e !== "wave") console.warn(`[distortion-wave] unknown effect "${e}": import it from its entry, e.g. import { electric } from 'distortion-wave/electric'`);
+  return WAVE;
+}
 var ACTIVE = /* @__PURE__ */ new WeakMap();
-var DEFAULTS = { variant: "auto", palette: "aurora", speed: 1, particles: true, reducedMotion: null, timeout: 3e3, preserveFocus: true };
+var DEFAULTS = { effect: "wave", variant: "auto", speed: 1, particles: true, reducedMotion: null, timeout: 3e3, preserveFocus: true };
 var USER_DEFAULTS = {};
 var merge = (...objs) => {
   const out = {};
@@ -1257,17 +1284,20 @@ var WaveTransition = class {
     const oldShot = takePrepared(target, before) || await snapshotElement(target, { dpr: Math.min(dpr, 2), clip: before.clip });
     this.metrics.captureBefore = Math.round(performance.now() - t0);
     if (this._skipped) return this._plain();
-    const cfg = resolveConfig(PRESETS[this._variant(before)] || BASE, o, before.clip.w, before.clip.h);
+    const fx = this.fx = effectOf(o.effect);
+    const cfg = fx.resolve(o, before, this);
     this.cfg = cfg;
     this.before = before;
     this.dpr = oldShot.dpr;
-    this.particles = makeParticles(cfg.particles, cfg);
+    this.particles = fx.particles(cfg);
     this.dots = new Float32Array(Math.max(this.particles.length, 1) * 4);
     this.origin = this._originPage(before);
-    this.canvasPage = before.page;
-    this.rects = { old: rel(before.page, before.page), new: null, shape: rel(before.shape, before.page), radii: before.shapeRadii, boxless: before.boxless, clipped: before.clipped };
+    this.margin = fx.margin(cfg);
+    this.canvasPage = inflate(before.page, this.margin);
+    this.rects = { old: rel(before.page, this.canvasPage), new: null, shape: rel(before.shape, this.canvasPage), radii: before.shapeRadii, boxless: before.boxless, clipped: before.clipped };
     t0 = performance.now();
-    r.setLayer("old", oldShot.canvas, cfg.blurNear * this.dpr, cfg.blur * this.dpr);
+    const layer = (name, shot) => fx.blur ? r.setLayer(name, shot.canvas, cfg.blurNear * this.dpr, cfg.blur * this.dpr) : r.setLayer(name, shot.canvas);
+    layer("old", oldShot);
     this.metrics.upload = Math.round(performance.now() - t0);
     this._mount();
     this._hide();
@@ -1289,9 +1319,9 @@ var WaveTransition = class {
       this._finish();
       return;
     }
-    r.setLayer("new", newShot.canvas, cfg.blurNear * this.dpr, cfg.blur * this.dpr);
+    layer("new", newShot);
     this.after = after;
-    this.canvasPage = union(before.page, after.page);
+    this.canvasPage = inflate(union(before.page, after.page), this.margin);
     this.rects = { old: rel(before.page, this.canvasPage), new: rel(after.page, this.canvasPage), shape: rel(before.shape, this.canvasPage), radii: before.shapeRadii, boxless: before.boxless && after.boxless, clipped: before.clipped || after.clipped };
     this.shapes = { from: rel(before.shape, this.canvasPage), to: rel(after.shape, this.canvasPage), r0: before.shapeRadii, r1: after.shapeRadii };
     this._resizeCanvas();
@@ -1374,7 +1404,7 @@ var WaveTransition = class {
       this.metrics.worstFrame = Math.max(this.metrics.worstFrame || 0, dt);
       this._place();
       let t = (now - this.start - this.held) / 1e3;
-      const gateAt = this.cfg.anticipation - 1e-3;
+      const gateAt = (this.cfg.gate ?? this.cfg.anticipation) - 1e-3;
       if (!this.gateOpen && t >= gateAt) {
         this.held += t * 1e3 - gateAt * 1e3;
         t = gateAt;
@@ -1399,11 +1429,13 @@ var WaveTransition = class {
           h: this.canvasPage.h,
           src: rel(this.origin.src, this.canvasPage),
           touch: this.origin.touch && rel({ ...this.origin.touch, w: 0, h: 0 }, this.canvasPage),
-          hold: this.origin.hold
+          hold: this.origin.hold,
+          shape: this.rects.shape,
+          radii: this.rects.radii
         };
-        const s = frameState(t, this.cfg, g);
+        const fx = this.fx, s = fx.state(t, this.cfg, g);
         if (this.shapes) {
-          const k = s.moved, A = this.shapes.from, B = this.shapes.to, ra = this.shapes.r0, rb = this.shapes.r1;
+          const k = fx.morph(s), A = this.shapes.from, B = this.shapes.to, ra = this.shapes.r0, rb = this.shapes.r1;
           this.rects.shape = { x: lerp(A.x, B.x, k), y: lerp(A.y, B.y, k), w: lerp(A.w, B.w, k), h: lerp(A.h, B.h, k) };
           this.rects.radii = { tl: lerp(ra.tl, rb.tl, k), tr: lerp(ra.tr, rb.tr, k), br: lerp(ra.br, rb.br, k), bl: lerp(ra.bl, rb.bl, k) };
         }
@@ -1423,16 +1455,17 @@ var WaveTransition = class {
         }
         let n = 0;
         for (const P of this.particles) {
-          const q = particleAt(P, s, this.cfg);
+          const q = fx.particle(P, s, this.cfg, g);
           if (!q || q.a <= 2e-3) continue;
           this.dots[n * 4] = q.x;
           this.dots[n * 4 + 1] = q.y;
-          this.dots[n * 4 + 2] = P.size;
+          this.dots[n * 4 + 2] = q.size ?? P.size;
           this.dots[n * 4 + 3] = Math.min(q.a, 1);
           n++;
         }
-        this.r.render({ mode: this.mode, s, cfg: this.cfg, w: this.canvasPage.w, h: this.canvasPage.h, rects: this.rects, dpr: this.dpr, dots: this.dots, dotCount: n });
-        if (t >= totalDuration(this.cfg)) {
+        const frame = { mode: this.mode, s, cfg: this.cfg, w: this.canvasPage.w, h: this.canvasPage.h, rects: this.rects, dpr: this.dpr, dots: this.dots, dotCount: n };
+        fx.render(this.r, frame);
+        if (t >= fx.total(this.cfg)) {
           this._finish();
           return;
         }
