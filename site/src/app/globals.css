@@ -945,6 +945,7 @@ p {
 .tuner-top {
   display: grid;
   grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  align-items: start;
   gap: 18px;
 }
 
@@ -952,8 +953,9 @@ p {
   .tuner-top { grid-template-columns: 1fr; }
 }
 
+/* Fixed height: the preview never stretches with the generated code beside it */
 .preview {
-  min-height: 300px;
+  height: 440px;
   border-radius: 20px;
   background-color: var(--surface);
   background-image: radial-gradient(circle, var(--hole) 1.2px, transparent 1.6px);
@@ -964,6 +966,10 @@ p {
   place-items: center;
   padding: 28px 22px 18px;
   gap: 18px;
+}
+
+@media (max-width: 860px) {
+  .preview { height: 340px; }
 }
 
 .preview-card {
