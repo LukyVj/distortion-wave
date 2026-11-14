@@ -22,14 +22,13 @@ await build({ ...common, format: 'esm', outfile: 'dist/distortion-wave.js' });
 await min({ ...common, format: 'esm', outfile: 'dist/distortion-wave.min.js' });
 await min({ ...common, format: 'iife', globalName: 'DistortionWave', outfile: 'dist/distortion-wave.iife.min.js' });
 // Effects ship as their own entries, so the core stays as light when they aren't used.
-const electric = { ...common, entryPoints: ['src/effects/electric.js'] };
-await build({ ...electric, format: 'esm', outfile: 'dist/electric.js' });
-await min({ ...electric, format: 'esm', outfile: 'dist/electric.min.js' });
-await min({ ...electric, format: 'iife', globalName: 'DistortionWaveElectric', outfile: 'dist/electric.iife.min.js' });
-const pixel = { ...common, entryPoints: ['src/effects/pixel.js'] };
-await build({ ...pixel, format: 'esm', outfile: 'dist/pixel.js' });
-await min({ ...pixel, format: 'esm', outfile: 'dist/pixel.min.js' });
-await min({ ...pixel, format: 'iife', globalName: 'DistortionWavePixel', outfile: 'dist/pixel.iife.min.js' });
+const FX = { electric: 'Electric', pixel: 'Pixel', glass: 'Glass' };
+for (const [name, Global] of Object.entries(FX)) {
+  const fx = { ...common, entryPoints: [`src/effects/${name}.js`] };
+  await build({ ...fx, format: 'esm', outfile: `dist/${name}.js` });
+  await min({ ...fx, format: 'esm', outfile: `dist/${name}.min.js` });
+  await min({ ...fx, format: 'iife', globalName: `DistortionWave${Global}`, outfile: `dist/${name}.iife.min.js` });
+}
 
 // Standalone demo: inline the IIFE build and turn the module import into a destructure.
 const html = await readFile('demo/index.html', 'utf8');
@@ -63,7 +62,7 @@ ${kitJs}document.body.dataset.ready = '1';
 </html>
 `);
 
-const sizes = await Promise.all(['dist/distortion-wave.js', 'dist/distortion-wave.min.js', 'dist/distortion-wave.iife.min.js', 'dist/electric.min.js', 'dist/pixel.min.js'].map(async (f) => `${f} ${((await readFile(f)).length / 1024).toFixed(1)} kB`));
+const sizes = await Promise.all(['dist/distortion-wave.js', 'dist/distortion-wave.min.js', 'dist/distortion-wave.iife.min.js', ...Object.keys(FX).map((n) => `dist/${n}.min.js`)].map(async (f) => `${f} ${((await readFile(f)).length / 1024).toFixed(1)} kB`));
 console.log(sizes.join('\n'));
 
 // CodePen copy of the React example (examples/react): JSX through CodePen's Babel, React from esm.sh.

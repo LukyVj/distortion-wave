@@ -19,6 +19,10 @@
       "types": "./types/pixel.d.ts",
       "import": "./dist/pixel.js"
     },
+    "./glass": {
+      "types": "./types/glass.d.ts",
+      "import": "./dist/glass.js"
+    },
     "./src/*": "./src/*"
   },
   "unpkg": "./dist/distortion-wave.iife.min.js",

@@ -22,7 +22,7 @@ export interface Effect {
 }
 
 export interface DistortionWaveOptions {
-  /** The look of the wave. Default: the plain wave. Others come from their entry: `import { electric } from 'distortion-wave/electric'`, `import { pixel } from 'distortion-wave/pixel'`. */
+  /** The look of the wave. Default: the plain wave. Others come from their entry: `import { electric } from 'distortion-wave/electric'`, `import { pixel } from 'distortion-wave/pixel'`; also glass. */
   effect?: 'wave' | Effect;
   /** Where the wave starts. An element (inside or outside the target), a rect, a point, or nothing (touch point, else center). */
   source?: Element | RectLike | Point | null;
@@ -65,6 +65,8 @@ export interface DistortionWaveOptions {
   boltWidth?: number; boltGlow?: number; bolts?: number; rimBolts?: number;
   // Pixel effect only. See 'distortion-wave/pixel'.
   cell?: number; gap?: number; zone?: number; density?: number; rate?: number; lit?: number; rimPixels?: number;
+  // Glass only: see its entry. Shared names mean the same thing.
+  thickness?: number; refraction?: number; dispersion?: number; shine?: number; tint?: number;   // glass
 }
 
 export interface WaveTransition {

@@ -204,6 +204,22 @@ await check('pixel: the same wave with a pixel look, square sparks, DOM restored
   assert.deepEqual(errors, []);
 });
 
+for (const [name, Global] of [['glass', 'Glass']]) {
+  await check(`${name}: the same wave with the ${name} look, its shader compiles minified, DOM restored`, async () => {
+    const { page, errors } = await open();
+    await page.addScriptTag({ path: resolve(`dist/${name}.iife.min.js`) });
+    const r = await page.evaluate(async ([n, G]) => {
+      const fx = window[`DistortionWave${G}`][n];
+      const phone = document.getElementById('phone'), ev = [];
+      const t = __dw.distortionWave(phone, () => { phone.querySelector('.cta').textContent = n; }, { effect: fx, source: phone.querySelector('.cta'), onCovered: () => ev.push('covered'), onEnd: () => ev.push('end') });
+      await t.finished;
+      return { ev, canvases: document.querySelectorAll('canvas').length, text: phone.querySelector('.cta').textContent };
+    }, [name, Global]);
+    assert.deepEqual(r.ev, ['covered', 'end']); assert.equal(r.canvases, 0); assert.equal(r.text, name);
+    assert.deepEqual(errors, []);
+  });
+}
+
 await check('unknown effect name: warns, then waves as usual', async () => {
   const { page } = await open();
   const r = await page.evaluate(async () => {
