@@ -1515,6 +1515,39 @@ code {
   margin-top: 0;
 }
 
+/* the other looks: a paper card for the print looks (burn, ink, halftone) */
+.post.look[data-live] {
+  background: #17203a;
+  border-color: #33406a;
+}
+
+.post.look[data-live] .post-status {
+  background: #3a4a80;
+}
+
+.post.look[data-paper] {
+  background: #f4efe4;
+  border-color: #e2d9c6;
+  color: #1d1b17;
+}
+
+.post.look[data-paper] .post-status {
+  background: #e6dcc6;
+}
+
+.post.look[data-paper] .post-meta {
+  color: #6b6455;
+}
+
+.post.look[data-paper][data-live] {
+  background: #efe6f2;
+  border-color: #dccbe3;
+}
+
+.post.look[data-paper][data-live] .post-status {
+  background: #ffd1ea;
+}
+
 .build {
   width: min(100%, 340px);
   padding: 20px;

@@ -20,6 +20,15 @@ import {
 } from "distortion-wave";
 import { electric } from "distortion-wave/electric";
 import { pixel } from "distortion-wave/pixel";
+import { glass } from "distortion-wave/glass";
+import { burn } from "distortion-wave/burn";
+import { ink } from "distortion-wave/ink";
+import { halftone } from "distortion-wave/halftone";
+import { metal } from "distortion-wave/metal";
+import { water } from "distortion-wave/water";
+
+export const EFFECTS = { electric, pixel, glass, burn, ink, halftone, metal, water };
+export type EffectName = "wave" | keyof typeof EFFECTS;
 
 export const TUNING = {
   timing: {
@@ -120,18 +129,90 @@ export const TUNING_PIXEL = {
   ...TUNING,
 } as const;
 
-type Groups = typeof TUNING | typeof TUNING_ELECTRIC | typeof TUNING_PIXEL;
+// the other looks: their own group, shown before the wave's
+const FX_TUNING = {
+  glass: {
+    label: "Glass",
+    keys: [
+      { key: "thickness", label: "Slab width", min: 10, max: 240, step: 2, unit: "px" },
+      { key: "refraction", label: "Refraction", min: 0, max: 80, step: 1, unit: "px" },
+      { key: "dispersion", label: "RGB split", min: 0, max: 20, step: 0.5, unit: "px" },
+      { key: "shine", label: "Highlights", min: 0, max: 2, step: 0.05, unit: "" },
+      { key: "tint", label: "Tint", min: 0, max: 1, step: 0.05, unit: "" },
+    ],
+  },
+  burn: {
+    label: "Fire",
+    keys: [
+      { key: "roughness", label: "Ragged edge", min: 0, max: 80, step: 1, unit: "px" },
+      { key: "scale", label: "Noise cell", min: 16, max: 300, step: 4, unit: "px" },
+      { key: "char", label: "Scorch ahead", min: 6, max: 200, step: 2, unit: "px" },
+      { key: "heat", label: "Glowing edge", min: 2, max: 30, step: 0.5, unit: "px" },
+      { key: "embers", label: "Embers", min: 0, max: 3, step: 0.05, unit: "" },
+      { key: "smoke", label: "Smoke", min: 0, max: 1, step: 0.05, unit: "" },
+    ],
+  },
+  ink: {
+    label: "Ink",
+    keys: [
+      { key: "bleed", label: "Bleed", min: 0, max: 80, step: 1, unit: "px" },
+      { key: "scale", label: "Noise cell", min: 16, max: 300, step: 4, unit: "px" },
+      { key: "misregister", label: "Misregistration", min: 0, max: 12, step: 0.5, unit: "px" },
+      { key: "grain", label: "Paper grain", min: 0, max: 1, step: 0.05, unit: "" },
+      { key: "zone", label: "Print zone", min: 0.2, max: 4, step: 0.1, unit: "×" },
+      { key: "ink", label: "Wet ink", min: 4, max: 120, step: 2, unit: "px" },
+    ],
+  },
+  halftone: {
+    label: "Halftone",
+    keys: [
+      { key: "cell", label: "Screen cell", min: 3, max: 24, step: 1, unit: "px" },
+      { key: "angle", label: "Screen angle", min: 0, max: 90, step: 1, unit: "°" },
+      { key: "zone", label: "Screen zone", min: 0.2, max: 4, step: 0.1, unit: "×" },
+      { key: "size", label: "Largest dot", min: 0.2, max: 2, step: 0.05, unit: "×" },
+      { key: "ink", label: "Palette ink", min: 0, max: 1, step: 0.05, unit: "" },
+    ],
+  },
+  metal: {
+    label: "Liquid metal",
+    keys: [
+      { key: "thickness", label: "Bead width", min: 10, max: 160, step: 2, unit: "px" },
+      { key: "wobble", label: "Wobble", min: 0, max: 60, step: 1, unit: "px" },
+      { key: "ripple", label: "Ripples", min: 0, max: 3, step: 0.05, unit: "" },
+      { key: "shine", label: "Specular", min: 0, max: 3, step: 0.05, unit: "" },
+      { key: "reflect", label: "Mirrors the content", min: 0, max: 1, step: 0.05, unit: "" },
+    ],
+  },
+  water: {
+    label: "Water",
+    keys: [
+      { key: "wavelength", label: "Ripple length", min: 10, max: 140, step: 2, unit: "px" },
+      { key: "refraction", label: "Refraction", min: 0, max: 40, step: 0.5, unit: "px" },
+      { key: "caustics", label: "Caustics", min: 0, max: 3, step: 0.05, unit: "" },
+      { key: "foam", label: "Foam", min: 0, max: 2, step: 0.05, unit: "" },
+      { key: "tint", label: "Tint", min: 0, max: 1, step: 0.05, unit: "" },
+    ],
+  },
+} as const;
+
+type FxKey = (typeof FX_TUNING)[keyof typeof FX_TUNING]["keys"][number]["key"];
 export type TuneKey =
   | (typeof TUNING)[keyof typeof TUNING]["keys"][number]["key"]
   | (typeof TUNING_ELECTRIC)[keyof typeof TUNING_ELECTRIC]["keys"][number]["key"]
-  | (typeof TUNING_PIXEL)[keyof typeof TUNING_PIXEL]["keys"][number]["key"];
+  | (typeof TUNING_PIXEL)[keyof typeof TUNING_PIXEL]["keys"][number]["key"]
+  | FxKey;
 export type TuneGroup = { label: string; keys: readonly { key: TuneKey; label: string; min: number; max: number; step: number; unit: string }[] };
 export function tuningFor(effect: Settings["effect"]): Record<string, TuneGroup> {
-  return (effect === "electric" ? TUNING_ELECTRIC : effect === "pixel" ? TUNING_PIXEL : TUNING) as Groups as Record<string, TuneGroup>;
+  if (effect === "electric") return TUNING_ELECTRIC as unknown as Record<string, TuneGroup>;
+  if (effect === "pixel") return TUNING_PIXEL as unknown as Record<string, TuneGroup>;
+  if (effect === "wave") return TUNING as unknown as Record<string, TuneGroup>;
+  return { [effect]: FX_TUNING[effect], ...TUNING } as unknown as Record<string, TuneGroup>;
 }
+/** The groups that belong to the effect, not to the wave. */
+export const isLookGroup = (key: string) => !(key in TUNING);
 
 export type Settings = {
-  effect: "wave" | "electric" | "pixel";
+  effect: EffectName;
   duration: number | null;
   speed: number;
   easing: string;
@@ -162,8 +243,7 @@ export const DEFAULT_SETTINGS: Settings = {
 
 export function toDefaults(s: Settings): DistortionWaveOptions {
   const o: DistortionWaveOptions = {};
-  if (s.effect === "electric") o.effect = electric;
-  if (s.effect === "pixel") o.effect = pixel;
+  if (s.effect !== "wave") o.effect = EFFECTS[s.effect];
   if (s.duration != null) o.duration = s.duration;
   else if (s.speed !== 1) o.speed = s.speed;
   if (s.easing !== "default") o.easing = s.easing;

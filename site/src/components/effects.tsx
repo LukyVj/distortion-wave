@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { electric, electricBorder, type ElectricBorder } from "distortion-wave/electric";
 import { pixel } from "distortion-wave/pixel";
+import type { Effect } from "distortion-wave";
 import { Button } from "@ui-sdk/react/button";
-import { useWave } from "./wave";
+import { EFFECTS, useWave } from "./wave";
 
 type BorderOptions = { trigger?: "always" | "hover" | "focus"; color?: string; glow?: number; chaos?: number };
 
@@ -73,6 +74,100 @@ function Build() {
   );
 }
 
+// The other looks: one card each, two states, the same wave.
+type LookCard = {
+  effect: keyof typeof EFFECTS;
+  name: string;
+  caption: string;
+  paper?: boolean;
+  tag: [string, string];
+  title: [string, string];
+  meta: [string, string];
+  action: [string, string];
+};
+
+const LOOKS: LookCard[] = [
+  {
+    effect: "glass",
+    name: "Glass",
+    caption: "A thick slab of glass trails the front: it bends what's under it, splits it into RGB at its slopes and catches the light.",
+    tag: ["Notifications on", "Focus"],
+    title: ["Inbox, 24 unread", "Quiet until 2 pm"],
+    meta: ["3 threads mention you.", "Only calls from favourites get through."],
+    action: ["Start focus", "End focus"],
+  },
+  {
+    effect: "burn",
+    name: "Burn",
+    caption: "The front burns the old content away along a ragged edge: scorch ahead, a white-hot rim, smoke and embers behind. Made for a delete.",
+    paper: true,
+    tag: ["Draft", "Deleted"],
+    title: ["Q3 plan, rough notes", "Moved to the trash"],
+    meta: ["Edited yesterday, 1,240 words.", "Kept for 30 days, then gone for good."],
+    action: ["Delete", "Restore"],
+  },
+  {
+    effect: "ink",
+    name: "Ink",
+    caption: "The front bleeds like ink into paper, and around it the content is reprinted in two inks, out of register, risograph style.",
+    paper: true,
+    tag: ["Proof", "Printed"],
+    title: ["Zine #04, cover", "Zine #04, 200 copies"],
+    meta: ["Pink and blue, on cream paper.", "Ready at the shop on Friday."],
+    action: ["Print", "Back to proof"],
+  },
+  {
+    effect: "halftone",
+    name: "Halftone",
+    caption: "Near the front the content turns into a dot screen sized by its tone, and the dots swell with the wave.",
+    paper: true,
+    tag: ["Issue 12", "Issue 13"],
+    title: ["The weekly, on type", "The weekly, on colour"],
+    meta: ["Seven minutes. Grotesques, again.", "Nine minutes. Why print looks warmer."],
+    action: ["Next issue", "Previous issue"],
+  },
+  {
+    effect: "metal",
+    name: "Liquid metal",
+    caption: "The front is a rolling bead of liquid chrome that mirrors a studio and, faintly, the content. Best on a dark page.",
+    tag: ["Free", "Pro"],
+    title: ["Upgrade to Pro", "Pro unlocked"],
+    meta: ["Unlimited projects, priority support.", "Thanks. Every feature is on."],
+    action: ["Upgrade", "Manage plan"],
+  },
+  {
+    effect: "water",
+    name: "Water",
+    caption: "Ripples trail the front and refract the content, caustics play on it, and foam breaks on the front.",
+    tag: ["Not backed up", "Backed up"],
+    title: ["Photos, 1,204 items", "All photos are safe"],
+    meta: ["Last backup 12 days ago.", "Synced to the cloud just now."],
+    action: ["Back up", "Back up again"],
+  },
+];
+
+function Look({ effect, paper, tag, title, meta, action }: LookCard) {
+  const card = useRef<HTMLDivElement>(null);
+  const [on, setOn] = useState(false);
+  const wave = useWave();
+  const i = on ? 1 : 0;
+
+  function toggle(e: MouseEvent<HTMLElement>) {
+    wave(card, () => setOn((v) => !v), { effect: EFFECTS[effect] as Effect, source: e.currentTarget, focus: e.nativeEvent });
+  }
+
+  return (
+    <div ref={card} className="post look target" data-paper={paper || undefined} data-live={on || undefined}>
+      <p className="post-status">{tag[i]}</p>
+      <p className="post-title">{title[i]}</p>
+      <p className="post-meta">{meta[i]}</p>
+      <Button className="btn btn-primary" data-focus-key={effect} onClick={toggle}>
+        {action[i]}
+      </Button>
+    </div>
+  );
+}
+
 const TIERS = [
   { name: "Starter", price: "Free", color: "#7df9ff" },
   { name: "Team", price: "$12", color: "#b18cff" },
@@ -112,6 +207,16 @@ export function Effects() {
             that flip one by one, and the outline goes out pixel by pixel. <code>effect: pixel</code>
           </figcaption>
         </figure>
+        {LOOKS.map((l) => (
+          <figure className="demo" key={l.effect}>
+            <div className="demo-body dark-bench">
+              <Look {...l} />
+            </div>
+            <figcaption>
+              <strong>{l.name}.</strong> {l.caption} <code>effect: {l.effect}</code>
+            </figcaption>
+          </figure>
+        ))}
       </div>
       <figure className="demo fx-wide">
         <div className="demo-body dark-bench">

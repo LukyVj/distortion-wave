@@ -3,8 +3,14 @@
 import { useId, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { distortionWave, PALETTES, PRESETS, setWaveDefaults, type PaletteName } from "distortion-wave";
-import { electric, ELECTRIC } from "distortion-wave/electric";
-import { pixel, PIXEL } from "distortion-wave/pixel";
+import { ELECTRIC } from "distortion-wave/electric";
+import { PIXEL } from "distortion-wave/pixel";
+import { GLASS } from "distortion-wave/glass";
+import { BURN } from "distortion-wave/burn";
+import { INK } from "distortion-wave/ink";
+import { HALFTONE } from "distortion-wave/halftone";
+import { METAL } from "distortion-wave/metal";
+import { WATER } from "distortion-wave/water";
 import { Button } from "@ui-sdk/react/button";
 import {
   ColorPicker,
@@ -34,6 +40,8 @@ import { Switch, SwitchThumb } from "@ui-sdk/react/switch";
 import { highlight } from "./code";
 import {
   DEFAULT_SETTINGS,
+  EFFECTS,
+  isLookGroup,
   origin,
   toDefaults,
   tuningFor,
@@ -60,12 +68,25 @@ const PALETTE_ITEMS: { value: Settings["palette"]; label: string }[] = [
   { value: "custom", label: "Your colours" },
 ];
 
+const EFFECT_ITEMS: { value: Settings["effect"]; label: string }[] = [
+  { value: "wave", label: "Wave" },
+  { value: "electric", label: "Electric" },
+  { value: "pixel", label: "Pixel" },
+  { value: "glass", label: "Glass" },
+  { value: "burn", label: "Burn" },
+  { value: "ink", label: "Ink" },
+  { value: "halftone", label: "Halftone" },
+  { value: "metal", label: "Liquid metal" },
+  { value: "water", label: "Water" },
+];
+
 const BASE = PRESETS.vertical as Record<string, number>;
-const BASES = {
-  wave: BASE,
-  electric: { ...BASE, ...(electric as unknown as { preset: Record<string, number> }).preset, ...ELECTRIC } as Record<string, number>,
-  pixel: { ...BASE, ...(pixel as unknown as { preset: Record<string, number> }).preset, ...PIXEL } as Record<string, number>,
-};
+const KEYS = { electric: ELECTRIC, pixel: PIXEL, glass: GLASS, burn: BURN, ink: INK, halftone: HALFTONE, metal: METAL, water: WATER };
+const preset = (e: keyof typeof EFFECTS) => (EFFECTS[e] as unknown as { preset: Record<string, number> }).preset;
+const BASES = Object.fromEntries([
+  ["wave", BASE],
+  ...Object.entries(KEYS).map(([e, keys]) => [e, { ...BASE, ...preset(e as keyof typeof EFFECTS), ...keys }]),
+]) as Record<Settings["effect"], Record<string, number>>;
 const THUMB = '[data-slot="slider-thumb"]';
 const SEGMENT = '[data-slot="segmented-control-item"]';
 
@@ -316,19 +337,31 @@ export function Tuner() {
       </div>
 
       <div className="fields">
-        <Field label="Effect" id="effect-label">
-          <SegmentedControl
-            className="segmented"
-            aria-labelledby="effect-label"
-            value={settings.effect}
-            onValueChange={(v) => v && apply({ ...settings, effect: v as Settings["effect"] }, SEGMENT)}
-          >
-            <SegmentedControlIndicator />
-            <SegmentedControlItem value="wave">Wave</SegmentedControlItem>
-            <SegmentedControlItem value="electric">Electric</SegmentedControlItem>
-            <SegmentedControlItem value="pixel">Pixel</SegmentedControlItem>
-          </SegmentedControl>
-        </Field>
+        <Select
+          value={settings.effect}
+          onValueChange={(v) => {
+            if (!v) return;
+            // the look's own keys don't carry over: the same name can mean another default in another look
+            const keep = Object.values(tuningFor("wave")).flatMap((g) => g.keys.map((k) => k.key as string));
+            const tuning = Object.fromEntries(Object.entries(settings.tuning).filter(([k]) => keep.includes(k)));
+            apply({ ...settings, effect: v as Settings["effect"], tuning });
+          }}
+        >
+          <div className="field">
+            <SelectLabel className="field-label">Effect</SelectLabel>
+            <SelectTrigger className="select-trigger">
+              <SelectValue />
+            </SelectTrigger>
+          </div>
+          <SelectContent className="select-content">
+            {EFFECT_ITEMS.map((e) => (
+              <SelectItem key={e.value} value={e.value} label={e.label}>
+                {e.label}
+                <SelectItemIndicator />
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Field label="Direction" id="direction-label">
           <SegmentedControl
             className="segmented"
@@ -481,8 +514,8 @@ export function Tuner() {
             <Module
               key={key}
               title={g.label}
-              accent={key === "lightning" || key === "pixels"}
-              note={key === "lightning" || key === "pixels" ? settings.effect : undefined}
+              accent={isLookGroup(key)}
+              note={isLookGroup(key) ? settings.effect : undefined}
               changed={changed}
               onReset={() => apply(untune(keys))}
             >

@@ -40,9 +40,10 @@ export default function Home() {
               <h2 id="effects">Other looks, same wave</h2>
               <p>
                 An effect keeps the wave&apos;s behaviour and changes its look. Each one is its own import:{" "}
-                <code>distortion-wave/electric</code> (about 7 kB, with the border) and{" "}
-                <code>distortion-wave/pixel</code> (about 1.5 kB). To switch every demo on this page, pick
-                an effect in the settings below.
+                <code>distortion-wave/electric</code> (about 7 kB, with the border), then{" "}
+                <code>pixel</code>, <code>glass</code>, <code>burn</code>, <code>ink</code>,{" "}
+                <code>halftone</code>, <code>metal</code> and <code>water</code> (1 to 1.5 kB each). To switch
+                every demo on this page, pick an effect in the settings below.
               </p>
             </div>
             <Effects />
