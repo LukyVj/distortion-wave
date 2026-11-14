@@ -31,7 +31,6 @@ import {
 } from "@ui-sdk/react/select";
 import { Slider, SliderControl, SliderIndicator, SliderThumb, SliderTrack } from "@ui-sdk/react/slider";
 import { Switch, SwitchThumb } from "@ui-sdk/react/switch";
-import { Tabs, TabsList, TabsPanel, TabsTab } from "@ui-sdk/react/tabs";
 import { highlight } from "./code";
 import {
   DEFAULT_SETTINGS,
@@ -109,6 +108,7 @@ function Range({
   changed,
   onChange,
   onCommit,
+  onReset,
 }: {
   label: string;
   value: number;
@@ -119,11 +119,13 @@ function Range({
   changed?: boolean;
   onChange: (v: number) => void;
   onCommit: (v: number) => void;
+  onReset?: () => void;
 }) {
   const id = useId();
   return (
     <Slider
       className="range"
+      data-changed={changed || undefined}
       min={min}
       max={max}
       step={step}
@@ -131,13 +133,20 @@ function Range({
       onValueChange={(v) => onChange(round(v as number))}
       onValueCommit={(v) => onCommit(round(v as number))}
     >
-      <div className="control-row">
-        <span className="control-name" id={id}>
+      <div className="range-head">
+        <span className="range-name" id={id}>
           {label}
         </span>
-        <span className="control-value" data-changed={changed || undefined}>
+        {changed && onReset && (
+          <button type="button" className="range-reset" onClick={onReset} aria-label={`Reset ${label}`}>
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M3.5 8a4.5 4.5 0 1 0 1.4-3.3M3.5 2.5v2.4h2.4" />
+            </svg>
+          </button>
+        )}
+        <span className="range-value">
           {round(value)}
-          {unit && ` ${unit}`}
+          {unit && <span className="range-unit">{unit}</span>}
         </span>
       </div>
       <SliderControl>
@@ -197,35 +206,117 @@ function CustomColours({
   );
 }
 
+function Module({
+  title,
+  note,
+  accent,
+  changed,
+  onReset,
+  children,
+}: {
+  title: string;
+  note?: string;
+  accent?: boolean;
+  changed?: number;
+  onReset?: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="module" data-accent={accent || undefined} aria-label={title}>
+      <header className="module-head">
+        <h4>{title}</h4>
+        {changed ? (
+          <button type="button" className="module-reset" onClick={onReset}>
+            Reset {changed}
+          </button>
+        ) : (
+          note && <span className="module-note">{note}</span>
+        )}
+      </header>
+      {children}
+    </section>
+  );
+}
+
+function Field({ label, id, children }: { label: string; id: string; children: React.ReactNode }) {
+  return (
+    <div className="field">
+      <span className="field-label" id={id}>
+        {label}
+      </span>
+      {children}
+    </div>
+  );
+}
+
 export function Tuner() {
   const { settings, setSettings } = useWaveSettings();
-  const panel = useRef<HTMLDivElement>(null);
-  const [picked, setPicked] = useState<Record<string, string>>({});
-  const TUNING = tuningFor(settings.effect);
-  const group = picked[settings.effect] in TUNING ? picked[settings.effect] : Object.keys(TUNING)[0];
-  const base = BASES[settings.effect];
+  const preview = useRef<HTMLDivElement>(null);
+  const [shipped, setShipped] = useState(false);
 
+  // every committed change replays the wave on the preview card, which flips between two states
+  const play = (next: Settings | null, selector = "button") => {
+    if (!preview.current) return next && setSettings(next);
+    distortionWave(
+      preview.current,
+      () => flushSync(() => { if (next) setSettings(next); setShipped((v) => !v); }),
+      origin(selector),
+    );
+  };
   const apply: Apply = (next, selector = "button") => {
     setWaveDefaults(null);
     setWaveDefaults(toDefaults(next));
-    if (!panel.current) return setSettings(next);
-    distortionWave(panel.current, () => flushSync(() => setSettings(next)), origin(selector));
+    play(next, selector);
   };
 
   const auto = settings.duration == null;
-  const tune = (key: TuneKey, v: number): Settings => ({
-    ...settings,
-    tuning: { ...settings.tuning, [key]: v },
-  });
-  const groupChanged = TUNING[group].keys.some((k) => k.key in settings.tuning);
+  const TUNING = tuningFor(settings.effect);
+  const base = BASES[settings.effect];
+  const tune = (key: TuneKey, v: number): Settings => ({ ...settings, tuning: { ...settings.tuning, [key]: v } });
+  const untune = (keys: TuneKey[]): Settings => {
+    const tuning = { ...settings.tuning };
+    for (const k of keys) delete tuning[k];
+    return { ...settings, tuning };
+  };
 
   return (
     <div className="tuner">
-      <div className="tuner-basics">
-        <div className="control">
-          <span className="control-name" id="effect-label">
-            Effect
-          </span>
+      <div className="tuner-top">
+        <div className="preview">
+          <div ref={preview} className="preview-card target" data-shipped={shipped || undefined}>
+            <p className="preview-chip">{shipped ? "On its way" : "Preparing"}</p>
+            <p className="preview-title">Order #1042</p>
+            <p className="preview-text">{shipped ? "Out for delivery, arrives by 6 pm." : "We're packing your order."}</p>
+            <div className="preview-steps" aria-hidden="true">
+              <span data-on />
+              <span data-on={shipped || undefined} />
+              <span />
+            </div>
+          </div>
+          <div className="preview-bar">
+            <Button className="btn btn-primary" onClick={() => play(null)}>
+              Play
+            </Button>
+            <p>Every change plays the wave here.</p>
+          </div>
+        </div>
+        <div className="tuner-side">
+          <div className="tuner-code">
+            <pre aria-label="The settings, as code">
+              <code>{highlight(code(settings))}</code>
+            </pre>
+          </div>
+          <p className="tuner-note">
+            The page calls this for you: every wave on it, the hero included, runs with these settings.
+          </p>
+          <Button className="btn btn-quiet" onClick={() => apply(DEFAULT_SETTINGS)}>
+            Reset everything
+          </Button>
+        </div>
+      </div>
+
+      <div className="fields">
+        <Field label="Effect" id="effect-label">
           <SegmentedControl
             className="segmented"
             aria-labelledby="effect-label"
@@ -237,55 +328,24 @@ export function Tuner() {
             <SegmentedControlItem value="electric">Electric</SegmentedControlItem>
             <SegmentedControlItem value="pixel">Pixel</SegmentedControlItem>
           </SegmentedControl>
-        </div>
-        <label className="control-row">
-          <span className="control-name">Duration from the element&apos;s size</span>
-          <Switch
-            checked={auto}
-            onCheckedChange={(c) => apply({ ...settings, duration: c ? null : 1800 })}
+        </Field>
+        <Field label="Direction" id="direction-label">
+          <SegmentedControl
+            className="segmented"
+            aria-labelledby="direction-label"
+            value={settings.variant}
+            onValueChange={(v) => v && apply({ ...settings, variant: v as Settings["variant"] }, SEGMENT)}
           >
-            <SwitchThumb />
-          </Switch>
-        </label>
-        {auto ? (
-          <Range
-            label="Speed"
-            value={settings.speed}
-            min={0.25}
-            max={2.5}
-            step={0.05}
-            unit="×"
-            changed={settings.speed !== 1}
-            onChange={(v) => setSettings({ ...settings, speed: v })}
-            onCommit={(v) => apply({ ...settings, speed: v }, THUMB)}
-          />
-        ) : (
-          <Range
-            label="Duration"
-            value={settings.duration ?? 1800}
-            min={300}
-            max={5000}
-            step={100}
-            unit="ms"
-            changed
-            onChange={(v) => setSettings({ ...settings, duration: v })}
-            onCommit={(v) => apply({ ...settings, duration: v }, THUMB)}
-          />
-        )}
-        <Range
-          label="Distortion"
-          value={settings.intensity}
-          min={0}
-          max={2}
-          step={0.05}
-          changed={settings.intensity !== 1}
-          onChange={(v) => setSettings({ ...settings, intensity: v })}
-          onCommit={(v) => apply({ ...settings, intensity: v }, THUMB)}
-        />
-
+            <SegmentedControlIndicator />
+            <SegmentedControlItem value="auto">Auto</SegmentedControlItem>
+            <SegmentedControlItem value="vertical">Down</SegmentedControlItem>
+            <SegmentedControlItem value="horizontal">Across</SegmentedControlItem>
+            <SegmentedControlItem value="center">Ring</SegmentedControlItem>
+          </SegmentedControl>
+        </Field>
         <Select value={settings.easing} onValueChange={(v) => v && apply({ ...settings, easing: v })}>
-          <div className="control-row">
-            <SelectLabel className="control-name">Easing</SelectLabel>
+          <div className="field">
+            <SelectLabel className="field-label">Easing</SelectLabel>
             <SelectTrigger className="select-trigger">
               <SelectValue />
             </SelectTrigger>
@@ -299,34 +359,21 @@ export function Tuner() {
             ))}
           </SelectContent>
         </Select>
-
-        <div className="control">
-          <span className="control-name" id="direction-label">
-            Direction
-          </span>
-          <SegmentedControl
-            className="segmented"
-            aria-labelledby="direction-label"
-            value={settings.variant}
-            onValueChange={(v) => v && apply({ ...settings, variant: v as Settings["variant"] }, SEGMENT)}
-          >
-            <SegmentedControlIndicator />
-            <SegmentedControlItem value="auto">Auto</SegmentedControlItem>
-            <SegmentedControlItem value="vertical">Down</SegmentedControlItem>
-            <SegmentedControlItem value="horizontal">Across</SegmentedControlItem>
-            <SegmentedControlItem value="center">Ring</SegmentedControlItem>
-          </SegmentedControl>
-        </div>
-
         <Select
           value={settings.palette}
           onValueChange={(v) => v && apply({ ...settings, palette: v as PaletteName | "demo" | "custom" })}
         >
-          <div className="control-row">
-            <SelectLabel className="control-name">Colours</SelectLabel>
-            <SelectTrigger className="select-trigger">
-              <SelectValue />
-            </SelectTrigger>
+          <div className="field">
+            <SelectLabel className="field-label">Colours</SelectLabel>
+            <div className="field-row">
+              <SelectTrigger className="select-trigger">
+                <span className="swatch" style={swatch(settings, settings.palette)} aria-hidden="true" />
+                <SelectValue />
+              </SelectTrigger>
+              {settings.palette === "custom" && (
+                <CustomColours settings={settings} setSettings={setSettings} apply={apply} />
+              )}
+            </div>
           </div>
           <SelectContent className="select-content">
             {PALETTE_ITEMS.map((p) => (
@@ -338,36 +385,7 @@ export function Tuner() {
             ))}
           </SelectContent>
         </Select>
-        {settings.palette === "custom" && (
-          <CustomColours settings={settings} setSettings={setSettings} apply={apply} />
-        )}
-
-        <label className="control-row">
-          <span className="control-name">Sparks</span>
-          <Switch
-            checked={settings.particles}
-            onCheckedChange={(c) => apply({ ...settings, particles: c })}
-          >
-            <SwitchThumb />
-          </Switch>
-        </label>
-        {settings.particles && (
-          <Range
-            label="Number of sparks"
-            value={settings.particleCount ?? base.particles}
-            min={0}
-            max={240}
-            step={4}
-            changed={settings.particleCount != null}
-            onChange={(v) => setSettings({ ...settings, particleCount: v })}
-            onCommit={(v) => apply({ ...settings, particleCount: v }, THUMB)}
-          />
-        )}
-
-        <div className="control">
-          <span className="control-name" id="motion-label">
-            Reduced motion
-          </span>
+        <Field label="Reduced motion" id="motion-label">
           <SegmentedControl
             className="segmented"
             aria-labelledby="motion-label"
@@ -375,82 +393,118 @@ export function Tuner() {
             onValueChange={(v) => v && apply({ ...settings, motion: v as Settings["motion"] }, SEGMENT)}
           >
             <SegmentedControlIndicator />
-            <SegmentedControlItem value="system">Follow system</SegmentedControlItem>
-            <SegmentedControlItem value="wave">Always wave</SegmentedControlItem>
-            <SegmentedControlItem value="fade">Always fade</SegmentedControlItem>
+            <SegmentedControlItem value="system">System</SegmentedControlItem>
+            <SegmentedControlItem value="wave">Wave</SegmentedControlItem>
+            <SegmentedControlItem value="fade">Fade</SegmentedControlItem>
           </SegmentedControl>
-        </div>
+        </Field>
       </div>
 
-      <div className="tuner-side">
-        <div ref={panel} className="tuner-code target">
-          <pre aria-label="The settings, as code">
-            <code>{highlight(code(settings))}</code>
-          </pre>
-        </div>
-        <div className="tuner-actions">
-          <Button
-            className="btn btn-primary"
-            onClick={(e) =>
-              panel.current &&
-              distortionWave(panel.current, undefined, { source: e.currentTarget, focus: e.nativeEvent })
-            }
-          >
-            Play a wave here
-          </Button>
-          <Button className="btn btn-quiet" onClick={() => apply(DEFAULT_SETTINGS)}>
-            Reset everything
-          </Button>
-        </div>
-        <p className="tuner-note">
-          The page calls this for you: every wave on it, the hero included, runs with these settings.
-          Each change plays a wave on the code.
-        </p>
+      <div className="modules-head">
+        <h3>Fine tuning</h3>
+        <p>Lengths are for a 360 × 740 element and scale with the real size. Changed values are marked.</p>
       </div>
-
-      <Tabs className="fine" value={group} onValueChange={(v) => v && setPicked((p) => ({ ...p, [settings.effect]: v }))}>
-        <div className="fine-head">
-          <h3>Fine tuning</h3>
-          <p>Lengths are for a 360 × 740 element. They scale with the real size.</p>
-        </div>
-        <TabsList aria-label="Fine tuning">
-          {Object.entries(TUNING).map(([key, g]) => (
-            <TabsTab key={key} value={key}>
-              {g.label}
-              {g.keys.some((k) => k.key in settings.tuning) && <span className="dot" aria-hidden="true" />}
-            </TabsTab>
-          ))}
-        </TabsList>
-        {Object.entries(TUNING).map(([key, g]) => (
-          <TabsPanel key={key} value={key} className="fine-panel">
-            {g.keys.map((k) => (
-              <Range
-                key={k.key}
-                label={k.label}
-                value={settings.tuning[k.key] ?? base[k.key]}
-                min={k.min}
-                max={k.max}
-                step={k.step}
-                unit={k.unit}
-                changed={k.key in settings.tuning}
-                onChange={(v) => setSettings(tune(k.key, v))}
-                onCommit={(v) => apply(tune(k.key, v), THUMB)}
-              />
-            ))}
-          </TabsPanel>
-        ))}
-        <Button
-          className="btn btn-quiet fine-reset"
-          disabled={!groupChanged}
-          onClick={() => {
-            const tuning = { ...settings.tuning };
-            for (const k of TUNING[group].keys) delete tuning[k.key];
-            apply({ ...settings, tuning });
-          }}
+      <div className="modules">
+        <Module
+          title="Motion"
+          changed={(settings.duration != null ? 1 : 0) + (settings.speed !== 1 ? 1 : 0) + (settings.intensity !== 1 ? 1 : 0)}
+          onReset={() => apply({ ...settings, duration: null, speed: 1, intensity: 1 })}
         >
-          Reset {TUNING[group].label.toLowerCase()}
-        </Button>
-      </Tabs>
+          <label className="toggle-row">
+            <span>Duration from the size</span>
+            <Switch checked={auto} onCheckedChange={(c) => apply({ ...settings, duration: c ? null : 1800 })}>
+              <SwitchThumb />
+            </Switch>
+          </label>
+          {auto ? (
+            <Range
+              label="Speed"
+              value={settings.speed}
+              min={0.25}
+              max={2.5}
+              step={0.05}
+              unit="×"
+              changed={settings.speed !== 1}
+              onChange={(v) => setSettings({ ...settings, speed: v })}
+              onCommit={(v) => apply({ ...settings, speed: v }, THUMB)}
+              onReset={() => apply({ ...settings, speed: 1 })}
+            />
+          ) : (
+            <Range
+              label="Duration"
+              value={settings.duration ?? 1800}
+              min={300}
+              max={5000}
+              step={100}
+              unit="ms"
+              changed
+              onChange={(v) => setSettings({ ...settings, duration: v })}
+              onCommit={(v) => apply({ ...settings, duration: v }, THUMB)}
+              onReset={() => apply({ ...settings, duration: null })}
+            />
+          )}
+          <Range
+            label="Distortion"
+            value={settings.intensity}
+            min={0}
+            max={2}
+            step={0.05}
+            changed={settings.intensity !== 1}
+            onChange={(v) => setSettings({ ...settings, intensity: v })}
+            onCommit={(v) => apply({ ...settings, intensity: v }, THUMB)}
+            onReset={() => apply({ ...settings, intensity: 1 })}
+          />
+          <label className="toggle-row">
+            <span>Sparks</span>
+            <Switch checked={settings.particles} onCheckedChange={(c) => apply({ ...settings, particles: c })}>
+              <SwitchThumb />
+            </Switch>
+          </label>
+          {settings.particles && (
+            <Range
+              label="Number of sparks"
+              value={settings.particleCount ?? base.particles}
+              min={0}
+              max={240}
+              step={4}
+              changed={settings.particleCount != null}
+              onChange={(v) => setSettings({ ...settings, particleCount: v })}
+              onCommit={(v) => apply({ ...settings, particleCount: v }, THUMB)}
+              onReset={() => apply({ ...settings, particleCount: null })}
+            />
+          )}
+        </Module>
+        {Object.entries(TUNING).map(([key, g]) => {
+          const keys = g.keys.map((k) => k.key);
+          const changed = keys.filter((k) => k in settings.tuning).length;
+          return (
+            <Module
+              key={key}
+              title={g.label}
+              accent={key === "lightning" || key === "pixels"}
+              note={key === "lightning" || key === "pixels" ? settings.effect : undefined}
+              changed={changed}
+              onReset={() => apply(untune(keys))}
+            >
+              {g.keys.map((k) => (
+                <Range
+                  key={k.key}
+                  label={k.label}
+                  value={settings.tuning[k.key] ?? base[k.key]}
+                  min={k.min}
+                  max={k.max}
+                  step={k.step}
+                  unit={k.unit}
+                  changed={k.key in settings.tuning}
+                  onChange={(v) => setSettings(tune(k.key, v))}
+                  onCommit={(v) => apply(tune(k.key, v), THUMB)}
+                  onReset={() => apply(untune([k.key]))}
+                />
+              ))}
+            </Module>
+          );
+        })}
+      </div>
     </div>
   );
 }
