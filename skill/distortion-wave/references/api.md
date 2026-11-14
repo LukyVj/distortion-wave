@@ -1,4 +1,4 @@
-# API reference (distortion-wave 0.2.x)
+# API reference (distortion-wave 0.3.x)
 
 The TypeScript definitions in `types/index.d.ts` of the package are the source of truth. This page explains them.
 
@@ -23,6 +23,7 @@ The update runs after the "before" snapshot. If it throws, `updateCallbackDone` 
 
 | Option | Default | |
 |---|---|---|
+| `effect` | the wave | `electric` from `distortion-wave/electric`, `pixel` from `distortion-wave/pixel`, or `'wave'`. An unknown string warns and falls back to the wave |
 | `source` | touch point, else centre | where the wave starts: an `Element` (inside or outside the target), a rect `{ x, y, width, height }` or a point `{ x, y }` in viewport coordinates |
 | `focus` | `null` | the `PointerEvent`/`MouseEvent` (or `{ x, y }`): the front leans toward it. Keyboard-generated clicks (`detail === 0`) are ignored |
 | `variant` | `'auto'` | `'vertical'`, `'horizontal'`, `'center'`. Auto looks at the source element: 1.4× wider than tall → vertical, 1.4× taller than wide → horizontal, anything else (or no source element, or the target itself) → center |
@@ -103,3 +104,62 @@ A second `distortionWave()` on a target that is still waving calls `skip()` on t
 6. Overlay removed, `finished` resolves, `onEnd(metrics)`.
 
 No animation (no WebGL2, offscreen, `body`/`html`, 4 waves already running, snapshot failed): the update runs and every promise resolves right after it.
+
+## 7. distortion-wave/electric
+
+```js
+import { electric, electricBorder, ELECTRIC, BORDER } from 'distortion-wave/electric';
+```
+
+CDN without a bundler: `https://cdn.jsdelivr.net/npm/distortion-wave@0.3/dist/electric.js` (self-contained ES module), or `dist/electric.iife.min.js` → `window.DistortionWaveElectric`.
+
+### `effect: electric`
+
+The wave itself, with an electric look: same timeline, lens, blur, sparks and options (`variant` included). The default palette becomes `'electric'`, the colour band is thinner, the soft rim and the hairline give way to arcs. On top: the front's edge is jagged and carries two crackling strands with a white-hot core, and the outline charges with arcs where the front has passed, then discharges with the rim's timing.
+
+Its keys (reference 360×740 px, scaled like the wave's):
+
+| Key | Default | |
+|---|---|---|
+| `jag` | `8` px | how jagged the front is (it also shapes the old/new boundary) |
+| `scale` | `46` px | one noise cell along the front; smaller is more jagged |
+| `crackle` | `1.8` | noise speed |
+| `chaos` | `6` px | how far the strands stray from the front |
+| `boltWidth`, `boltGlow` | `1.5`, `14` px | core of a strand, glow around it |
+| `bolts`, `rimBolts` | `1.2`, `1.3` | strength on the front, on the outline (0 = none) |
+
+`intensity` scales `jag` and `chaos` with the wave's distortion.
+
+### `electricBorder(element, options) → controller`
+
+| Option | Default | |
+|---|---|---|
+| `trigger` | `'always'` | `'hover'`, `'focus'` (focus inside counts), `'hover focus'`, `'manual'` (waits for `start()`) |
+| `color` / `palette` | `'electric'` palette | one colour, or a palette spread along the outline |
+| `thickness`, `glow`, `chaos`, `scale`, `crackle`, `offset` | `1.6`, `14`, `5`, `34`, `1`, `0` | as above, not scaled |
+| `intensity` | `1` | overall strength |
+| `fadeIn`, `fadeOut` | `220`, `380` ms | |
+| `zIndex` | `2147482000` | of the shared canvas |
+
+Controller: `active`, `start()`, `stop()`, `set(options)` (live; not `trigger`), `destroy()`.
+
+The outline follows `border-radius` per corner and the element's size (ResizeObserver). It is drawn in viewport space every frame, so scrolling and sticky positioning are followed. It does not follow clipping by scrolling ancestors. With `prefers-reduced-motion` the arc stops moving but stays.
+
+## 8. distortion-wave/pixel
+
+```js
+import { pixel, PIXEL } from 'distortion-wave/pixel';
+distortionWave(card, update, { effect: pixel, source: button });
+```
+
+The wave with a pixel look: each cell of a grid reads the front at its own centre, so the boundary is a staircase of pixels. Near the front the content becomes a mosaic that flips from old to new cell by cell; some cells light up in the palette (default `'pixel'`, orange) and flicker; a few stay lit in the wake; the outline is drawn in pixels that go out one by one with the rim's timing; sparks are square.
+
+| Key | Default | |
+|---|---|---|
+| `cell`, `gap` | `6`, `1` px | pixel size (scales gently with the element, never under 2 px), gap between pixels |
+| `zone` | `1` | width of the mosaic zone around the front, × `lead` |
+| `density` | `0.45` | share of lit pixels at the front (0 to 1) |
+| `rate` | `14` | flicker changes per second |
+| `lit`, `rimPixels` | `1`, `1` | strength of the lit pixels, of the outline pixels |
+
+CDN: `dist/pixel.js` (self-contained ES module) or `dist/pixel.iife.min.js` → `window.DistortionWavePixel`.

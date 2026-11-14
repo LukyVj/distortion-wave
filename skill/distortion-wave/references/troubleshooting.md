@@ -72,3 +72,11 @@ Call `warmupWave()` once at load or idle. For big targets, pre-capture on hover 
 ## Fine in Chrome, broken in Safari or Firefox
 
 The library is tested in Chromium. Report it with the browser version and a minimal page. Safari has a history of `foreignObject` bugs; the update still runs if the snapshot fails.
+
+## Electric effect
+
+- **`[distortion-wave] unknown effect "electric"`**: `effect` takes the object, not a string. `import { electric } from 'distortion-wave/electric'` and pass `effect: electric`.
+- **The border shows over a modal or a dropdown**: every border draws in one fixed canvas above the page. Raise the modal above `2147482000`, pass a lower `zIndex`, or `stop()` the border while the modal is open.
+- **The border stays after the element is removed**: it skips elements that left the DOM, but keeps its listeners. Call `destroy()` on unmount.
+- **The border sticks out of a scroll container**: it does not clip to scrolling ancestors. Put it on an element that is not scrolled out, or stop it.
+- **Faint on a light page**: it's glow over a light background. Use a darker surface under the element, a stronger colour, or a bigger `intensity`.

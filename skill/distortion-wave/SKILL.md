@@ -1,6 +1,6 @@
 ---
 name: distortion-wave
-description: Add, tune, debug and test distortion-wave transitions (npm package `distortion-wave`), an API shaped like document.startViewTransition() that plays a WebGL2 wave on any DOM element, from a single button to a whole page. Use this skill whenever the user wants a wave / liquid / ripple / glitchy transition on a UI state change (toggle, tabs, add to cart, list update, theme switch), mentions distortionWave, waveOnClick, setWaveDefaults or the distortion-wave package, wants a View Transitions-like effect scoped to one component, wires it into React, Vue, Svelte, Angular or vanilla JS, or reports a glitch in such an animation (square corners, a rectangle around text, squashed letters, nothing happening, old content flashing).
+description: Add, tune, debug and test distortion-wave transitions and effects (npm package `distortion-wave`), an API shaped like document.startViewTransition() that plays a WebGL2 wave on any DOM element, from a single button to a whole page, plus electric and pixel looks for the same wave, and an animated electric border that follows the element's outline. Use this skill whenever the user wants a wave / liquid / ripple / glitchy transition on a UI state change (toggle, tabs, add to cart, list update, theme switch), mentions distortionWave, waveOnClick, setWaveDefaults, electricBorder, an electric/lightning/neon glowing border or the distortion-wave package, wants a View Transitions-like effect scoped to one component, wires it into React, Vue, Svelte, Angular or vanilla JS, or reports a glitch in such an animation (square corners, a rectangle around text, squashed letters, nothing happening, old content flashing).
 ---
 
 # distortion-wave
@@ -95,6 +95,25 @@ t.skip();                    // jump to the end; the update still runs
 ```
 
 Chain on `finished`, for example a "Copied!" label that reverts, or a second step like "Downloading…" then "Done". Starting a new wave on a target that is still waving skips the old one, so double clicks are safe.
+
+## Effects: electric and pixel
+
+Effects change the wave's look, never its behaviour. Each is a separate entry, so the core stays light without them: `distortion-wave/electric` (~7 kB gzipped, with the border) and `distortion-wave/pixel` (~1.5 kB).
+
+```js
+import { distortionWave } from 'distortion-wave';
+import { electric, electricBorder } from 'distortion-wave/electric';
+
+distortionWave(card, update, { effect: electric, source: button, focus: e });   // the same wave, electric look
+const border = electricBorder(card, { trigger: 'hover', color: '#7df9ff' });     // live arc on the outline; border.destroy()
+```
+
+- `effect: electric` keeps the wave's behaviour exactly (timing, lens, blur, sparks, every option and rule above). Only the look changes: the front is a crackling bolt, the colour band goes electric, the outline charges with arcs as the front passes. Its keys: `jag`, `scale`, `crackle`, `chaos`, `boltWidth`, `boltGlow`, `bolts`, `rimBolts`.
+- `effect: pixel` (`import { pixel } from 'distortion-wave/pixel'`): near the front the content breaks into small pixels that flip cell by cell, some light up, the outline goes out pixel by pixel, sparks are square. Keys: `cell`, `gap`, `zone`, `density`, `rate`, `lit`, `rimPixels`.
+- `setWaveDefaults({ effect: electric })` switches every wave of the app.
+- `electricBorder` is for ambient emphasis: a featured pricing plan, a focused field, a card on hover. Create it in an effect (`useEffect`), call `destroy()` on cleanup, change options with `set()`. The `trigger` is fixed at creation: make a new border to change it.
+- All borders share one fixed canvas above the page (z-index 2147482000, `zIndex` option): a border can show over a modal that covers its element. Destroy or stop it when a modal opens.
+- Both look best on elements with a visible box and on dark surfaces. Details in `references/api.md`.
 
 ## Things that make it feel good
 

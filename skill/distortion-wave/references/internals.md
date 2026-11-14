@@ -19,6 +19,7 @@ src/
 - Rendering (renderer.js)
 - Shape of the element
 - Tests and how to verify a change
+- Releasing
 - Rules that keep it working
 
 ## One wave, step by step
@@ -82,6 +83,10 @@ npm run build          # dist/, demo/standalone.html, examples/ui-kit/standalone
 ```
 
 For visual changes, film the wave with a frozen clock and read the frames: `scripts/film-wave.mjs` in this skill. The trick: replace `performance.now` and `requestAnimationFrame` before the page loads, then advance the clock by 1/30 s per screenshot. Captures still run in real time, so wait for them before you advance.
+
+## Releasing
+
+Publishing goes through `.github/workflows/publish.yml` (npm trusted publishing: no token, no 2FA prompt). Bump `version` in `package.json`, add the entry to `CHANGELOG.md`, push, then either push a tag `vX.Y.Z` or start the workflow by hand (Actions → Publish to npm → Run workflow, or `gh workflow run publish.yml`). It runs lint, unit tests, build and browser tests, refuses a version already on npm, then publishes. The CDN URLs use `@0.2`: after a release, purge `https://purge.jsdelivr.net/npm/distortion-wave@0.2/+esm` (and the IIFE path) so pages get it at once.
 
 ## Rules that keep it working
 
