@@ -31,6 +31,10 @@
       "types": "./types/ink.d.ts",
       "import": "./dist/ink.js"
     },
+    "./halftone": {
+      "types": "./types/halftone.d.ts",
+      "import": "./dist/halftone.js"
+    },
     "./src/*": "./src/*"
   },
   "unpkg": "./dist/distortion-wave.iife.min.js",
