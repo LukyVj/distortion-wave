@@ -5,6 +5,7 @@ import { BASE, resolveConfig } from '../src/core.js';
 // The looks added after electric and pixel: each is the wave with another look, nothing else.
 const LOOKS = {
   glass: ['thickness', 'refraction', 'dispersion', 'shine', 'tint'],
+  burn: ['roughness', 'scale', 'char', 'heat', 'embers', 'smoke'],
 };
 const BEHAVIOUR = ['anticipation', 'travel', 'linger', 'amplitude', 'lensWidth', 'swell', 'aberration', 'blur', 'blurNear', 'blurAhead', 'blurBehind', 'pull', 'inhale', 'lean', 'speed', 'particles'];
 const HEX = /^#[0-9a-f]{6}$/i;

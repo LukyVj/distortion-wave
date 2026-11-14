@@ -23,6 +23,10 @@
       "types": "./types/glass.d.ts",
       "import": "./dist/glass.js"
     },
+    "./burn": {
+      "types": "./types/burn.d.ts",
+      "import": "./dist/burn.js"
+    },
     "./src/*": "./src/*"
   },
   "unpkg": "./dist/distortion-wave.iife.min.js",
