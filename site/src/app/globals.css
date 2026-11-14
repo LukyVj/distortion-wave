@@ -72,7 +72,6 @@ body:has(.page[data-theme="dark"]) {
 
 .page[data-theme="dark"],
 .dark-scope,
-.chamber,
 .dark-bench {
   color-scheme: dark;
   --bg: #0e1220;
@@ -103,7 +102,6 @@ body:has(.page[data-theme="dark"]) {
 
 /* ui-sdk tokens follow the theme tokens wherever they change */
 .page,
-.chamber,
 .dark-bench,
 .dark-scope {
   --ui-background: var(--card);
@@ -1199,126 +1197,12 @@ code {
   gap: 4px;
 }
 
-/* Electric: a dark chamber in both themes, so the arcs read */
+/* Effects: dark benches in both themes, so the arcs and pixels read */
 
-.chamber,
 .dark-bench {
   --surface: #0b0f1c;
   background: #0b0f1c;
   color: var(--text);
-}
-
-.chamber {
-  display: grid;
-  grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
-  border-radius: 24px;
-  overflow: hidden;
-}
-
-@media (max-width: 860px) {
-  .chamber { grid-template-columns: 1fr; }
-}
-
-.chamber-stage {
-  min-height: 460px;
-  display: grid;
-  place-items: center;
-  align-content: center;
-  gap: 28px;
-  padding: 56px 28px;
-  background-image: radial-gradient(circle, #1b2238 1.2px, transparent 1.6px);
-  background-size: 22px 22px;
-}
-
-.chamber-hint {
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-
-.plan {
-  width: min(100%, 300px);
-  padding: 24px;
-  border-radius: 22px;
-  background: #151b2e;
-  border: 1px solid #262e4a;
-  display: grid;
-  gap: 14px;
-}
-
-.plan-name {
-  font-weight: 650;
-  color: var(--muted);
-}
-
-.plan-price {
-  font-size: 2.4rem;
-  font-weight: 760;
-  font-stretch: 120%;
-  letter-spacing: -0.03em;
-  line-height: 1;
-}
-
-.plan-price span {
-  display: block;
-  margin-top: 6px;
-  font-size: 0.88rem;
-  font-weight: 500;
-  font-stretch: 100%;
-  letter-spacing: 0;
-  color: var(--muted);
-}
-
-.plan ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: 6px;
-  font-size: 0.95rem;
-}
-
-.plan ul li::before {
-  content: "+ ";
-  color: var(--muted);
-}
-
-.chamber-controls {
-  padding: 24px;
-  display: grid;
-  gap: 18px;
-  align-content: start;
-  background: #111627;
-}
-
-.chamber-controls > .btn {
-  justify-self: start;
-}
-
-.chamber-ranges {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 16px 22px;
-}
-
-.chamber-code {
-  margin: 0;
-  padding: 16px 18px;
-  border-radius: 12px;
-  background: #070a14;
-  color: var(--code-fg);
-  font: 0.8rem/1.65 var(--font-mono), monospace;
-  overflow-x: auto;
-}
-
-.colour-chip {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex: none;
-}
-
-.segmented [data-slot="segmented-control-item"] {
-  gap: 6px;
 }
 
 .fx-row {
@@ -1420,7 +1304,7 @@ code {
 }
 
 .fx-wide {
-  margin-bottom: 18px;
+  margin-top: 0;
 }
 
 .build {
