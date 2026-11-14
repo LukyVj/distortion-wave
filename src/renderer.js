@@ -34,6 +34,10 @@ uniform float uLead, uTail, uBand, uRimW, uRimSoft, uUneven, uHairW;
 uniform vec3 uPal[8]; uniform int uPalN;
 out vec4 outColor;
 const float TAU = 6.28318530718;
+#ifdef FX
+float fxFront(vec2 q, vec2 p);                     // effects (distortion-wave/electric…) bend the front…
+vec4 fxOver(vec4 o, vec2 p, vec2 c, float sd, float fd, vec2 fq, float fg);   // …and paint over the result
+#endif
 
 mat2 rot(float a) { float c = cos(a), s = sin(a); return mat2(c, s, -s, c); }
 float ign(vec2 p) { return fract(52.9829189 * fract(dot(p, vec2(0.06711056, 0.00583715)))); }
@@ -51,7 +55,11 @@ Front front(vec2 p) {
   float wob;
   if (uRing) { float a = atan(q.y, q.x); wob = 0.5 * sin(3.0 * a + uTime * 1.3) + 0.3 * sin(5.0 * a - uTime * 0.9 + 2.1) + 0.2 * sin(2.0 * a + uTime * 2.0); }
   else { float s = mx * 0.005 / uK; wob = 0.7 * vnoise(s + uTime * 0.8) + 0.3 * vnoise(s * 2.3 - uTime * 1.1 + 5.0); }
-  Front f; f.d = (len - uRadius) / g + uSwell * wob; f.n = rot(uTilt) * (grad / g); f.q = q; f.g = g; return f;
+  Front f; f.d = (len - uRadius) / g + uSwell * wob; f.n = rot(uTilt) * (grad / g); f.q = q; f.g = g;
+#ifdef FX
+  f.d += fxFront(q, p);
+#endif
+  return f;
 }
 // The silhouette is decided by p (undisplaced); the sample by sp (displaced, clamped to the rect).
 // → content bends INSIDE the element, never revealing transparency or bleeding outside.
@@ -85,6 +93,13 @@ vec3 oklabToSrgb(vec3 c) {
   l = l * l * l; m = m * m * m; s = s * s * s;
   vec3 lin = clamp(vec3(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s, -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s, -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s), 0.0, 1.0);
   return mix(12.92 * lin, 1.055 * pow(lin, vec3(1.0 / 2.4)) - 0.055, step(vec3(0.0031308), lin));
+}
+/*@FX*/
+vec4 fin(vec4 o, vec2 p, vec2 c, float sd, Front f) {
+#ifdef FX
+  o = fxOver(o, p, c, sd, f.d, f.q, f.g);
+#endif
+  return o;
 }
 void main() {
   vec2 p = vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y) * (uSize.x / uRes.x);
@@ -153,7 +168,7 @@ void main() {
   }
   float a = (1.0 - (1.0 - bandA) * (1.0 - rimA)) * mask;
   hairA *= mask;
-  if (a + hairA < 0.0005) { outColor = vec4(col.rgb + dn * col.a, col.a); return; }
+  if (a + hairA < 0.0005) { outColor = fin(vec4(col.rgb + dn * col.a, col.a), p, c, sd, f); return; }
   float flow = 0.6 + (uRing ? ang / TAU : along * 0.22) + uTime * 0.12 + f.d * 0.0016 / uK;
   vec3 lab = paletteAt(flow);
   lab.x += 0.10 * exp(-pow((f.d - 28.0 * uK) / (48.0 * uK), 2.0)) - 0.12 * exp(-pow((f.d + 90.0 * uK) / (70.0 * uK), 2.0));
@@ -165,7 +180,7 @@ void main() {
   vec4 o = vec4(oklabToSrgb(lab) * ea, ea) + col * (1.0 - ea);
   float ha = clamp(hairA, 0.0, 1.0);
   o = vec4(mix(oklabToSrgb(rimLab), vec3(1.0), 0.6 + 0.35 * shimmer) * ha, ha) + o * (1.0 - ha);
-  outColor = vec4(o.rgb + dn * 2.0 * o.a, o.a);
+  outColor = fin(vec4(o.rgb + dn * 2.0 * o.a, o.a), p, c, sd, f);
 }`;
 const VS_DOTS = `#version 300 es
 layout(location = 0) in vec4 aDot; uniform vec2 uSize; uniform float uDpr; out float vA; out float vR; out float vPt;
@@ -256,9 +271,16 @@ class Renderer {
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, f.dots, 0, f.dotCount * 4);
     gl.drawArrays(gl.POINTS, 0, f.dotCount); gl.disable(gl.BLEND);
   }
-  render(f) {
+  /** variant: { key, chunk, uniforms } from an effect: the wave shader compiled with that effect's GLSL. */
+  shader(variant) {
+    if (!variant) return this.main;
+    this.variants ||= {};
+    return (this.variants[variant.key] ||= program(this.gl, VS_FULL,
+      FS_MAIN.replace('#version 300 es', '#version 300 es\n#define FX').replace('/*@FX*/', () => variant.chunk)));
+  }
+  render(f, variant) {
     if (!this.ok) return;
-    const gl = this.gl, W = this.canvas.width, H = this.canvas.height, m = this.main, u = m.u;
+    const gl = this.gl, W = this.canvas.width, H = this.canvas.height, m = this.shader(variant), u = m.u;
     const old = this.layers.old || this.layers.new, nxt = this.layers.new || this.layers.old;
     if (!old) return;
     gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, W, H); gl.disable(gl.BLEND); gl.useProgram(m.p);
@@ -280,6 +302,7 @@ class Renderer {
         uUneven: c.uneven, uHairW: c.hairWidth };
       for (const k in fl) gl.uniform1f(u(k), fl[k]);
       this.palette(m, c.palette);
+      if (variant?.uniforms) for (const k in variant.uniforms) gl.uniform1f(u(k), variant.uniforms[k]);
     }
     gl.bindVertexArray(this.vao); gl.drawArrays(gl.TRIANGLES, 0, 3);
     this.drawDots(f);

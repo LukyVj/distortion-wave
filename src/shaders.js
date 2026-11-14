@@ -1,4 +1,4 @@
-// shaders.js — GLSL for the electric effect: the transition (FS_ELECTRIC) and the border (FS_BORDER)
+// shaders.js — GLSL for the electric effect: the wave's lightning (ELECTRIC_WAVE) and the border (FS_BORDER)
 // Part of distortion-wave · MIT © Lucas Bonomi
 
 // Shared pieces. Space is y-down CSS px; radii are (bottom-right, top-right, bottom-left, top-left).
@@ -10,7 +10,7 @@ float sdRoundBox(vec2 p, vec2 b, vec4 r) {
   r.xy = (p.x > 0.0) ? r.xy : r.zw; r.x = (p.y > 0.0) ? r.x : r.y;
   vec2 q = abs(p) - b + r.x; return min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - r.x;
 }
-// arc length of the closest outline point, clockwise from the left end of the top edge (electric.js · paramAt)
+// arc length of the closest outline point, clockwise from the left end of the top edge
 float perimLen(vec2 b, vec4 r) {
   return 4.0 * (b.x + b.y) - 2.0 * (r.x + r.y + r.z + r.w) + Q * (r.x + r.y + r.z + r.w);
 }
@@ -66,62 +66,6 @@ vec4 arcAt(float sd, float s, float P, float t, float k, float hot) {
 }
 `;
 
-export const FS_ELECTRIC = `#version 300 es
-precision highp float; precision highp int;
-uniform vec2 uSize, uRes;
-uniform sampler2D uOld0, uNew0;
-uniform vec4 uOldRect, uNewRect, uShape, uRadii;
-uniform int uMode;
-uniform bool uClip;
-uniform float uFade, uTime, uArc, uS0, uLive, uHeadOn, uHeadW, uSurge, uFlash, uGlitch, uRows;
-out vec4 outColor;
-${COMMON}
-vec4 tap(sampler2D s, vec4 rect, vec2 p, vec2 sp) {
-  vec2 q = (p - rect.xy) / rect.zw;
-  if (q.x < 0.0 || q.y < 0.0 || q.x > 1.0 || q.y > 1.0) return vec4(0.0);
-  return textureLod(s, clamp((sp - rect.xy) / rect.zw, 0.0, 1.0), 0.0);
-}
-vec4 split(sampler2D s, vec4 rect, vec2 p, vec2 sp, float sl) {
-  if (abs(sl) < 0.1) return tap(s, rect, p, sp);
-  vec4 r = tap(s, rect, p, sp + vec2(sl, 0.0)), g = tap(s, rect, p, sp), b = tap(s, rect, p, sp - vec2(sl, 0.0));
-  return vec4(r.r, g.g, b.b, max(max(r.a, g.a), b.a));
-}
-void main() {
-  vec2 p = vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y) * (uSize.x / uRes.x);
-  float dn = (ign(gl_FragCoord.xy) - 0.5) / 255.0;
-  vec2 hb = uShape.zw * 0.5, c = p - (uShape.xy + hb);
-  float sd = sdRoundBox(c, hb, uRadii);
-  float mask = clamp(0.5 - sd * (uRes.x / uSize.x), 0.0, 1.0), clipM = uClip ? mask : 1.0;
-  if (uMode == 0 || uMode == 2 || uMode == 3) {
-    vec4 a = tap(uOld0, uOldRect, p, p), b = tap(uNew0, uNewRect, p, p);
-    vec4 v = (uMode == 0 ? a : uMode == 2 ? b : mix(a, b, uFade)) * clipM;
-    outColor = vec4(v.rgb + dn * v.a, v.a); return;
-  }
-  vec4 col = vec4(0.0);
-  if (uMode == 1) {
-    // rows of content flip from old to new at random moments of the surge, jumping sideways as they do
-    float row = floor(p.y / uRows), tick = floor(uTime * 24.0);
-    float flip = 0.08 + 0.84 * h11(row * 1.37 + 3.1);
-    float env = sin(3.14159265 * uSurge);
-    float jump = step(0.55, h11(row * 7.13 + tick * 1.31)) * (h11(row + tick * 0.73) - 0.5) * 2.0 * uGlitch * env;
-    vec2 sp = p + vec2(jump, 0.0);
-    float sl = uGlitch * 0.35 * env * (0.5 + h11(tick + row));
-    bool isNew = uSurge > flip;
-    col = isNew ? split(uNew0, uNewRect, p, sp, sl) : split(uOld0, uOldRect, p, sp, sl);
-    float aU = isNew ? tap(uNew0, uNewRect, p, p).a : tap(uOld0, uOldRect, p, p).a;
-    col *= min(1.0, aU / max(col.a, 1e-4)) * clipM;
-    col.rgb += uFlash * 0.22 * col.a * (0.6 + 0.4 * h11(row + tick));
-  }
-  float P = perimLen(hb, uRadii), s = perim(c, hb, uRadii);
-  float ds = abs(s - uS0); ds = min(ds, P - ds);
-  float reached = 1.0 - smoothstep(uArc - uHeadW * 0.4, uArc + 1.0, ds);
-  float head = exp(-pow((ds - uArc + uHeadW * 0.3) / max(uHeadW, 1.0), 2.0)) * uHeadOn;
-  float k = max(reached * uLive, head) * (1.0 + 0.35 * uFlash);
-  vec4 e = arcAt(sd, s, P, uTime, k, head);
-  vec4 o = e + col * (1.0 - e.a);
-  outColor = vec4(o.rgb + dn * 2.0 * o.a, o.a);
-}`;
-
 // One element of an electric border, drawn in its own viewport of a shared full-screen canvas.
 export const FS_BORDER = `#version 300 es
 precision highp float; precision highp int;
@@ -138,3 +82,58 @@ void main() {
   vec4 e = arcAt(sd, s, P, uTime, uLevel, 0.0);
   outColor = vec4(e.rgb + (ign(gl_FragCoord.xy) - 0.5) / 255.0 * e.a, e.a);
 }`;
+
+// Lightning for the wave shader (renderer.js · FS_MAIN, compiled with #define FX): the front turns jagged and
+// carries crackling bolts, and the outline charges with arcs where the front has passed.
+export const ELECTRIC_WAVE = `
+uniform float uEJag, uEScale, uECrackle, uEBoltW, uEBoltGlow, uEChaos, uEBolt, uERim, uERimNorm;
+float eHash(vec3 p) { p = fract(p * 0.3183099 + vec3(0.1, 0.2, 0.3)); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
+float eNoise(vec3 x) {
+  vec3 i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(mix(eHash(i), eHash(i + vec3(1, 0, 0)), f.x), mix(eHash(i + vec3(0, 1, 0)), eHash(i + vec3(1, 1, 0)), f.x), f.y),
+             mix(mix(eHash(i + vec3(0, 0, 1)), eHash(i + vec3(1, 0, 1)), f.x), mix(eHash(i + vec3(0, 1, 1)), eHash(i + vec3(1, 1, 1)), f.x), f.y), f.z);
+}
+float eFbm(vec3 p, int oct) {
+  float s = 0.0, a = 0.5, n = 0.0;
+  for (int i = 0; i < 5; i++) { if (i >= oct) break; s += a * eNoise(p); n += a; p = p * 2.03 + vec3(13.1, 7.7, 3.3); a *= 0.5; }
+  return s / n;
+}
+float fxFront(vec2 q, vec2 p) {
+  if (!uLaunched) return 0.0;
+  return (eFbm(vec3(q / uEScale, uTime * uECrackle), 3) - 0.5) * 2.0 * uEJag;
+}
+vec3 eColour(float u, float hot) { vec3 lab = paletteAt(u); lab.yz *= 1.15; return mix(oklabToSrgb(lab), vec3(1.0), hot); }
+vec4 eOver(vec3 rgb, float a, vec4 o) { a = clamp(a, 0.0, 1.0); return vec4(rgb * a, a) + o * (1.0 - a); }
+vec4 fxOver(vec4 o, vec2 p, vec2 c, float sd, float fd, vec2 fq, float fg) {
+  float inside = clamp(0.5 - sd * (uRes.x / uSize.x), 0.0, 1.0);
+  if (inside <= 0.0) return o;
+  float flick = 0.7 + 0.3 * eNoise(vec3(uTime * 19.0, 3.7, 0.0));
+  float w = max(uEBoltW, 0.5);
+  // bolts riding the front
+  if (uLaunched && uGlow > 0.001 && abs(fd) < uEChaos * 3.0 + uEBoltGlow * 3.0 + uEJag) {
+    vec3 x = vec3(fq / (uEScale * 0.55), uTime * uECrackle * 1.6);
+    float n1 = eFbm(x, 4) - 0.5, n2 = eFbm(x * 1.7 + vec3(7.3, 2.1, 0.0), 4) - 0.5;
+    float d1 = fd + n1 * 2.0 * uEChaos, d2 = fd + 0.7 * uEChaos + n2 * 1.8 * uEChaos;
+    float core = exp(-d1 * d1 / (w * w)) + 0.6 * exp(-d2 * d2 / (w * w * 0.5));
+    float glow = 0.55 * exp(-d1 * d1 / (uEBoltGlow * uEBoltGlow)) + 0.22 * exp(-abs(fd) / (uEBoltGlow * 2.2));
+    float k = uEBolt * uGlow * flick * inside;
+    float u = 0.55 + (uRing ? atan(fq.y, fq.x) / TAU : fq.x * 0.004 / uK) + uTime * 0.1;
+    o = eOver(eColour(u, 0.0), glow * k, o);
+    o = eOver(eColour(u, 0.8), core * k, o);
+  }
+  // the outline charges where the front has been, then discharges
+  if (uERim > 0.0 && uBoxless < 0.5 && uRim > 0.0 && sd > -(uEBoltGlow * 2.5 + uEChaos * 2.0 + w * 3.0)) {
+    float reached = 1.0 - smoothstep(-uLead * 0.6, uLead * 0.4, fd);
+    float kept = smoothstep(-uRimSoft, uRimSoft, fd + (uRadius - uClear) / fg);
+    float k = uERim * min(uRim * uERimNorm, 1.0) * reached * kept * flick * inside;
+    if (k > 0.001) {
+      float n = eFbm(vec3(c / uEScale, uTime * uECrackle), 4) - 0.5;
+      float dr = sd + w * 2.0 + n * 2.0 * uEChaos * 0.7;
+      float u = atan(c.y / uShape.w, c.x / uShape.z) / TAU + uTime * 0.2;
+      o = eOver(eColour(u, 0.0), (0.5 * exp(-dr * dr / (uEBoltGlow * uEBoltGlow * 0.6)) + 0.2 * exp(-abs(sd) / (uEBoltGlow * 2.0))) * k, o);
+      o = eOver(eColour(u, 0.75), exp(-dr * dr / (w * w * 0.8)) * k, o);
+    }
+  }
+  return o;
+}
+`;

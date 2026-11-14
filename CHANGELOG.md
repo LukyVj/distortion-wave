@@ -2,11 +2,10 @@
 
 ## 0.3.0 — unreleased
 
-- Effects. `effect` option on `distortionWave()` and `setWaveDefaults()`. The wave stays the default and the only effect in the core bundle.
-- `distortion-wave/electric`, a new entry (~9 kB gzipped):
-  - `electric`, a transition: two arcs leave the source and run round the element's outline, rows of content crackle from the old state to the new one, then the outline discharges. Same promises and callbacks as the wave; the arcs glow outside the element.
+- Effects: `effect` option on `distortionWave()` and `setWaveDefaults()`. An effect keeps the wave's behaviour (timing, lens, blur, sparks) and changes its look. The plain wave stays the default and the only look in the core bundle.
+- `distortion-wave/electric`, a new entry (~7 kB gzipped):
+  - `electric`: the wave with an electric look. The front is a crackling bolt, the colour band goes electric, and the outline charges with arcs as the front passes, then discharges. Keys: `jag`, `scale`, `crackle`, `chaos`, `boltWidth`, `boltGlow`, `bolts`, `rimBolts`.
   - `electricBorder(el, options)`: a live electric arc on the outline, always on, on hover or on focus. All borders share one canvas and one WebGL context.
-  - Outline helpers: `perimeterLength`, `pointAt`, `paramAt` for rounded boxes.
 - `electric` palette.
 
 ## 0.2.1 — 2026-11-13

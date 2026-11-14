@@ -84,41 +84,22 @@ export const TUNING = {
   },
 } as const;
 
+// electric: the wave's own groups, plus the look of the lightning
 export const TUNING_ELECTRIC = {
-  timing: {
-    label: "Timing",
+  lightning: {
+    label: "Lightning",
     keys: [
-      { key: "charge", label: "Arcs run round", min: 0.1, max: 2, step: 0.05, unit: "s" },
-      { key: "surge", label: "Content crackles", min: 0.05, max: 1.5, step: 0.05, unit: "s" },
-      { key: "discharge", label: "Outline discharges", min: 0.1, max: 3, step: 0.05, unit: "s" },
-    ],
-  },
-  arc: {
-    label: "Arc",
-    keys: [
-      { key: "thickness", label: "Core", min: 0.4, max: 6, step: 0.1, unit: "px" },
-      { key: "glow", label: "Glow", min: 0, max: 50, step: 1, unit: "px" },
-      { key: "chaos", label: "Stray", min: 0, max: 20, step: 0.5, unit: "px" },
-      { key: "scale", label: "Noise cell", min: 6, max: 120, step: 1, unit: "px" },
+      { key: "jag", label: "Jagged front", min: 0, max: 40, step: 1, unit: "px" },
+      { key: "scale", label: "Noise cell", min: 10, max: 160, step: 2, unit: "px" },
       { key: "crackle", label: "Crackle speed", min: 0, max: 6, step: 0.1, unit: "" },
-      { key: "offset", label: "Offset", min: -20, max: 20, step: 1, unit: "px" },
-      { key: "head", label: "Head length", min: 0, max: 120, step: 2, unit: "px" },
+      { key: "chaos", label: "Bolt stray", min: 0, max: 24, step: 0.5, unit: "px" },
+      { key: "boltWidth", label: "Bolt core", min: 0.4, max: 6, step: 0.1, unit: "px" },
+      { key: "boltGlow", label: "Bolt glow", min: 0, max: 50, step: 1, unit: "px" },
+      { key: "bolts", label: "Bolts on the front", min: 0, max: 3, step: 0.05, unit: "" },
+      { key: "rimBolts", label: "Arcs on the outline", min: 0, max: 3, step: 0.05, unit: "" },
     ],
   },
-  glitch: {
-    label: "Glitch",
-    keys: [
-      { key: "glitch", label: "Row jump", min: 0, max: 60, step: 1, unit: "px" },
-      { key: "rows", label: "Row height", min: 4, max: 60, step: 1, unit: "px" },
-    ],
-  },
-  sparks: {
-    label: "Sparks",
-    keys: [
-      { key: "particleSize", label: "Size", min: 0.5, max: 5, step: 0.1, unit: "px" },
-      { key: "particleLife", label: "Life", min: 0.1, max: 3, step: 0.05, unit: "s" },
-    ],
-  },
+  ...TUNING,
 } as const;
 
 type Groups = typeof TUNING | typeof TUNING_ELECTRIC;

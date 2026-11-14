@@ -66,7 +66,6 @@ function measure(el) {
     el: { x: rect.left + sx, y: rect.top + sy, w: rect.width, h: rect.height },
   };
 }
-const inflate = (r, m) => ({ x: r.x - m, y: r.y - m, w: r.w + 2 * m, h: r.h + 2 * m });
 const union = (a, b) => { const x = Math.min(a.x, b.x), y = Math.min(a.y, b.y); return { x, y, w: Math.max(a.x + a.w, b.x + b.w) - x, h: Math.max(a.y + a.h, b.y + b.h) - y }; };
 const rel = (r, o) => ({ x: r.x - o.x, y: r.y - o.y, w: r.w, h: r.h });
 const nextFrame = () => new Promise((r) => requestAnimationFrame(() => r()));
@@ -99,22 +98,23 @@ function takePrepared(target, m) {
 }
 
 // ═══ Effects ═════════════════════════════════════════════════════════════════
-// An effect turns the two captures into frames. The wave is built in; others come from their own entry
-// (distortion-wave/electric) and are passed as `effect`, so the core stays light without them.
+// Every effect is the wave: same timeline, lens, blur and capture. An effect (from its own entry, like
+// distortion-wave/electric) changes the preset, adds tuning keys, and brings GLSL that bends the front and
+// paints over it. Passed as `effect`, so the core stays light without them.
 const WAVE = {
   name: 'wave',
-  blur: true,
-  resolve: (o, m, tr) => resolveConfig(PRESETS[tr._variant(m)] || BASE, o, m.clip.w, m.clip.h),
-  margin: () => 0,
-  particles: (c) => makeParticles(c.particles, c),
-  state: frameState,
-  particle: (P, s, c) => particleAt(P, s, c),
-  morph: (s) => s.moved,
-  total: totalDuration,
-  render: (r, f) => r.render(f),
+  resolve(o, m, tr) {
+    const fx = tr.fx, base = { ...(PRESETS[tr._variant(m)] || BASE), ...(fx.preset || {}) };
+    const c = resolveConfig(base, o, m.clip.w, m.clip.h);
+    fx.tune?.(c, o);
+    return c;
+  },
+  render(r, f, fx) {
+    r.render(f, fx.shader ? { key: fx.shader.key, chunk: fx.shader.chunk, uniforms: fx.uniforms?.(f.cfg, f.s) } : null);
+  },
 };
 function effectOf(e) {
-  if (e && typeof e === 'object' && typeof e.render === 'function') return e;
+  if (e && typeof e === 'object' && e.shader) return { ...WAVE, ...e, resolve: WAVE.resolve, render: WAVE.render };
   if (e && e !== 'wave') console.warn(`[distortion-wave] unknown effect "${e}": import it from its entry, e.g. import { electric } from 'distortion-wave/electric'`);
   return WAVE;
 }
@@ -171,14 +171,13 @@ class WaveTransition {
     const fx = this.fx = effectOf(o.effect);
     const cfg = fx.resolve(o, before, this);
     this.cfg = cfg; this.before = before; this.dpr = oldShot.dpr;
-    this.particles = fx.particles(cfg);
+    this.particles = makeParticles(cfg.particles, cfg);
     this.dots = new Float32Array(Math.max(this.particles.length, 1) * 4);
     this.origin = this._originPage(before);                               // source/touch in page coordinates
-    this.margin = fx.margin(cfg);                                         // room for effects that glow outside the element
-    this.canvasPage = inflate(before.page, this.margin);
+    this.canvasPage = before.page;
     this.rects = { old: rel(before.page, this.canvasPage), new: null, shape: rel(before.shape, this.canvasPage), radii: before.shapeRadii, boxless: before.boxless, clipped: before.clipped };
     t0 = performance.now();
-    const layer = (name, shot) => (fx.blur ? r.setLayer(name, shot.canvas, cfg.blurNear * this.dpr, cfg.blur * this.dpr) : r.setLayer(name, shot.canvas));
+    const layer = (name, shot) => r.setLayer(name, shot.canvas, cfg.blurNear * this.dpr, cfg.blur * this.dpr);
     layer('old', oldShot);
     this.metrics.upload = Math.round(performance.now() - t0);
     this._mount(); this._hide();
@@ -202,7 +201,7 @@ class WaveTransition {
     layer('new', newShot);
     // 4 · open the gate: the canvas covers the union of before/after
     this.after = after;
-    this.canvasPage = inflate(union(before.page, after.page), this.margin);
+    this.canvasPage = union(before.page, after.page);
     this.rects = { old: rel(before.page, this.canvasPage), new: rel(after.page, this.canvasPage), shape: rel(before.shape, this.canvasPage), radii: before.shapeRadii, boxless: before.boxless && after.boxless, clipped: before.clipped || after.clipped };
     this.shapes = { from: rel(before.shape, this.canvasPage), to: rel(after.shape, this.canvasPage), r0: before.shapeRadii, r1: after.shapeRadii };
     this._resizeCanvas();
@@ -265,7 +264,7 @@ class WaveTransition {
       this.metrics.worstFrame = Math.max(this.metrics.worstFrame || 0, dt);
       this._place();
       let t = (now - this.start - this.held) / 1000;
-      const gateAt = (this.cfg.gate ?? this.cfg.anticipation) - 1e-3;
+      const gateAt = this.cfg.anticipation - 1e-3;
       if (!this.gateOpen && t >= gateAt) {                                 // "after" capture not ready: hold the anticipation
         this.held += t * 1000 - gateAt * 1000; t = gateAt;
         if (now - this.start > this.o.timeout) { this._finish(); return; }
@@ -279,11 +278,10 @@ class WaveTransition {
         this.r.render({ mode: 0, w: this.canvasPage.w, h: this.canvasPage.h, rects: this.rects, dpr: this.dpr, dotCount: 0 });
       } else {
         const g = { w: this.canvasPage.w, h: this.canvasPage.h, src: rel(this.origin.src, this.canvasPage),
-          touch: this.origin.touch && rel({ ...this.origin.touch, w: 0, h: 0 }, this.canvasPage), hold: this.origin.hold,
-          shape: this.rects.shape, radii: this.rects.radii };
-        const fx = this.fx, s = fx.state(t, this.cfg, g);
+          touch: this.origin.touch && rel({ ...this.origin.touch, w: 0, h: 0 }, this.canvasPage), hold: this.origin.hold };
+        const s = frameState(t, this.cfg, g);
         if (this.shapes) {                                                 // the silhouette follows the wave when the size changes
-          const k = fx.morph(s), A = this.shapes.from, B = this.shapes.to, ra = this.shapes.r0, rb = this.shapes.r1;
+          const k = s.moved, A = this.shapes.from, B = this.shapes.to, ra = this.shapes.r0, rb = this.shapes.r1;
           this.rects.shape = { x: lerp(A.x, B.x, k), y: lerp(A.y, B.y, k), w: lerp(A.w, B.w, k), h: lerp(A.h, B.h, k) };
           this.rects.radii = { tl: lerp(ra.tl, rb.tl, k), tr: lerp(ra.tr, rb.tr, k), br: lerp(ra.br, rb.br, k), bl: lerp(ra.bl, rb.bl, k) };
         }
@@ -292,13 +290,13 @@ class WaveTransition {
         if (s.settled && this.mode === 1) { this.mode = 4; this._show(); this.o.onSettled?.(); }   // the real DOM takes over
         let n = 0;
         for (const P of this.particles) {
-          const q = fx.particle(P, s, this.cfg, g);
+          const q = particleAt(P, s, this.cfg);
           if (!q || q.a <= 0.002) continue;
-          this.dots[n * 4] = q.x; this.dots[n * 4 + 1] = q.y; this.dots[n * 4 + 2] = q.size ?? P.size; this.dots[n * 4 + 3] = Math.min(q.a, 1); n++;
+          this.dots[n * 4] = q.x; this.dots[n * 4 + 1] = q.y; this.dots[n * 4 + 2] = P.size; this.dots[n * 4 + 3] = Math.min(q.a, 1); n++;
         }
         const frame = { mode: this.mode, s, cfg: this.cfg, w: this.canvasPage.w, h: this.canvasPage.h, rects: this.rects, dpr: this.dpr, dots: this.dots, dotCount: n };
-        fx.render(this.r, frame);
-        if (t >= fx.total(this.cfg)) { this._finish(); return; }
+        this.fx.render(this.r, frame, this.fx);
+        if (t >= totalDuration(this.cfg)) { this._finish(); return; }
       }
       if (this._skipped) { this._finish(); return; }
       requestAnimationFrame(tick);

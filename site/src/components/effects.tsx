@@ -253,15 +253,14 @@ function Tier({ name, price, color }: (typeof TIERS)[number]) {
 export function Effects() {
   return (
     <>
-      <BorderLab />
       <div className="fx-row">
         <figure className="demo">
           <div className="demo-body dark-bench">
             <Publish />
           </div>
           <figcaption>
-            <strong>Electric transition.</strong> Two arcs leave the button and run round the card, then
-            the content crackles to its new state. Same call, with <code>effect: electric</code>.
+            <strong>Electric wave.</strong> The same wave, same timing and lens: the front is a crackling
+            bolt and the outline charges as it passes. Same call, with <code>effect: electric</code>.
           </figcaption>
         </figure>
         <figure className="demo">
@@ -273,11 +272,12 @@ export function Effects() {
             </div>
           </div>
           <figcaption>
-            <strong>On hover.</strong> Three borders, one canvas: every border of the page draws in the same
-            WebGL context.
+            <strong>Border on hover.</strong> The same arcs as a border. Three borders, one canvas: every
+            border of the page draws in the same WebGL context.
           </figcaption>
         </figure>
       </div>
+      <BorderLab />
     </>
   );
 }

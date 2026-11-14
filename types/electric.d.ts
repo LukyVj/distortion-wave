@@ -3,11 +3,12 @@
 import type { Effect, PaletteName } from './index';
 
 /**
- * The electric transition. Pass it as `effect`:
+ * The distortion wave with an electric look. Pass it as `effect`:
  * `distortionWave(card, update, { effect: electric, source: button })`.
- * Two arcs leave the source and run round the outline, the content crackles to the new state, then the outline discharges.
- * Tuning keys (reference 360×740 px, seconds and px): charge, surge, discharge, thickness, glow, chaos, scale, crackle,
- * offset, glitch, rows, head; plus color, palette, duration, easing, speed, intensity, particles.
+ * Same behaviour as the wave (timing, lens, blur, sparks, every wave option): the front becomes a crackling bolt,
+ * the colour band goes electric and the outline charges with arcs as the front passes.
+ * Its own keys, at the wave's reference scale (360×740 px): jag, scale, crackle, chaos, boltWidth, boltGlow (px),
+ * bolts, rimBolts (strengths). `intensity` also scales jag and chaos.
  */
 export declare const electric: Effect;
 
@@ -53,13 +54,7 @@ export interface ElectricBorder {
 /** An animated electric arc on the element's outline (rounded corners included). Respects prefers-reduced-motion (the arc stops moving). */
 export function electricBorder(element: Element, options?: ElectricBorderOptions): ElectricBorder;
 
-export const ELECTRIC: Readonly<Record<string, number | string>>;
+/** Defaults of the electric keys. */
+export const ELECTRIC: Readonly<{ jag: number; scale: number; crackle: number; chaos: number; boltWidth: number; boltGlow: number; bolts: number; rimBolts: number }>;
+/** Defaults of electricBorder(). */
 export const BORDER: Readonly<Record<string, number | string>>;
-
-type Radii = { tl: number; tr: number; br: number; bl: number };
-/** Outline length of a w×h box with these corner radii. */
-export function perimeterLength(w: number, h: number, radii: Radii): number;
-/** Point and outward normal at an arc length along the outline (clockwise from the top-left end of the top edge). */
-export function pointAt(t: number, w: number, h: number, radii: Radii): { x: number; y: number; nx: number; ny: number };
-/** Arc length of the outline point closest to (x, y). */
-export function paramAt(x: number, y: number, w: number, h: number, radii: Radii): number;

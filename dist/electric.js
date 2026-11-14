@@ -1,9 +1,139 @@
 /*! distortion-wave · MIT © Lucas Bonomi · https://github.com/LukyVj/distortion-wave */
 
+// src/shaders.js
+var COMMON = `
+const float Q = 1.5707963;
+float ign(vec2 p) { return fract(52.9829189 * fract(dot(p, vec2(0.06711056, 0.00583715)))); }
+float h11(float x) { return fract(sin(x * 127.1) * 43758.5453); }
+float sdRoundBox(vec2 p, vec2 b, vec4 r) {
+  r.xy = (p.x > 0.0) ? r.xy : r.zw; r.x = (p.y > 0.0) ? r.x : r.y;
+  vec2 q = abs(p) - b + r.x; return min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - r.x;
+}
+// arc length of the closest outline point, clockwise from the left end of the top edge
+float perimLen(vec2 b, vec4 r) {
+  return 4.0 * (b.x + b.y) - 2.0 * (r.x + r.y + r.z + r.w) + Q * (r.x + r.y + r.z + r.w);
+}
+float perim(vec2 p, vec2 b, vec4 r) {
+  float top = 2.0 * b.x - r.w - r.y, right = 2.0 * b.y - r.y - r.x, bottom = 2.0 * b.x - r.x - r.z, left = 2.0 * b.y - r.z - r.w;
+  float s1 = top, s2 = s1 + Q * r.y, s3 = s2 + right, s4 = s3 + Q * r.x, s5 = s4 + bottom, s6 = s5 + Q * r.z, s7 = s6 + left;
+  if (p.x > b.x - r.y && p.y < -b.y + r.y) return s1 + (clamp(atan(p.y + b.y - r.y, p.x - b.x + r.y), -Q, 0.0) + Q) * r.y;
+  if (p.x > b.x - r.x && p.y > b.y - r.x) return s3 + clamp(atan(p.y - b.y + r.x, p.x - b.x + r.x), 0.0, Q) * r.x;
+  if (p.x < -b.x + r.z && p.y > b.y - r.z) return s5 + (clamp(atan(p.y - b.y + r.z, p.x + b.x - r.z), Q, 2.0 * Q) - Q) * r.z;
+  if (p.x < -b.x + r.w && p.y < -b.y + r.w) {
+    float a = atan(p.y + b.y - r.w, p.x + b.x - r.w); if (a > 0.0) a -= 4.0 * Q;
+    return s7 + (clamp(a, -2.0 * Q, -Q) + 2.0 * Q) * r.w;
+  }
+  float dx = b.x - abs(p.x), dy = b.y - abs(p.y);
+  if (dy < dx) return p.y < 0.0 ? clamp(p.x + b.x - r.w, 0.0, top) : s4 + clamp(b.x - r.x - p.x, 0.0, bottom);
+  return p.x > 0.0 ? s2 + clamp(p.y + b.y - r.y, 0.0, right) : s6 + clamp(b.y - r.z - p.y, 0.0, left);
+}
+float hash3(vec3 p) { p = fract(p * 0.3183099 + vec3(0.1, 0.2, 0.3)); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
+float noise3(vec3 x) {
+  vec3 i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(mix(hash3(i), hash3(i + vec3(1, 0, 0)), f.x), mix(hash3(i + vec3(0, 1, 0)), hash3(i + vec3(1, 1, 0)), f.x), f.y),
+             mix(mix(hash3(i + vec3(0, 0, 1)), hash3(i + vec3(1, 0, 1)), f.x), mix(hash3(i + vec3(0, 1, 1)), hash3(i + vec3(1, 1, 1)), f.x), f.y), f.z);
+}
+float fbm3(vec3 p) { float s = 0.0, a = 0.5; for (int i = 0; i < 5; i++) { s += a * noise3(p); p = p * 2.03 + vec3(13.1, 7.7, 3.3); a *= 0.5; } return s / 0.96875; }
+uniform vec3 uPal[8]; uniform int uPalN;
+vec3 paletteAt(float u) {
+  float x = fract(u) * float(uPalN); int i = min(int(floor(x)), uPalN - 1); int j = (i + 1) % uPalN;
+  return mix(uPal[i], uPal[j], smoothstep(0.0, 1.0, fract(x)));
+}
+vec3 oklabToSrgb(vec3 c) {
+  float l = c.x + 0.3963377774 * c.y + 0.2158037573 * c.z, m = c.x - 0.1055613458 * c.y - 0.0638541728 * c.z, s = c.x - 0.0894841775 * c.y - 1.2914855480 * c.z;
+  l = l * l * l; m = m * m * m; s = s * s * s;
+  vec3 lin = clamp(vec3(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s, -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s, -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s), 0.0, 1.0);
+  return mix(12.92 * lin, 1.055 * pow(lin, vec3(1.0 / 2.4)) - 0.055, step(vec3(0.0031308), lin));
+}
+// The arc: two noisy strands following the outline, a white-hot core and a coloured glow. Premultiplied.
+uniform float uThick, uGlowW, uChaos, uScale, uCrackle, uOffset;
+vec4 arcAt(float sd, float s, float P, float t, float k, float hot) {
+  if (k <= 0.001 || abs(sd - uOffset) > uGlowW * 6.0 + uChaos * 3.0) return vec4(0.0);
+  float th = 6.2831853 * s / P, R = P / (6.2831853 * uScale);
+  vec3 q = vec3(cos(th) * R, sin(th) * R, t * uCrackle);
+  float n1 = fbm3(q) - 0.5, n2 = fbm3(q * 1.9 + vec3(4.1, 1.7, t * uCrackle * 0.7)) - 0.5;
+  float d0 = sd - uOffset, d1 = d0 + n1 * 2.4 * uChaos, d2 = d0 + n2 * 2.0 * uChaos;
+  float w = max(uThick, 0.6);
+  float core = exp(-(d1 * d1) / (w * w)) + 0.55 * exp(-(d2 * d2) / (w * w * 0.5));
+  float glow = 0.6 * exp(-(d1 * d1) / (uGlowW * uGlowW)) + 0.28 * exp(-abs(d0) / (uGlowW * 2.2));
+  vec3 lab = paletteAt(s / P + n1 * 0.4 + t * 0.03); lab.yz *= 1.15;
+  vec3 base = oklabToSrgb(lab);
+  vec3 hotc = mix(base, vec3(1.0), 0.72 + 0.28 * hot);
+  float ga = clamp(glow * k, 0.0, 1.0), ca = clamp(core * k * (1.0 + hot), 0.0, 1.0);
+  vec4 o = vec4(base * ga, ga);
+  return vec4(hotc * ca, ca) + o * (1.0 - ca);
+}
+`;
+var FS_BORDER = `#version 300 es
+precision highp float; precision highp int;
+uniform vec2 uView;        // canvas size, CSS px
+uniform float uDpr, uTime, uLevel;
+uniform vec4 uShape, uRadii;
+out vec4 outColor;
+${COMMON}
+void main() {
+  vec2 p = vec2(gl_FragCoord.x, uView.y * uDpr - gl_FragCoord.y) / uDpr;
+  vec2 hb = uShape.zw * 0.5, c = p - (uShape.xy + hb);
+  float sd = sdRoundBox(c, hb, uRadii);
+  float P = perimLen(hb, uRadii), s = perim(c, hb, uRadii);
+  vec4 e = arcAt(sd, s, P, uTime, uLevel, 0.0);
+  outColor = vec4(e.rgb + (ign(gl_FragCoord.xy) - 0.5) / 255.0 * e.a, e.a);
+}`;
+var ELECTRIC_WAVE = `
+uniform float uEJag, uEScale, uECrackle, uEBoltW, uEBoltGlow, uEChaos, uEBolt, uERim, uERimNorm;
+float eHash(vec3 p) { p = fract(p * 0.3183099 + vec3(0.1, 0.2, 0.3)); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
+float eNoise(vec3 x) {
+  vec3 i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(mix(eHash(i), eHash(i + vec3(1, 0, 0)), f.x), mix(eHash(i + vec3(0, 1, 0)), eHash(i + vec3(1, 1, 0)), f.x), f.y),
+             mix(mix(eHash(i + vec3(0, 0, 1)), eHash(i + vec3(1, 0, 1)), f.x), mix(eHash(i + vec3(0, 1, 1)), eHash(i + vec3(1, 1, 1)), f.x), f.y), f.z);
+}
+float eFbm(vec3 p, int oct) {
+  float s = 0.0, a = 0.5, n = 0.0;
+  for (int i = 0; i < 5; i++) { if (i >= oct) break; s += a * eNoise(p); n += a; p = p * 2.03 + vec3(13.1, 7.7, 3.3); a *= 0.5; }
+  return s / n;
+}
+float fxFront(vec2 q, vec2 p) {
+  if (!uLaunched) return 0.0;
+  return (eFbm(vec3(q / uEScale, uTime * uECrackle), 3) - 0.5) * 2.0 * uEJag;
+}
+vec3 eColour(float u, float hot) { vec3 lab = paletteAt(u); lab.yz *= 1.15; return mix(oklabToSrgb(lab), vec3(1.0), hot); }
+vec4 eOver(vec3 rgb, float a, vec4 o) { a = clamp(a, 0.0, 1.0); return vec4(rgb * a, a) + o * (1.0 - a); }
+vec4 fxOver(vec4 o, vec2 p, vec2 c, float sd, float fd, vec2 fq, float fg) {
+  float inside = clamp(0.5 - sd * (uRes.x / uSize.x), 0.0, 1.0);
+  if (inside <= 0.0) return o;
+  float flick = 0.7 + 0.3 * eNoise(vec3(uTime * 19.0, 3.7, 0.0));
+  float w = max(uEBoltW, 0.5);
+  // bolts riding the front
+  if (uLaunched && uGlow > 0.001 && abs(fd) < uEChaos * 3.0 + uEBoltGlow * 3.0 + uEJag) {
+    vec3 x = vec3(fq / (uEScale * 0.55), uTime * uECrackle * 1.6);
+    float n1 = eFbm(x, 4) - 0.5, n2 = eFbm(x * 1.7 + vec3(7.3, 2.1, 0.0), 4) - 0.5;
+    float d1 = fd + n1 * 2.0 * uEChaos, d2 = fd + 0.7 * uEChaos + n2 * 1.8 * uEChaos;
+    float core = exp(-d1 * d1 / (w * w)) + 0.6 * exp(-d2 * d2 / (w * w * 0.5));
+    float glow = 0.55 * exp(-d1 * d1 / (uEBoltGlow * uEBoltGlow)) + 0.22 * exp(-abs(fd) / (uEBoltGlow * 2.2));
+    float k = uEBolt * uGlow * flick * inside;
+    float u = 0.55 + (uRing ? atan(fq.y, fq.x) / TAU : fq.x * 0.004 / uK) + uTime * 0.1;
+    o = eOver(eColour(u, 0.0), glow * k, o);
+    o = eOver(eColour(u, 0.8), core * k, o);
+  }
+  // the outline charges where the front has been, then discharges
+  if (uERim > 0.0 && uBoxless < 0.5 && uRim > 0.0 && sd > -(uEBoltGlow * 2.5 + uEChaos * 2.0 + w * 3.0)) {
+    float reached = 1.0 - smoothstep(-uLead * 0.6, uLead * 0.4, fd);
+    float kept = smoothstep(-uRimSoft, uRimSoft, fd + (uRadius - uClear) / fg);
+    float k = uERim * min(uRim * uERimNorm, 1.0) * reached * kept * flick * inside;
+    if (k > 0.001) {
+      float n = eFbm(vec3(c / uEScale, uTime * uECrackle), 4) - 0.5;
+      float dr = sd + w * 2.0 + n * 2.0 * uEChaos * 0.7;
+      float u = atan(c.y / uShape.w, c.x / uShape.z) / TAU + uTime * 0.2;
+      o = eOver(eColour(u, 0.0), (0.5 * exp(-dr * dr / (uEBoltGlow * uEBoltGlow * 0.6)) + 0.2 * exp(-abs(sd) / (uEBoltGlow * 2.0))) * k, o);
+      o = eOver(eColour(u, 0.75), exp(-dr * dr / (w * w * 0.8)) * k, o);
+    }
+  }
+  return o;
+}
+`;
+
 // src/core.js
 var TAU = Math.PI * 2;
-var clamp = (x, a = 0, b = 1) => Math.min(Math.max(x, a), b);
-var fract = (x) => x - Math.floor(x);
 function cubicBezier(x1, y1, x2, y2) {
   const b = (t, p1, p2) => {
     const u = 1 - t;
@@ -113,304 +243,6 @@ var PRESETS = {
     spread: 0.65
   }
 };
-var EASINGS = { linear: [0, 0, 1, 1], ease: [0.25, 0.1, 0.25, 1], "ease-in": [0.42, 0, 1, 1], "ease-out": [0, 0, 0.58, 1], "ease-in-out": [0.42, 0, 0.58, 1] };
-function parseEasing(e) {
-  if (typeof e === "function") return e;
-  let v = Array.isArray(e) ? e : EASINGS[e];
-  if (!v && typeof e === "string") {
-    const m = e.match(/cubic-bezier\(([^)]+)\)/);
-    if (m) v = m[1].split(",").map(Number);
-  }
-  return v && v.length === 4 && v.every(Number.isFinite) ? cubicBezier(...v) : null;
-}
-
-// src/electric.js
-var Q = Math.PI / 2;
-function segments(w, h, r) {
-  const top = w - r.tl - r.tr, right = h - r.tr - r.br, bottom = w - r.br - r.bl, left = h - r.bl - r.tl;
-  const s = [0, top];
-  s.push(s[1] + Q * r.tr, s[1] + Q * r.tr + right);
-  s.push(s[3] + Q * r.br, s[3] + Q * r.br + bottom);
-  s.push(s[5] + Q * r.bl, s[5] + Q * r.bl + left);
-  s.push(s[7] + Q * r.tl);
-  return { s, top, right, bottom, left };
-}
-function perimeterLength(w, h, r) {
-  return segments(w, h, r).s[8];
-}
-function pointAt(t, w, h, r) {
-  const { s } = segments(w, h, r), P = s[8];
-  t = (t % P + P) % P;
-  const arc = (cx, cy, rad, a0, d) => {
-    const a = a0 + d / Math.max(rad, 1e-6);
-    return { x: cx + Math.cos(a) * rad, y: cy + Math.sin(a) * rad, nx: Math.cos(a), ny: Math.sin(a) };
-  };
-  if (t < s[1]) return { x: r.tl + t, y: 0, nx: 0, ny: -1 };
-  if (t < s[2]) return arc(w - r.tr, r.tr, r.tr, -Q, t - s[1]);
-  if (t < s[3]) return { x: w, y: r.tr + (t - s[2]), nx: 1, ny: 0 };
-  if (t < s[4]) return arc(w - r.br, h - r.br, r.br, 0, t - s[3]);
-  if (t < s[5]) return { x: w - r.br - (t - s[4]), y: h, nx: 0, ny: 1 };
-  if (t < s[6]) return arc(r.bl, h - r.bl, r.bl, Q, t - s[5]);
-  if (t < s[7]) return { x: 0, y: h - r.bl - (t - s[6]), nx: -1, ny: 0 };
-  return arc(r.tl, r.tl, r.tl, Math.PI, t - s[7]);
-}
-function paramAt(x, y, w, h, r) {
-  const { s, top, right, bottom, left } = segments(w, h, r);
-  const ang = (cx, cy) => Math.atan2(y - cy, x - cx);
-  if (x > w - r.tr && y < r.tr) return s[1] + (clamp(ang(w - r.tr, r.tr), -Q, 0) + Q) * r.tr;
-  if (x > w - r.br && y > h - r.br) return s[3] + clamp(ang(w - r.br, h - r.br), 0, Q) * r.br;
-  if (x < r.bl && y > h - r.bl) return s[5] + (clamp(ang(r.bl, h - r.bl), Q, 2 * Q) - Q) * r.bl;
-  if (x < r.tl && y < r.tl) {
-    let a = ang(r.tl, r.tl);
-    if (a > 0) a -= 4 * Q;
-    return s[7] + (clamp(a, -2 * Q, -Q) + 2 * Q) * r.tl;
-  }
-  const dx = w / 2 - Math.abs(x - w / 2), dy = h / 2 - Math.abs(y - h / 2);
-  if (dy < dx) return y < h / 2 ? clamp(x - r.tl, 0, top) : s[4] + clamp(w - r.br - x, 0, bottom);
-  return x > w / 2 ? s[2] + clamp(y - r.tr, 0, right) : s[6] + clamp(h - r.bl - y, 0, left);
-}
-var ELECTRIC = {
-  charge: 0.55,
-  // s: two arcs leave the source and run round the outline until they meet
-  surge: 0.38,
-  // s: the content crackles from the old state to the new one
-  discharge: 1.1,
-  // s: the charged outline fades out
-  thickness: 1.6,
-  // px: core of the arc
-  glow: 14,
-  // px: glow around it
-  chaos: 5,
-  // px: how far the arc strays from the outline
-  scale: 34,
-  // px: size of one noise cell along the outline (smaller = more jagged)
-  crackle: 1.6,
-  // noise speed
-  offset: 0,
-  // px: arc distance from the outline, + outside
-  glitch: 14,
-  // px: largest sideways jump of a row of content during the surge
-  rows: 16,
-  // px: height of a glitch row
-  head: 26,
-  // px: length of the bright head of each arc
-  particles: 48,
-  particleSize: 1.6,
-  particleLife: 0.7,
-  palette: "electric"
-};
-var PX = ["glow", "chaos", "scale", "glitch", "rows", "head"];
-var T = ["charge", "surge", "discharge", "particleLife"];
-var electricDuration = (c) => c.charge + c.surge + c.discharge;
-function resolveElectric(o, w, h) {
-  const c = { ...ELECTRIC };
-  for (const k2 of Object.keys(o)) if (k2 in ELECTRIC && k2 !== "particles" && o[k2] != null) c[k2] = o[k2];
-  if (o.particles === false) c.particles = 0;
-  else if (typeof o.particles === "number") c.particles = o.particles;
-  if (o.intensity != null) {
-    const i = Math.max(0, o.intensity);
-    c.glitch *= i;
-    c.chaos *= i;
-  }
-  if (typeof o.color === "string") c.palette = [o.color];
-  const k = clamp(Math.sqrt(w * h) / 516, 0.12, 1.8), kl = clamp(k, 0.35, 1.4);
-  const ts = clamp(0.5 + 0.5 * Math.sqrt(k), 0.65, 1.15) / (o.speed || 1);
-  c.k = k;
-  for (const key of PX) c[key] *= kl;
-  for (const key of T) c[key] *= ts;
-  c.glitch = Math.min(c.glitch, w * 0.08);
-  c.rows = Math.max(c.rows, 5);
-  c.particles = Math.round(c.particles * clamp(k, 0.4, 1.4));
-  if (o.duration != null) {
-    const f = Math.max(o.duration / 1e3, 0.05) / electricDuration(c);
-    for (const key of T) c[key] *= f;
-  }
-  c.ease = parseEasing(o.easing) || easeArc;
-  c.gate = c.charge;
-  return c;
-}
-var easeArc = cubicBezier(0.25, 0.55, 0.45, 1);
-var easeOut = (x) => 1 - (1 - x) ** 3;
-function electricState(t, c, g) {
-  const sh = g.shape, P = perimeterLength(sh.w, sh.h, g.radii);
-  const o = g.touch || { x: g.src.x + g.src.w / 2, y: g.src.y + g.src.h / 2 };
-  const s0 = paramAt(o.x - sh.x, o.y - sh.y, sh.w, sh.h, g.radii);
-  const T1 = c.charge, T2 = T1 + c.surge, T3 = T2 + c.discharge;
-  const arc = c.ease(clamp(t / T1)) * (P / 2 + c.head);
-  const surge = clamp((t - T1) / Math.max(c.surge, 1e-3));
-  const live = t < T2 ? 1 : 1 - easeOut(clamp((t - T2) / Math.max(c.discharge, 1e-3)));
-  const headOn = t < T1 ? 1 : clamp(1 - (t - T1) / 0.12);
-  const flash = surge > 0 && surge < 1 ? Math.sin(Math.PI * surge) ** 2 * (0.55 + 0.45 * Math.sin(t * 71)) : 0;
-  return {
-    t,
-    P,
-    s0,
-    arc,
-    surge,
-    live,
-    headOn,
-    flash,
-    time: t,
-    launched: t > 0,
-    covered: t >= T2,
-    settled: t >= T2 + 0.04,
-    done: t >= T3
-  };
-}
-var rnd = (i, k) => fract(Math.sin(i * 12.9898 + k * 78.233) * 43758.5453);
-function makeSparks(n) {
-  return Array.from({ length: n }, (_, i) => ({ i, surge: i % 3 === 2, side: i % 2 ? 1 : -1, a: rnd(i, 1), b: rnd(i, 2), c: rnd(i, 3), d: rnd(i, 4) }));
-}
-function sparkAt(p, s, c, g) {
-  const T1 = c.charge;
-  const born = p.surge ? T1 + p.a * c.surge : p.a * T1 * 0.95;
-  const age = s.t - born, life = c.particleLife * (0.6 + 0.6 * p.b);
-  if (age < 0 || age > life) return null;
-  let at;
-  if (p.surge) at = p.c * s.P;
-  else at = s.s0 + p.side * c.ease(clamp(born / T1)) * (s.P / 2 + c.head);
-  const sh = g.shape, q = pointAt(at, sh.w, sh.h, g.radii);
-  const v = (40 + 160 * p.c) * c.k ** 0.5, tang = (p.d - 0.5) * 120 * c.k ** 0.5;
-  const x = sh.x + q.x + q.nx * v * age - q.ny * tang * age;
-  const y = sh.y + q.y + q.ny * v * age + q.nx * tang * age + 160 * age * age;
-  const k = age / life;
-  return { x, y, a: (1 - k) ** 1.6 * (0.55 + 0.45 * p.d), size: c.particleSize * (0.7 + 0.9 * p.b) };
-}
-
-// src/shaders.js
-var COMMON = `
-const float Q = 1.5707963;
-float ign(vec2 p) { return fract(52.9829189 * fract(dot(p, vec2(0.06711056, 0.00583715)))); }
-float h11(float x) { return fract(sin(x * 127.1) * 43758.5453); }
-float sdRoundBox(vec2 p, vec2 b, vec4 r) {
-  r.xy = (p.x > 0.0) ? r.xy : r.zw; r.x = (p.y > 0.0) ? r.x : r.y;
-  vec2 q = abs(p) - b + r.x; return min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - r.x;
-}
-// arc length of the closest outline point, clockwise from the left end of the top edge (electric.js \xB7 paramAt)
-float perimLen(vec2 b, vec4 r) {
-  return 4.0 * (b.x + b.y) - 2.0 * (r.x + r.y + r.z + r.w) + Q * (r.x + r.y + r.z + r.w);
-}
-float perim(vec2 p, vec2 b, vec4 r) {
-  float top = 2.0 * b.x - r.w - r.y, right = 2.0 * b.y - r.y - r.x, bottom = 2.0 * b.x - r.x - r.z, left = 2.0 * b.y - r.z - r.w;
-  float s1 = top, s2 = s1 + Q * r.y, s3 = s2 + right, s4 = s3 + Q * r.x, s5 = s4 + bottom, s6 = s5 + Q * r.z, s7 = s6 + left;
-  if (p.x > b.x - r.y && p.y < -b.y + r.y) return s1 + (clamp(atan(p.y + b.y - r.y, p.x - b.x + r.y), -Q, 0.0) + Q) * r.y;
-  if (p.x > b.x - r.x && p.y > b.y - r.x) return s3 + clamp(atan(p.y - b.y + r.x, p.x - b.x + r.x), 0.0, Q) * r.x;
-  if (p.x < -b.x + r.z && p.y > b.y - r.z) return s5 + (clamp(atan(p.y - b.y + r.z, p.x + b.x - r.z), Q, 2.0 * Q) - Q) * r.z;
-  if (p.x < -b.x + r.w && p.y < -b.y + r.w) {
-    float a = atan(p.y + b.y - r.w, p.x + b.x - r.w); if (a > 0.0) a -= 4.0 * Q;
-    return s7 + (clamp(a, -2.0 * Q, -Q) + 2.0 * Q) * r.w;
-  }
-  float dx = b.x - abs(p.x), dy = b.y - abs(p.y);
-  if (dy < dx) return p.y < 0.0 ? clamp(p.x + b.x - r.w, 0.0, top) : s4 + clamp(b.x - r.x - p.x, 0.0, bottom);
-  return p.x > 0.0 ? s2 + clamp(p.y + b.y - r.y, 0.0, right) : s6 + clamp(b.y - r.z - p.y, 0.0, left);
-}
-float hash3(vec3 p) { p = fract(p * 0.3183099 + vec3(0.1, 0.2, 0.3)); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
-float noise3(vec3 x) {
-  vec3 i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f);
-  return mix(mix(mix(hash3(i), hash3(i + vec3(1, 0, 0)), f.x), mix(hash3(i + vec3(0, 1, 0)), hash3(i + vec3(1, 1, 0)), f.x), f.y),
-             mix(mix(hash3(i + vec3(0, 0, 1)), hash3(i + vec3(1, 0, 1)), f.x), mix(hash3(i + vec3(0, 1, 1)), hash3(i + vec3(1, 1, 1)), f.x), f.y), f.z);
-}
-float fbm3(vec3 p) { float s = 0.0, a = 0.5; for (int i = 0; i < 5; i++) { s += a * noise3(p); p = p * 2.03 + vec3(13.1, 7.7, 3.3); a *= 0.5; } return s / 0.96875; }
-uniform vec3 uPal[8]; uniform int uPalN;
-vec3 paletteAt(float u) {
-  float x = fract(u) * float(uPalN); int i = min(int(floor(x)), uPalN - 1); int j = (i + 1) % uPalN;
-  return mix(uPal[i], uPal[j], smoothstep(0.0, 1.0, fract(x)));
-}
-vec3 oklabToSrgb(vec3 c) {
-  float l = c.x + 0.3963377774 * c.y + 0.2158037573 * c.z, m = c.x - 0.1055613458 * c.y - 0.0638541728 * c.z, s = c.x - 0.0894841775 * c.y - 1.2914855480 * c.z;
-  l = l * l * l; m = m * m * m; s = s * s * s;
-  vec3 lin = clamp(vec3(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s, -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s, -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s), 0.0, 1.0);
-  return mix(12.92 * lin, 1.055 * pow(lin, vec3(1.0 / 2.4)) - 0.055, step(vec3(0.0031308), lin));
-}
-// The arc: two noisy strands following the outline, a white-hot core and a coloured glow. Premultiplied.
-uniform float uThick, uGlowW, uChaos, uScale, uCrackle, uOffset;
-vec4 arcAt(float sd, float s, float P, float t, float k, float hot) {
-  if (k <= 0.001 || abs(sd - uOffset) > uGlowW * 6.0 + uChaos * 3.0) return vec4(0.0);
-  float th = 6.2831853 * s / P, R = P / (6.2831853 * uScale);
-  vec3 q = vec3(cos(th) * R, sin(th) * R, t * uCrackle);
-  float n1 = fbm3(q) - 0.5, n2 = fbm3(q * 1.9 + vec3(4.1, 1.7, t * uCrackle * 0.7)) - 0.5;
-  float d0 = sd - uOffset, d1 = d0 + n1 * 2.4 * uChaos, d2 = d0 + n2 * 2.0 * uChaos;
-  float w = max(uThick, 0.6);
-  float core = exp(-(d1 * d1) / (w * w)) + 0.55 * exp(-(d2 * d2) / (w * w * 0.5));
-  float glow = 0.6 * exp(-(d1 * d1) / (uGlowW * uGlowW)) + 0.28 * exp(-abs(d0) / (uGlowW * 2.2));
-  vec3 lab = paletteAt(s / P + n1 * 0.4 + t * 0.03); lab.yz *= 1.15;
-  vec3 base = oklabToSrgb(lab);
-  vec3 hotc = mix(base, vec3(1.0), 0.72 + 0.28 * hot);
-  float ga = clamp(glow * k, 0.0, 1.0), ca = clamp(core * k * (1.0 + hot), 0.0, 1.0);
-  vec4 o = vec4(base * ga, ga);
-  return vec4(hotc * ca, ca) + o * (1.0 - ca);
-}
-`;
-var FS_ELECTRIC = `#version 300 es
-precision highp float; precision highp int;
-uniform vec2 uSize, uRes;
-uniform sampler2D uOld0, uNew0;
-uniform vec4 uOldRect, uNewRect, uShape, uRadii;
-uniform int uMode;
-uniform bool uClip;
-uniform float uFade, uTime, uArc, uS0, uLive, uHeadOn, uHeadW, uSurge, uFlash, uGlitch, uRows;
-out vec4 outColor;
-${COMMON}
-vec4 tap(sampler2D s, vec4 rect, vec2 p, vec2 sp) {
-  vec2 q = (p - rect.xy) / rect.zw;
-  if (q.x < 0.0 || q.y < 0.0 || q.x > 1.0 || q.y > 1.0) return vec4(0.0);
-  return textureLod(s, clamp((sp - rect.xy) / rect.zw, 0.0, 1.0), 0.0);
-}
-vec4 split(sampler2D s, vec4 rect, vec2 p, vec2 sp, float sl) {
-  if (abs(sl) < 0.1) return tap(s, rect, p, sp);
-  vec4 r = tap(s, rect, p, sp + vec2(sl, 0.0)), g = tap(s, rect, p, sp), b = tap(s, rect, p, sp - vec2(sl, 0.0));
-  return vec4(r.r, g.g, b.b, max(max(r.a, g.a), b.a));
-}
-void main() {
-  vec2 p = vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y) * (uSize.x / uRes.x);
-  float dn = (ign(gl_FragCoord.xy) - 0.5) / 255.0;
-  vec2 hb = uShape.zw * 0.5, c = p - (uShape.xy + hb);
-  float sd = sdRoundBox(c, hb, uRadii);
-  float mask = clamp(0.5 - sd * (uRes.x / uSize.x), 0.0, 1.0), clipM = uClip ? mask : 1.0;
-  if (uMode == 0 || uMode == 2 || uMode == 3) {
-    vec4 a = tap(uOld0, uOldRect, p, p), b = tap(uNew0, uNewRect, p, p);
-    vec4 v = (uMode == 0 ? a : uMode == 2 ? b : mix(a, b, uFade)) * clipM;
-    outColor = vec4(v.rgb + dn * v.a, v.a); return;
-  }
-  vec4 col = vec4(0.0);
-  if (uMode == 1) {
-    // rows of content flip from old to new at random moments of the surge, jumping sideways as they do
-    float row = floor(p.y / uRows), tick = floor(uTime * 24.0);
-    float flip = 0.08 + 0.84 * h11(row * 1.37 + 3.1);
-    float env = sin(3.14159265 * uSurge);
-    float jump = step(0.55, h11(row * 7.13 + tick * 1.31)) * (h11(row + tick * 0.73) - 0.5) * 2.0 * uGlitch * env;
-    vec2 sp = p + vec2(jump, 0.0);
-    float sl = uGlitch * 0.35 * env * (0.5 + h11(tick + row));
-    bool isNew = uSurge > flip;
-    col = isNew ? split(uNew0, uNewRect, p, sp, sl) : split(uOld0, uOldRect, p, sp, sl);
-    float aU = isNew ? tap(uNew0, uNewRect, p, p).a : tap(uOld0, uOldRect, p, p).a;
-    col *= min(1.0, aU / max(col.a, 1e-4)) * clipM;
-    col.rgb += uFlash * 0.22 * col.a * (0.6 + 0.4 * h11(row + tick));
-  }
-  float P = perimLen(hb, uRadii), s = perim(c, hb, uRadii);
-  float ds = abs(s - uS0); ds = min(ds, P - ds);
-  float reached = 1.0 - smoothstep(uArc - uHeadW * 0.4, uArc + 1.0, ds);
-  float head = exp(-pow((ds - uArc + uHeadW * 0.3) / max(uHeadW, 1.0), 2.0)) * uHeadOn;
-  float k = max(reached * uLive, head) * (1.0 + 0.35 * uFlash);
-  vec4 e = arcAt(sd, s, P, uTime, k, head);
-  vec4 o = e + col * (1.0 - e.a);
-  outColor = vec4(o.rgb + dn * 2.0 * o.a, o.a);
-}`;
-var FS_BORDER = `#version 300 es
-precision highp float; precision highp int;
-uniform vec2 uView;        // canvas size, CSS px
-uniform float uDpr, uTime, uLevel;
-uniform vec4 uShape, uRadii;
-out vec4 outColor;
-${COMMON}
-void main() {
-  vec2 p = vec2(gl_FragCoord.x, uView.y * uDpr - gl_FragCoord.y) / uDpr;
-  vec2 hb = uShape.zw * 0.5, c = p - (uShape.xy + hb);
-  float sd = sdRoundBox(c, hb, uRadii);
-  float P = perimLen(hb, uRadii), s = perim(c, hb, uRadii);
-  vec4 e = arcAt(sd, s, P, uTime, uLevel, 0.0);
-  outColor = vec4(e.rgb + (ign(gl_FragCoord.xy) - 0.5) / 255.0 * e.a, e.a);
-}`;
 
 // src/gl.js
 var VS_FULL = `#version 300 es
@@ -640,78 +472,57 @@ function electricBorder(el, options = {}) {
 }
 
 // src/effects/electric.js
-function renderElectric(r, f) {
-  if (!r.ok) return;
-  const gl = r.gl, W = r.canvas.width, H = r.canvas.height;
-  r.programs ||= {};
-  const m = r.programs.electric ||= program(gl, VS_FULL, FS_ELECTRIC), u = m.u;
-  const old = r.layers.old || r.layers.new, nxt = r.layers.new || r.layers.old;
-  if (!old) return;
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  gl.viewport(0, 0, W, H);
-  gl.disable(gl.BLEND);
-  gl.useProgram(m.p);
-  [["uOld0", old.sharp], ["uNew0", nxt.sharp]].forEach(([n, t], i) => {
-    gl.activeTexture(gl.TEXTURE0 + i);
-    gl.bindTexture(gl.TEXTURE_2D, t);
-    gl.uniform1i(u(n), i);
-  });
-  const R = f.rects, v4 = (n, q) => gl.uniform4f(u(n), q.x, q.y, q.w, q.h);
-  gl.uniform2f(u("uSize"), f.w, f.h);
-  gl.uniform2f(u("uRes"), W, H);
-  v4("uOldRect", R.old);
-  v4("uNewRect", R.new || R.old);
-  v4("uShape", R.shape);
-  gl.uniform4f(u("uRadii"), R.radii.br, R.radii.tr, R.radii.bl, R.radii.tl);
-  gl.uniform1i(u("uMode"), f.mode);
-  gl.uniform1f(u("uFade"), f.fade || 0);
-  gl.uniform1i(u("uClip"), R.clipped ? 1 : 0);
-  const s = f.s, c = f.cfg;
-  if (s) {
-    const fl = {
-      uTime: s.time,
-      uArc: s.arc,
-      uS0: s.s0,
-      uLive: s.live,
-      uHeadOn: s.headOn,
-      uHeadW: c.head,
-      uSurge: s.surge,
-      uFlash: s.flash,
-      uGlitch: c.glitch,
-      uRows: c.rows,
-      uThick: c.thickness,
-      uGlowW: c.glow,
-      uChaos: c.chaos,
-      uScale: c.scale,
-      uCrackle: c.crackle,
-      uOffset: c.offset
-    };
-    for (const k in fl) gl.uniform1f(u(k), fl[k]);
-    r.palette(m, c.palette);
-  }
-  gl.bindVertexArray(r.vao);
-  gl.drawArrays(gl.TRIANGLES, 0, 3);
-  r.drawDots(f);
-  gl.bindVertexArray(null);
-}
+var PRESET = { palette: "electric", band: 0.6, rimStrength: 0.45, hairWidth: 0 };
+var ELECTRIC = {
+  jag: 8,
+  // how jagged the front is
+  scale: 46,
+  // one noise cell along the front (smaller = more jagged)
+  crackle: 1.8,
+  // speed of the crackle
+  chaos: 6,
+  // how far the bolts stray from the front
+  boltWidth: 1.5,
+  // bright core of a bolt
+  boltGlow: 14,
+  // glow around it
+  bolts: 1.2,
+  // strength of the bolts on the front (0 = none)
+  rimBolts: 1.3
+  // strength of the arcs on the outline (0 = none)
+};
+var clamp = (x, a, b) => Math.min(Math.max(x, a), b);
 var electric = Object.freeze({
   name: "electric",
-  blur: false,
-  resolve: (o, m) => resolveElectric(o, m.clip.w, m.clip.h),
-  margin: (c) => Math.ceil(c.glow * 3 + c.chaos * 3 + Math.abs(c.offset)),
-  particles: (c) => makeSparks(c.particles),
-  state: electricState,
-  particle: sparkAt,
-  morph: (s) => s.surge,
-  total: electricDuration,
-  render: renderElectric
+  preset: Object.freeze({ ...PRESET }),
+  tune(c, o) {
+    const k = c.k, i = Math.max(0, o.intensity ?? 1);
+    const v = (key) => o[key] ?? ELECTRIC[key];
+    c.jag = v("jag") * k * i;
+    c.chaos = v("chaos") * k * i;
+    c.scale = Math.max(v("scale") * k, 10);
+    c.crackle = v("crackle");
+    c.boltWidth = Math.max(v("boltWidth") * clamp(k, 0.6, 1.3), 0.6);
+    c.boltGlow = Math.max(v("boltGlow") * k, 3);
+    c.bolts = v("bolts");
+    c.rimBolts = v("rimBolts");
+  },
+  shader: Object.freeze({ key: "electric", chunk: ELECTRIC_WAVE }),
+  uniforms: (c) => ({
+    uEJag: c.jag,
+    uEScale: c.scale,
+    uECrackle: c.crackle,
+    uEBoltW: c.boltWidth,
+    uEBoltGlow: c.boltGlow,
+    uEChaos: c.chaos,
+    uEBolt: c.bolts,
+    uERim: c.rimBolts,
+    uERimNorm: 1 / Math.max(c.rimStrength, 0.05)
+  })
 });
 export {
   BORDER,
   ELECTRIC,
   electric,
-  electricBorder,
-  paramAt,
-  perimeterLength,
-  pointAt
+  electricBorder
 };

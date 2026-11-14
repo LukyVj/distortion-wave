@@ -39,9 +39,10 @@ export default function Home() {
             <div className="section-head">
               <h2 id="effects">Electric</h2>
               <p>
-                A second effect, from its own entry: an arc that follows the element&apos;s outline, rounded
-                corners included. As a border that stays on, and as a transition.{" "}
-                <code>distortion-wave/electric</code> adds about 9 kB.
+                The same wave with an electric look: the front turns into a crackling bolt and the outline
+                charges as it passes. The same arcs also make a border that stays on.{" "}
+                <code>distortion-wave/electric</code> adds about 7 kB. To make every demo on this page
+                electric, pick Electric in the settings below.
               </p>
             </div>
             <Effects />

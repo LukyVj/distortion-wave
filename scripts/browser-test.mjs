@@ -174,21 +174,18 @@ const shotDiff = async (page, clip, act) => {
   }, [a, b]);
 };
 
-await check('electric transition: events in order, glow room around the element, DOM restored', async () => {
+await check('electric: the same wave with the electric look, events in order, DOM restored', async () => {
   const { page, errors } = await withElectric();
   const r = await page.evaluate(async () => {
     const { electric } = window.DistortionWaveElectric;
-    const phone = document.getElementById('phone'), ev = [], b = phone.getBoundingClientRect();
+    const phone = document.getElementById('phone'), ev = [];
     const t = __dw.distortionWave(phone, () => { phone.querySelector('.cta').textContent = 'Zap'; }, {
       effect: electric, source: phone.querySelector('.cta'), onLaunch: () => ev.push('launch'), onCovered: () => ev.push('covered'), onSettled: () => ev.push('settled'), onEnd: () => ev.push('end'),
     });
-    await t.ready;
-    const c = document.querySelector('canvas[data-dw-ignore]'), cw = parseFloat(c.style.width), ch = parseFloat(c.style.height);
     await t.finished; ev.push('finished');
-    return { ev, room: [cw - b.width, ch - b.height], canvases: document.querySelectorAll('canvas').length, opacity: phone.style.opacity, text: phone.querySelector('.cta').textContent };
+    return { ev, canvases: document.querySelectorAll('canvas').length, opacity: phone.style.opacity, text: phone.querySelector('.cta').textContent };
   });
   assert.deepEqual(r.ev, ['launch', 'covered', 'settled', 'end', 'finished']);
-  assert.ok(r.room[0] > 20 && r.room[1] > 20, `canvas larger than the element: ${r.room}`);
   assert.equal(r.canvases, 0); assert.equal(r.opacity, ''); assert.match(r.text, /Zap/);
   assert.deepEqual(errors, []);
 });

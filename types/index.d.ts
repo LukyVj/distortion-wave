@@ -61,11 +61,8 @@ export interface DistortionWaveOptions {
   lean?: number; pull?: number; inhale?: number;
   particleSize?: number; particleLife?: number; reach?: number; spread?: number;
   // Electric effect only (same reference scale). See 'distortion-wave/electric'.
-  /** One colour for the electric arc, instead of a palette. */
-  color?: string;
-  charge?: number; surge?: number; discharge?: number;
-  thickness?: number; glow?: number; chaos?: number; scale?: number; crackle?: number; offset?: number;
-  glitch?: number; rows?: number; head?: number;
+  jag?: number; scale?: number; crackle?: number; chaos?: number;
+  boltWidth?: number; boltGlow?: number; bolts?: number; rimBolts?: number;
 }
 
 export interface WaveTransition {

@@ -3,7 +3,7 @@
 import { useId, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { distortionWave, PALETTES, PRESETS, setWaveDefaults, type PaletteName } from "distortion-wave";
-import { ELECTRIC } from "distortion-wave/electric";
+import { electric, ELECTRIC } from "distortion-wave/electric";
 import { Button } from "@ui-sdk/react/button";
 import {
   ColorPicker,
@@ -61,7 +61,10 @@ const PALETTE_ITEMS: { value: Settings["palette"]; label: string }[] = [
 ];
 
 const BASE = PRESETS.vertical as Record<string, number>;
-const BASES = { wave: BASE, electric: ELECTRIC as Record<string, number> };
+const BASES = {
+  wave: BASE,
+  electric: { ...BASE, ...(electric as unknown as { preset: Record<string, number> }).preset, ...ELECTRIC } as Record<string, number>,
+};
 const THUMB = '[data-slot="slider-thumb"]';
 const SEGMENT = '[data-slot="segmented-control-item"]';
 
@@ -195,7 +198,7 @@ function CustomColours({
 export function Tuner() {
   const { settings, setSettings } = useWaveSettings();
   const panel = useRef<HTMLDivElement>(null);
-  const [picked, setGroup] = useState("timing");
+  const [picked, setGroup] = useState("lightning");
   const TUNING = tuningFor(settings.effect);
   const group = picked in TUNING ? picked : Object.keys(TUNING)[0];
   const base = BASES[settings.effect];

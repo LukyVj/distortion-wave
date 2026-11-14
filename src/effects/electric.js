@@ -1,57 +1,49 @@
-// distortion-wave/electric — the electric effect: a transition and a border.
+// distortion-wave/electric — the distortion wave with an electric look; and an electric border.
 //
 //   import { distortionWave } from 'distortion-wave';
 //   import { electric, electricBorder } from 'distortion-wave/electric';
 //
-//   distortionWave(card, update, { effect: electric, source: button });   // arcs run round the outline, the content crackles to the new state
+//   distortionWave(card, update, { effect: electric, source: button });   // the same wave: lens, blur, front… as lightning
 //   const border = electricBorder(card, { trigger: 'hover' });           // a live arc on the outline; border.destroy() removes it
 //
 // A separate entry: the core stays as light when you don't use it.
 // Part of distortion-wave · MIT © Lucas Bonomi
 
-import { resolveElectric, electricState, electricDuration, makeSparks, sparkAt, ELECTRIC, perimeterLength, pointAt, paramAt } from '../electric.js';
-import { FS_ELECTRIC } from '../shaders.js';
-import { VS_FULL, program } from '../gl.js';
+import { ELECTRIC_WAVE } from '../shaders.js';
 import { electricBorder, BORDER } from '../ambient.js';
 
-function renderElectric(r, f) {
-  if (!r.ok) return;
-  const gl = r.gl, W = r.canvas.width, H = r.canvas.height;
-  r.programs ||= {};
-  const m = (r.programs.electric ||= program(gl, VS_FULL, FS_ELECTRIC)), u = m.u;
-  const old = r.layers.old || r.layers.new, nxt = r.layers.new || r.layers.old;
-  if (!old) return;
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, W, H); gl.disable(gl.BLEND); gl.useProgram(m.p);
-  [['uOld0', old.sharp], ['uNew0', nxt.sharp]].forEach(([n, t], i) => { gl.activeTexture(gl.TEXTURE0 + i); gl.bindTexture(gl.TEXTURE_2D, t); gl.uniform1i(u(n), i); });
-  const R = f.rects, v4 = (n, q) => gl.uniform4f(u(n), q.x, q.y, q.w, q.h);
-  gl.uniform2f(u('uSize'), f.w, f.h); gl.uniform2f(u('uRes'), W, H);
-  v4('uOldRect', R.old); v4('uNewRect', R.new || R.old); v4('uShape', R.shape);
-  gl.uniform4f(u('uRadii'), R.radii.br, R.radii.tr, R.radii.bl, R.radii.tl);
-  gl.uniform1i(u('uMode'), f.mode); gl.uniform1f(u('uFade'), f.fade || 0); gl.uniform1i(u('uClip'), R.clipped ? 1 : 0);
-  const s = f.s, c = f.cfg;
-  if (s) {
-    const fl = { uTime: s.time, uArc: s.arc, uS0: s.s0, uLive: s.live, uHeadOn: s.headOn, uHeadW: c.head, uSurge: s.surge, uFlash: s.flash,
-      uGlitch: c.glitch, uRows: c.rows, uThick: c.thickness, uGlowW: c.glow, uChaos: c.chaos, uScale: c.scale, uCrackle: c.crackle, uOffset: c.offset };
-    for (const k in fl) gl.uniform1f(u(k), fl[k]);
-    r.palette(m, c.palette);
-  }
-  gl.bindVertexArray(r.vao); gl.drawArrays(gl.TRIANGLES, 0, 3);
-  r.drawDots(f);
-  gl.bindVertexArray(null);
-}
+// Same behaviour as the wave (timing, lens, blur, sparks): only the look changes. The colour band goes electric
+// and thinner, and the outline's soft glow and hairline make room for the arcs.
+const PRESET = { palette: 'electric', band: 0.6, rimStrength: 0.45, hairWidth: 0 };
+// Its own keys, at the wave's reference scale (360×740 px): px unless said otherwise.
+export const ELECTRIC = {
+  jag: 8,           // how jagged the front is
+  scale: 46,        // one noise cell along the front (smaller = more jagged)
+  crackle: 1.8,     // speed of the crackle
+  chaos: 6,         // how far the bolts stray from the front
+  boltWidth: 1.5,   // bright core of a bolt
+  boltGlow: 14,     // glow around it
+  bolts: 1.2,       // strength of the bolts on the front (0 = none)
+  rimBolts: 1.3,    // strength of the arcs on the outline (0 = none)
+};
+const clamp = (x, a, b) => Math.min(Math.max(x, a), b);
 
-/** Pass as `effect` to distortionWave() or setWaveDefaults(). */
+/** Pass as `effect` to distortionWave() or setWaveDefaults(). Takes every wave option, plus the ELECTRIC keys. */
 export const electric = Object.freeze({
   name: 'electric',
-  blur: false,
-  resolve: (o, m) => resolveElectric(o, m.clip.w, m.clip.h),
-  margin: (c) => Math.ceil(c.glow * 3 + c.chaos * 3 + Math.abs(c.offset)),
-  particles: (c) => makeSparks(c.particles),
-  state: electricState,
-  particle: sparkAt,
-  morph: (s) => s.surge,
-  total: electricDuration,
-  render: renderElectric,
+  preset: Object.freeze({ ...PRESET }),
+  tune(c, o) {
+    const k = c.k, i = Math.max(0, o.intensity ?? 1);
+    const v = (key) => (o[key] ?? ELECTRIC[key]);
+    c.jag = v('jag') * k * i; c.chaos = v('chaos') * k * i;
+    c.scale = Math.max(v('scale') * k, 10); c.crackle = v('crackle');
+    c.boltWidth = Math.max(v('boltWidth') * clamp(k, 0.6, 1.3), 0.6);
+    c.boltGlow = Math.max(v('boltGlow') * k, 3);
+    c.bolts = v('bolts'); c.rimBolts = v('rimBolts');
+  },
+  shader: Object.freeze({ key: 'electric', chunk: ELECTRIC_WAVE }),
+  uniforms: (c) => ({ uEJag: c.jag, uEScale: c.scale, uECrackle: c.crackle, uEBoltW: c.boltWidth, uEBoltGlow: c.boltGlow,
+    uEChaos: c.chaos, uEBolt: c.bolts, uERim: c.rimBolts, uERimNorm: 1 / Math.max(c.rimStrength, 0.05) }),
 });
 
-export { electricBorder, ELECTRIC, BORDER, perimeterLength, pointAt, paramAt };
+export { electricBorder, BORDER };
