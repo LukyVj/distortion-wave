@@ -155,6 +155,25 @@ Without a bundler: `https://cdn.jsdelivr.net/npm/distortion-wave@0.3/dist/electr
 
 **Border options**: `color` or `palette` (default `'electric'`), `trigger` (`'always'`, `'hover'`, `'focus'`, `'hover focus'`, `'manual'`), `thickness`, `glow`, `chaos`, `scale`, `crackle`, `offset`, `intensity`, `fadeIn`, `fadeOut`, `zIndex`. The controller has `start()`, `stop()`, `set(options)`, `destroy()` and `active`. Every border of the page draws in one shared canvas: a grid of cards costs one WebGL context. With `prefers-reduced-motion`, the arc stays still.
 
+### Pixel
+
+`distortion-wave/pixel` (~1.5 kB gzipped): the same wave with a pixel look. Near the front, the content turns into small pixels that flip from the old state to the new one cell by cell; some light up in the palette and flicker; the outline is drawn in pixels that go out one by one; sparks are square. Default palette `'pixel'` (orange).
+
+```js
+import { pixel } from 'distortion-wave/pixel';
+distortionWave(card, update, { effect: pixel, source: button, focus: event });
+```
+
+| Key | Default | |
+|---|---|---|
+| `cell`, `gap` | `6`, `1` px | size of a pixel, gap between pixels (0 = a plain mosaic) |
+| `zone` | `1` | width of the pixel zone around the front, × the band's `lead` |
+| `density` | `0.45` | share of lit pixels at the front |
+| `rate` | `14` | flicker, changes per second |
+| `lit`, `rimPixels` | `1`, `1` | strength of the lit pixels, of the pixels on the outline (0 = none) |
+
+CDN: `https://cdn.jsdelivr.net/npm/distortion-wave@0.3/dist/pixel.js`, or `dist/pixel.iife.min.js` for `window.DistortionWavePixel`.
+
 ## Examples
 
 - [`demo/`](demo/): a payment screen, a single button, a tab panel, a media card, an element that changes size and a whole-page theme switch.
@@ -237,6 +256,7 @@ The `center` variant has its own values: see `PRESETS.center`.
 - `snapshotElement(el, { dpr, clip })`: the DOM → canvas capture on its own.
 - `PALETTES`, `PRESETS`, `scaleConfig`, `totalDuration`, `frameState`: the pure core, if you want to drive your own renderer.
 - `distortion-wave/electric`: `electric`, `electricBorder`, `ELECTRIC`, `BORDER` (see Effects).
+- `distortion-wave/pixel`: `pixel`, `PIXEL` (see Effects).
 
 ## How it works
 

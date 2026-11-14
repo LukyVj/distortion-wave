@@ -110,7 +110,7 @@ const WAVE = {
     return c;
   },
   render(r, f, fx) {
-    r.render(f, fx.shader ? { key: fx.shader.key, chunk: fx.shader.chunk, uniforms: fx.uniforms?.(f.cfg, f.s) } : null);
+    r.render(f, fx.shader ? { key: fx.shader.key, chunk: fx.shader.chunk, dots: fx.shader.dots, uniforms: fx.uniforms?.(f.cfg, f.s) } : null);
   },
 };
 function effectOf(e) {

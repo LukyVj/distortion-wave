@@ -37,12 +37,12 @@ export default function Home() {
 
           <section className="section" aria-labelledby="effects">
             <div className="section-head">
-              <h2 id="effects">Electric</h2>
+              <h2 id="effects">Other looks, same wave</h2>
               <p>
-                The same wave with an electric look: the front turns into a crackling bolt and the outline
-                charges as it passes. The same arcs also make a border that stays on.{" "}
-                <code>distortion-wave/electric</code> adds about 7 kB. To make every demo on this page
-                electric, pick Electric in the settings below.
+                An effect keeps the wave&apos;s behaviour and changes its look. Each one is its own import:{" "}
+                <code>distortion-wave/electric</code> (about 7 kB, with the border) and{" "}
+                <code>distortion-wave/pixel</code> (about 1.5 kB). To switch every demo on this page, pick
+                an effect in the settings below.
               </p>
             </div>
             <Effects />

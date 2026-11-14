@@ -19,6 +19,7 @@ import {
   type PaletteName,
 } from "distortion-wave";
 import { electric } from "distortion-wave/electric";
+import { pixel } from "distortion-wave/pixel";
 
 export const TUNING = {
   timing: {
@@ -102,17 +103,35 @@ export const TUNING_ELECTRIC = {
   ...TUNING,
 } as const;
 
-type Groups = typeof TUNING | typeof TUNING_ELECTRIC;
+// pixel: the wave's own groups, plus the pixels
+export const TUNING_PIXEL = {
+  pixels: {
+    label: "Pixels",
+    keys: [
+      { key: "cell", label: "Pixel size", min: 2, max: 24, step: 1, unit: "px" },
+      { key: "gap", label: "Gap", min: 0, max: 6, step: 0.5, unit: "px" },
+      { key: "zone", label: "Pixel zone", min: 0.2, max: 4, step: 0.1, unit: "×" },
+      { key: "density", label: "Lit pixels", min: 0, max: 1, step: 0.05, unit: "" },
+      { key: "rate", label: "Flicker", min: 0, max: 40, step: 1, unit: "/s" },
+      { key: "lit", label: "Lit strength", min: 0, max: 1.5, step: 0.05, unit: "" },
+      { key: "rimPixels", label: "Outline pixels", min: 0, max: 2, step: 0.05, unit: "" },
+    ],
+  },
+  ...TUNING,
+} as const;
+
+type Groups = typeof TUNING | typeof TUNING_ELECTRIC | typeof TUNING_PIXEL;
 export type TuneKey =
   | (typeof TUNING)[keyof typeof TUNING]["keys"][number]["key"]
-  | (typeof TUNING_ELECTRIC)[keyof typeof TUNING_ELECTRIC]["keys"][number]["key"];
+  | (typeof TUNING_ELECTRIC)[keyof typeof TUNING_ELECTRIC]["keys"][number]["key"]
+  | (typeof TUNING_PIXEL)[keyof typeof TUNING_PIXEL]["keys"][number]["key"];
 export type TuneGroup = { label: string; keys: readonly { key: TuneKey; label: string; min: number; max: number; step: number; unit: string }[] };
 export function tuningFor(effect: Settings["effect"]): Record<string, TuneGroup> {
-  return (effect === "electric" ? TUNING_ELECTRIC : TUNING) as Groups as Record<string, TuneGroup>;
+  return (effect === "electric" ? TUNING_ELECTRIC : effect === "pixel" ? TUNING_PIXEL : TUNING) as Groups as Record<string, TuneGroup>;
 }
 
 export type Settings = {
-  effect: "wave" | "electric";
+  effect: "wave" | "electric" | "pixel";
   duration: number | null;
   speed: number;
   easing: string;
@@ -144,11 +163,12 @@ export const DEFAULT_SETTINGS: Settings = {
 export function toDefaults(s: Settings): DistortionWaveOptions {
   const o: DistortionWaveOptions = {};
   if (s.effect === "electric") o.effect = electric;
+  if (s.effect === "pixel") o.effect = pixel;
   if (s.duration != null) o.duration = s.duration;
   else if (s.speed !== 1) o.speed = s.speed;
   if (s.easing !== "default") o.easing = s.easing;
   if (s.intensity !== 1) o.intensity = s.intensity;
-  if (s.variant !== "auto" && s.effect === "wave") o.variant = s.variant;
+  if (s.variant !== "auto") o.variant = s.variant;
   if (s.palette === "custom") o.palette = [...s.custom];
   else if (s.palette !== "demo") o.palette = s.palette;
   if (!s.particles) o.particles = false;

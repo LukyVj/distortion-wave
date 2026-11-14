@@ -358,7 +358,8 @@ var PALETTES = {
   ocean: ["#3A7BFF", "#2EE6D6", "#7C5CFF", "#1FB6FF", "#B8F2FF"],
   mint: ["#2BD67B", "#B6FF5C", "#1FC8A9", "#E8FFB0", "#3CE0C0"],
   ember: ["#FF5A3C", "#FFB23C", "#FF3C8E", "#FFE07A", "#FF7F50"],
-  electric: ["#8FF7FF", "#3FA9FF", "#6B7CFF", "#C6FBFF"]
+  electric: ["#8FF7FF", "#3FA9FF", "#6B7CFF", "#C6FBFF"],
+  pixel: ["#FF6B2C", "#FFA15E", "#FFE2C9", "#FF4F2E"]
 };
 var BASE = {
   type: "vertical",
@@ -818,6 +819,9 @@ void main() { gl_Position = vec4(aDot.x / uSize.x * 2.0 - 1.0, 1.0 - aDot.y / uS
 var FS_DOTS = `#version 300 es
 precision highp float; in float vA; in float vR; in float vPt; out vec4 o;
 void main() { float r = length(gl_PointCoord - 0.5) * vPt; float cov = clamp(vR - r + 0.5, 0.0, 1.0); o = vec4(vec3(cov * vA), cov * vA); }`;
+var FS_DOTS_SQUARE = `#version 300 es
+precision highp float; in float vA; in float vR; in float vPt; out vec4 o;
+void main() { vec2 d = abs(gl_PointCoord - 0.5) * vPt; float cov = clamp(vR - max(d.x, d.y) + 0.5, 0.0, 1.0); o = vec4(vec3(cov * vA), cov * vA); }`;
 var Renderer = class {
   constructor() {
     this.canvas = document.createElement("canvas");
@@ -931,9 +935,9 @@ var Renderer = class {
     gl.uniform3fv(prog.u("uPal[0]"), this.pal);
     gl.uniform1i(prog.u("uPalN"), Math.min(cols.length, 8));
   }
-  drawDots(f) {
+  drawDots(f, square = false) {
     if (!(f.dotCount > 0)) return;
-    const gl = this.gl, d = this.dots;
+    const gl = this.gl, d = square ? this.squareDots ||= program(gl, VS_DOTS, FS_DOTS_SQUARE) : this.dots;
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     gl.useProgram(d.p);
@@ -1026,7 +1030,7 @@ var Renderer = class {
     }
     gl.bindVertexArray(this.vao);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
-    this.drawDots(f);
+    this.drawDots(f, variant?.dots === "square");
     gl.bindVertexArray(null);
   }
 };
@@ -1239,7 +1243,7 @@ var WAVE = {
     return c;
   },
   render(r, f, fx) {
-    r.render(f, fx.shader ? { key: fx.shader.key, chunk: fx.shader.chunk, uniforms: fx.uniforms?.(f.cfg, f.s) } : null);
+    r.render(f, fx.shader ? { key: fx.shader.key, chunk: fx.shader.chunk, dots: fx.shader.dots, uniforms: fx.uniforms?.(f.cfg, f.s) } : null);
   }
 };
 function effectOf(e) {

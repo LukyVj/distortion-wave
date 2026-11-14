@@ -26,3 +26,14 @@ test('electric keys: defaults, size scaling, intensity and overrides', () => {
   assert.ok(Object.values(u).every(Number.isFinite));
   assert.ok(Math.abs(u.uERimNorm - 1 / big.rimStrength) < 1e-9);
 });
+
+test('pixel keeps the wave behaviour too, and its keys resolve', async () => {
+  const { pixel, PIXEL } = await import('../src/effects/pixel.js');
+  for (const k of ['anticipation', 'travel', 'amplitude', 'lensWidth', 'blur', 'pull', 'particles']) assert.ok(!(k in pixel.preset), `preset must not change ${k}`);
+  const c = resolveConfig({ ...BASE, ...pixel.preset }, {}, 360, 740); pixel.tune(c, {});
+  assert.ok(Math.abs(c.cell - PIXEL.cell) < 0.01 && c.palette === 'pixel');
+  const small = resolveConfig({ ...BASE, ...pixel.preset }, { gap: 20, density: 3 }, 60, 30); pixel.tune(small, { gap: 20, density: 3 });
+  assert.ok(small.cell >= 2 && small.gap <= small.cell * 0.6 && small.density === 1);
+  assert.equal(pixel.shader.dots, 'square');
+  assert.ok(Object.values(pixel.uniforms(c)).every(Number.isFinite));
+});

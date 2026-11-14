@@ -190,6 +190,20 @@ await check('electric: the same wave with the electric look, events in order, DO
   assert.deepEqual(errors, []);
 });
 
+await check('pixel: the same wave with a pixel look, square sparks, DOM restored', async () => {
+  const { page, errors } = await open();
+  await page.addScriptTag({ path: resolve('dist/pixel.iife.min.js') });
+  const r = await page.evaluate(async () => {
+    const { pixel } = window.DistortionWavePixel;
+    const phone = document.getElementById('phone'), ev = [];
+    const t = __dw.distortionWave(phone, () => { phone.querySelector('.cta').textContent = 'Pix'; }, { effect: pixel, source: phone.querySelector('.cta'), onCovered: () => ev.push('covered'), onEnd: () => ev.push('end') });
+    await t.finished;
+    return { ev, canvases: document.querySelectorAll('canvas').length, text: phone.querySelector('.cta').textContent };
+  });
+  assert.deepEqual(r.ev, ['covered', 'end']); assert.equal(r.canvases, 0); assert.match(r.text, /Pix/);
+  assert.deepEqual(errors, []);
+});
+
 await check('unknown effect name: warns, then waves as usual', async () => {
   const { page } = await open();
   const r = await page.evaluate(async () => {

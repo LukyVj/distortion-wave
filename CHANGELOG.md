@@ -6,7 +6,8 @@
 - `distortion-wave/electric`, a new entry (~7 kB gzipped):
   - `electric`: the wave with an electric look. The front is a crackling bolt, the colour band goes electric, and the outline charges with arcs as the front passes, then discharges. Keys: `jag`, `scale`, `crackle`, `chaos`, `boltWidth`, `boltGlow`, `bolts`, `rimBolts`.
   - `electricBorder(el, options)`: a live electric arc on the outline, always on, on hover or on focus. All borders share one canvas and one WebGL context.
-- `electric` palette.
+- `distortion-wave/pixel`, a new entry (~1.5 kB gzipped): `pixel`, the wave with a pixel look. Near the front the content turns into small pixels that flip cell by cell, some light up and flicker, the outline is drawn in pixels that go out one by one, sparks are square. Keys: `cell`, `gap`, `zone`, `density`, `rate`, `lit`, `rimPixels`.
+- `electric` and `pixel` palettes.
 
 ## 0.2.1 — 2026-11-13
 

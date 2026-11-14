@@ -189,6 +189,10 @@ void main() { gl_Position = vec4(aDot.x / uSize.x * 2.0 - 1.0, 1.0 - aDot.y / uS
 const FS_DOTS = `#version 300 es
 precision highp float; in float vA; in float vR; in float vPt; out vec4 o;
 void main() { float r = length(gl_PointCoord - 0.5) * vPt; float cov = clamp(vR - r + 0.5, 0.0, 1.0); o = vec4(vec3(cov * vA), cov * vA); }`;
+// square sparks, for effects with a pixel look
+const FS_DOTS_SQUARE = `#version 300 es
+precision highp float; in float vA; in float vR; in float vPt; out vec4 o;
+void main() { vec2 d = abs(gl_PointCoord - 0.5) * vPt; float cov = clamp(vR - max(d.x, d.y) + 0.5, 0.0, 1.0); o = vec4(vec3(cov * vA), cov * vA); }`;
 
 // ═══ WebGL2 renderer (one canvas per active transition, pooled) ══════════════
 class Renderer {
@@ -261,9 +265,9 @@ class Renderer {
     if (this.palKey !== key) { this.palKey = key; this.pal.fill(0); cols.slice(0, 8).forEach((h, i) => this.pal.set(hexToOklab(h), i * 3)); }
     gl.uniform3fv(prog.u('uPal[0]'), this.pal); gl.uniform1i(prog.u('uPalN'), Math.min(cols.length, 8));
   }
-  drawDots(f) {
+  drawDots(f, square = false) {
     if (!(f.dotCount > 0)) return;
-    const gl = this.gl, d = this.dots;
+    const gl = this.gl, d = square ? (this.squareDots ||= program(gl, VS_DOTS, FS_DOTS_SQUARE)) : this.dots;
     gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     gl.useProgram(d.p); gl.uniform2f(d.u('uSize'), f.w, f.h); gl.uniform1f(d.u('uDpr'), f.dpr);
     gl.bindVertexArray(this.dvao); gl.bindBuffer(gl.ARRAY_BUFFER, this.dbuf);
@@ -305,7 +309,7 @@ class Renderer {
       if (variant?.uniforms) for (const k in variant.uniforms) gl.uniform1f(u(k), variant.uniforms[k]);
     }
     gl.bindVertexArray(this.vao); gl.drawArrays(gl.TRIANGLES, 0, 3);
-    this.drawDots(f);
+    this.drawDots(f, variant?.dots === 'square');
     gl.bindVertexArray(null);
   }
 }

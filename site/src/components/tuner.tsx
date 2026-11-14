@@ -4,6 +4,7 @@ import { useId, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { distortionWave, PALETTES, PRESETS, setWaveDefaults, type PaletteName } from "distortion-wave";
 import { electric, ELECTRIC } from "distortion-wave/electric";
+import { pixel, PIXEL } from "distortion-wave/pixel";
 import { Button } from "@ui-sdk/react/button";
 import {
   ColorPicker,
@@ -64,6 +65,7 @@ const BASE = PRESETS.vertical as Record<string, number>;
 const BASES = {
   wave: BASE,
   electric: { ...BASE, ...(electric as unknown as { preset: Record<string, number> }).preset, ...ELECTRIC } as Record<string, number>,
+  pixel: { ...BASE, ...(pixel as unknown as { preset: Record<string, number> }).preset, ...PIXEL } as Record<string, number>,
 };
 const THUMB = '[data-slot="slider-thumb"]';
 const SEGMENT = '[data-slot="segmented-control-item"]';
@@ -91,7 +93,7 @@ function code(s: Settings) {
   const lines = Object.entries(o).map(([k, v]) => `  ${k}: ${show(v)},`);
   if (!lines.length)
     return "setWaveDefaults(null)\n// every option at its default: duration from the\n// element's size, aurora unless a call sets colours";
-  const head = s.effect === "electric" ? "import { electric } from 'distortion-wave/electric'\n\n" : "";
+  const head = s.effect === "wave" ? "" : `import { ${s.effect} } from 'distortion-wave/${s.effect}'\n\n`;
   return `${head}setWaveDefaults({\n${lines.join("\n")}\n})`;
 }
 
@@ -198,9 +200,9 @@ function CustomColours({
 export function Tuner() {
   const { settings, setSettings } = useWaveSettings();
   const panel = useRef<HTMLDivElement>(null);
-  const [picked, setGroup] = useState("lightning");
+  const [picked, setPicked] = useState<Record<string, string>>({});
   const TUNING = tuningFor(settings.effect);
-  const group = picked in TUNING ? picked : Object.keys(TUNING)[0];
+  const group = picked[settings.effect] in TUNING ? picked[settings.effect] : Object.keys(TUNING)[0];
   const base = BASES[settings.effect];
 
   const apply: Apply = (next, selector = "button") => {
@@ -233,6 +235,7 @@ export function Tuner() {
             <SegmentedControlIndicator />
             <SegmentedControlItem value="wave">Wave</SegmentedControlItem>
             <SegmentedControlItem value="electric">Electric</SegmentedControlItem>
+            <SegmentedControlItem value="pixel">Pixel</SegmentedControlItem>
           </SegmentedControl>
         </div>
         <label className="control-row">
@@ -297,7 +300,6 @@ export function Tuner() {
           </SelectContent>
         </Select>
 
-        {settings.effect === "wave" && (
         <div className="control">
           <span className="control-name" id="direction-label">
             Direction
@@ -315,7 +317,6 @@ export function Tuner() {
             <SegmentedControlItem value="center">Ring</SegmentedControlItem>
           </SegmentedControl>
         </div>
-        )}
 
         <Select
           value={settings.palette}
@@ -407,7 +408,7 @@ export function Tuner() {
         </p>
       </div>
 
-      <Tabs className="fine" value={group} onValueChange={(v) => v && setGroup(v)}>
+      <Tabs className="fine" value={group} onValueChange={(v) => v && setPicked((p) => ({ ...p, [settings.effect]: v }))}>
         <div className="fine-head">
           <h3>Fine tuning</h3>
           <p>Lengths are for a 360 × 740 element. They scale with the real size.</p>

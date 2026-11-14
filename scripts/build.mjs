@@ -15,6 +15,10 @@ const electric = { ...common, entryPoints: ['src/effects/electric.js'] };
 await build({ ...electric, format: 'esm', outfile: 'dist/electric.js' });
 await build({ ...electric, format: 'esm', minify: true, outfile: 'dist/electric.min.js' });
 await build({ ...electric, format: 'iife', globalName: 'DistortionWaveElectric', minify: true, outfile: 'dist/electric.iife.min.js' });
+const pixel = { ...common, entryPoints: ['src/effects/pixel.js'] };
+await build({ ...pixel, format: 'esm', outfile: 'dist/pixel.js' });
+await build({ ...pixel, format: 'esm', minify: true, outfile: 'dist/pixel.min.js' });
+await build({ ...pixel, format: 'iife', globalName: 'DistortionWavePixel', minify: true, outfile: 'dist/pixel.iife.min.js' });
 
 // Standalone demo: inline the IIFE build and turn the module import into a destructure.
 const html = await readFile('demo/index.html', 'utf8');
@@ -48,7 +52,7 @@ ${kitJs}document.body.dataset.ready = '1';
 </html>
 `);
 
-const sizes = await Promise.all(['dist/distortion-wave.js', 'dist/distortion-wave.min.js', 'dist/distortion-wave.iife.min.js', 'dist/electric.min.js'].map(async (f) => `${f} ${((await readFile(f)).length / 1024).toFixed(1)} kB`));
+const sizes = await Promise.all(['dist/distortion-wave.js', 'dist/distortion-wave.min.js', 'dist/distortion-wave.iife.min.js', 'dist/electric.min.js', 'dist/pixel.min.js'].map(async (f) => `${f} ${((await readFile(f)).length / 1024).toFixed(1)} kB`));
 console.log(sizes.join('\n'));
 
 // CodePen copy of the React example (examples/react): JSX through CodePen's Babel, React from esm.sh.

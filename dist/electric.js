@@ -169,7 +169,8 @@ var PALETTES = {
   ocean: ["#3A7BFF", "#2EE6D6", "#7C5CFF", "#1FB6FF", "#B8F2FF"],
   mint: ["#2BD67B", "#B6FF5C", "#1FC8A9", "#E8FFB0", "#3CE0C0"],
   ember: ["#FF5A3C", "#FFB23C", "#FF3C8E", "#FFE07A", "#FF7F50"],
-  electric: ["#8FF7FF", "#3FA9FF", "#6B7CFF", "#C6FBFF"]
+  electric: ["#8FF7FF", "#3FA9FF", "#6B7CFF", "#C6FBFF"],
+  pixel: ["#FF6B2C", "#FFA15E", "#FFE2C9", "#FF4F2E"]
 };
 var BASE = {
   type: "vertical",

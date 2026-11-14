@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState, type MouseEvent } from "react";
 import { BORDER, electric, electricBorder, type ElectricBorder } from "distortion-wave/electric";
+import { pixel } from "distortion-wave/pixel";
 import { Button } from "@ui-sdk/react/button";
 import {
   SegmentedControl,
@@ -233,6 +234,29 @@ function Publish() {
   );
 }
 
+function Build() {
+  const card = useRef<HTMLDivElement>(null);
+  const [passed, setPassed] = useState(false);
+  const wave = useWave();
+
+  function rerun(e: MouseEvent<HTMLElement>) {
+    wave(card, () => setPassed((p) => !p), { effect: pixel, source: e.currentTarget, focus: e.nativeEvent });
+  }
+
+  return (
+    <div ref={card} className="build target" data-passed={passed || undefined}>
+      <p className="build-head">
+        <span className="build-dot" aria-hidden="true" />
+        {passed ? "Build #219 passed" : "Build #218 failed"}
+      </p>
+      <p className="build-meta">{passed ? "42 tests, 1 min 08 s. Deployed to preview." : "2 tests failed in checkout.spec.ts."}</p>
+      <Button className="btn btn-primary" data-focus-key="rerun" onClick={rerun}>
+        {passed ? "Run again" : "Re-run build"}
+      </Button>
+    </div>
+  );
+}
+
 const TIERS = [
   { name: "Starter", price: "Free", color: "#7df9ff" },
   { name: "Team", price: "$12", color: "#b18cff" },
@@ -259,24 +283,33 @@ export function Effects() {
             <Publish />
           </div>
           <figcaption>
-            <strong>Electric wave.</strong> The same wave, same timing and lens: the front is a crackling
-            bolt and the outline charges as it passes. Same call, with <code>effect: electric</code>.
+            <strong>Electric.</strong> The same wave, same timing and lens: the front is a crackling bolt and
+            the outline charges as it passes. <code>effect: electric</code>
           </figcaption>
         </figure>
         <figure className="demo">
           <div className="demo-body dark-bench">
-            <div className="tiers">
-              {TIERS.map((t) => (
-                <Tier key={t.name} {...t} />
-              ))}
-            </div>
+            <Build />
           </div>
           <figcaption>
-            <strong>Border on hover.</strong> The same arcs as a border. Three borders, one canvas: every
-            border of the page draws in the same WebGL context.
+            <strong>Pixel.</strong> The same wave again: near the front the content breaks into small pixels
+            that flip one by one, and the outline goes out pixel by pixel. <code>effect: pixel</code>
           </figcaption>
         </figure>
       </div>
+      <figure className="demo fx-wide">
+        <div className="demo-body dark-bench">
+          <div className="tiers">
+            {TIERS.map((t) => (
+              <Tier key={t.name} {...t} />
+            ))}
+          </div>
+        </div>
+        <figcaption>
+          <strong>Electric border, on hover.</strong> The electric arcs also make a border that stays on. Three
+          borders, one canvas: every border of the page draws in the same WebGL context.
+        </figcaption>
+      </figure>
       <BorderLab />
     </>
   );

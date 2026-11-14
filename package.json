@@ -15,6 +15,10 @@
       "types": "./types/electric.d.ts",
       "import": "./dist/electric.js"
     },
+    "./pixel": {
+      "types": "./types/pixel.d.ts",
+      "import": "./dist/pixel.js"
+    },
     "./src/*": "./src/*"
   },
   "unpkg": "./dist/distortion-wave.iife.min.js",

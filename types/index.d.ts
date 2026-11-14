@@ -1,7 +1,7 @@
 // Type definitions for distortion-wave
 
 export type Variant = 'auto' | 'vertical' | 'horizontal' | 'center';
-export type PaletteName = 'aurora' | 'ocean' | 'mint' | 'ember' | 'electric';
+export type PaletteName = 'aurora' | 'ocean' | 'mint' | 'ember' | 'electric' | 'pixel';
 export type Point = { x: number; y: number };
 export type RectLike = { x: number; y: number; width: number; height: number };
 
@@ -22,7 +22,7 @@ export interface Effect {
 }
 
 export interface DistortionWaveOptions {
-  /** The transition to play. Default: the wave. Other effects come from their entry: `import { electric } from 'distortion-wave/electric'`. */
+  /** The look of the wave. Default: the plain wave. Others come from their entry: `import { electric } from 'distortion-wave/electric'`, `import { pixel } from 'distortion-wave/pixel'`. */
   effect?: 'wave' | Effect;
   /** Where the wave starts. An element (inside or outside the target), a rect, a point, or nothing (touch point, else center). */
   source?: Element | RectLike | Point | null;
@@ -63,6 +63,8 @@ export interface DistortionWaveOptions {
   // Electric effect only (same reference scale). See 'distortion-wave/electric'.
   jag?: number; scale?: number; crackle?: number; chaos?: number;
   boltWidth?: number; boltGlow?: number; bolts?: number; rimBolts?: number;
+  // Pixel effect only. See 'distortion-wave/pixel'.
+  cell?: number; gap?: number; zone?: number; density?: number; rate?: number; lit?: number; rimPixels?: number;
 }
 
 export interface WaveTransition {
