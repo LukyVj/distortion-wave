@@ -1,4 +1,5 @@
-# Publishes to npm when a version tag is pushed (git tag v0.2.1 && git push origin v0.2.1).
+# Publishes to npm when a version tag is pushed (git tag v0.2.1 && git push origin v0.2.1),
+# or by hand: Actions → Publish to npm → Run workflow (publishes the version in package.json).
 # No npm token and no 2FA prompt: npm trusts this workflow through OIDC ("trusted publishing").
 # One-time setup on npmjs.com: package → Settings → Trusted publishing → GitHub Actions,
 # user LukyVj, repository distortion-wave, workflow publish.yml, no environment.
@@ -7,6 +8,7 @@ name: Publish to npm
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -25,8 +27,15 @@ jobs:
       - name: npm ≥ 11.5.1 (trusted publishing)
         run: npm install -g npm@latest
 
-      - name: The tag matches package.json
-        run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
+      - name: Version check
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          if [ "$GITHUB_REF_TYPE" = "tag" ] && [ "v$VERSION" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match package.json ($VERSION)"; exit 1
+          fi
+          if [ -n "$(npm view "distortion-wave@$VERSION" version 2>/dev/null)" ]; then
+            echo "distortion-wave@$VERSION is already on npm: bump the version first"; exit 1
+          fi
 
       - run: npm ci
       - run: npx playwright install --with-deps chromium
