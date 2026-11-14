@@ -2,6 +2,7 @@
 // on their own lines, `${…}` interpolations and the /*@FX*/ hook left alone. esbuild never touches the
 // inside of a template literal, so without this every shader ships as written.
 import { readFile } from 'node:fs/promises';
+import { glslNames } from './glsl-names.mjs';
 
 const IS_GLSL = /#version 300 es|void main|precision highp|uniform \w+ \w+/;
 
@@ -30,9 +31,16 @@ export function minifyGlsl(literal) {
 export const glslMin = {
   name: 'glsl-min',
   setup(b) {
+    const names = glslNames('src');          // one table for every entry: the bundles share names
     b.onLoad({ filter: /src[\\/].*\.js$/ }, async (args) => {
       const src = await readFile(args.path, 'utf8');
-      return { contents: src.replace(/`((?:[^`\\]|\\.)*)`/gs, (m, body) => (IS_GLSL.test(body) ? `\`${minifyGlsl(body)}\`` : m)), loader: 'js' };
+      // JS outside the shaders gets its uniform names rewritten; each shader is squeezed, then renamed
+      const parts = src.split(/(`(?:[^`\\]|\\.)*`)/s).map((part, i) => {
+        if (i % 2 === 0) return names.renameJs(part, args.path);
+        const body = part.slice(1, -1);
+        return IS_GLSL.test(body) ? `\`${names.renameGlsl(minifyGlsl(body))}\`` : part;
+      });
+      return { contents: parts.join(''), loader: 'js' };
     });
   },
 };

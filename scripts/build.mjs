@@ -1,25 +1,35 @@
 // Builds dist/ (ESM, minified ESM, IIFE for <script> tags) and demo/standalone.html
 // (one self-contained file that opens straight from disk, no server needed).
 import { build } from 'esbuild';
+import { minify } from 'terser';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { glslMin } from './glsl-min.mjs';
 
 const banner = { js: '/*! distortion-wave · MIT © Lucas Bonomi · https://github.com/LukyVj/distortion-wave */' };
 const common = { entryPoints: ['src/index.js'], bundle: true, target: 'es2022', banner, logLevel: 'warning', plugins: [glslMin] };
 
+// Minified builds: esbuild minifies, then Terser squeezes harder (≈ -0.2 kB gzipped on the core). No pure_getters:
+// the code reads DOM properties to force a reflow. The /*! banner stays.
+const terser = () => ({ ecma: 2022, compress: { passes: 3, unsafe_arrows: true, unsafe_methods: true }, mangle: true, format: { comments: /^!/ } });   // fresh each time: Terser writes into its options
+async function min(opts) {
+  const [out] = (await build({ ...opts, minify: true, write: false })).outputFiles;
+  const { code } = await minify(out.text, { ...terser(), module: opts.format === 'esm' });
+  await writeFile(opts.outfile, `${code}\n`);
+}
+
 await mkdir('dist', { recursive: true });
 await build({ ...common, format: 'esm', outfile: 'dist/distortion-wave.js' });
-await build({ ...common, format: 'esm', minify: true, outfile: 'dist/distortion-wave.min.js' });
-await build({ ...common, format: 'iife', globalName: 'DistortionWave', minify: true, outfile: 'dist/distortion-wave.iife.min.js' });
+await min({ ...common, format: 'esm', outfile: 'dist/distortion-wave.min.js' });
+await min({ ...common, format: 'iife', globalName: 'DistortionWave', outfile: 'dist/distortion-wave.iife.min.js' });
 // Effects ship as their own entries, so the core stays as light when they aren't used.
 const electric = { ...common, entryPoints: ['src/effects/electric.js'] };
 await build({ ...electric, format: 'esm', outfile: 'dist/electric.js' });
-await build({ ...electric, format: 'esm', minify: true, outfile: 'dist/electric.min.js' });
-await build({ ...electric, format: 'iife', globalName: 'DistortionWaveElectric', minify: true, outfile: 'dist/electric.iife.min.js' });
+await min({ ...electric, format: 'esm', outfile: 'dist/electric.min.js' });
+await min({ ...electric, format: 'iife', globalName: 'DistortionWaveElectric', outfile: 'dist/electric.iife.min.js' });
 const pixel = { ...common, entryPoints: ['src/effects/pixel.js'] };
 await build({ ...pixel, format: 'esm', outfile: 'dist/pixel.js' });
-await build({ ...pixel, format: 'esm', minify: true, outfile: 'dist/pixel.min.js' });
-await build({ ...pixel, format: 'iife', globalName: 'DistortionWavePixel', minify: true, outfile: 'dist/pixel.iife.min.js' });
+await min({ ...pixel, format: 'esm', outfile: 'dist/pixel.min.js' });
+await min({ ...pixel, format: 'iife', globalName: 'DistortionWavePixel', outfile: 'dist/pixel.iife.min.js' });
 
 // Standalone demo: inline the IIFE build and turn the module import into a destructure.
 const html = await readFile('demo/index.html', 'utf8');

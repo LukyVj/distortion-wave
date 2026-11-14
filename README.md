@@ -119,11 +119,11 @@ waveOnClick(trigger, target, (event) => { /* update */ }, { palette: 'ocean' });
 
 ## Effects
 
-Effects change the look of the wave, not its behaviour. The wave is built in; other looks ship as their own entry, so the core stays at ~18 kB gzipped when you don't use them.
+Effects change the look of the wave, not its behaviour. The wave is built in; other looks ship as their own entry, so the core stays at ~17 kB gzipped when you don't use them.
 
 ### Electric
 
-`distortion-wave/electric` (~7 kB gzipped) brings the electric look, for the wave and as a border.
+`distortion-wave/electric` (~6 kB gzipped) brings the electric look, for the wave and as a border.
 
 ```js
 import { distortionWave } from 'distortion-wave';
@@ -157,7 +157,7 @@ Without a bundler: `https://cdn.jsdelivr.net/npm/distortion-wave@0.3/dist/electr
 
 ### Pixel
 
-`distortion-wave/pixel` (~1.5 kB gzipped): the same wave with a pixel look. Near the front, the content turns into small pixels that flip from the old state to the new one cell by cell; some light up in the palette and flicker; the outline is drawn in pixels that go out one by one; sparks are square. Default palette `'pixel'` (orange).
+`distortion-wave/pixel` (~1.2 kB gzipped): the same wave with a pixel look. Near the front, the content turns into small pixels that flip from the old state to the new one cell by cell; some light up in the palette and flicker; the outline is drawn in pixels that go out one by one; sparks are square. Default palette `'pixel'` (orange).
 
 ```js
 import { pixel } from 'distortion-wave/pixel';
@@ -276,7 +276,7 @@ The rendering cost is one full-screen pass per frame (up to ~18 texture reads pe
 
 ### Bundle size
 
-The core is ~18 kB gzipped, shaders included (`distortion-wave/electric` adds ~6.6 kB, `distortion-wave/pixel` ~1.3 kB). If the wave only plays on a few interactions, keep it out of the initial bundle and load it on the first one:
+The core is ~17 kB gzipped, shaders included (`distortion-wave/electric` adds ~6 kB, `distortion-wave/pixel` ~1.2 kB). If the wave only plays on a few interactions, keep it out of the initial bundle and load it on the first one:
 
 ```js
 let lib;
