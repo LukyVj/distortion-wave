@@ -2,14 +2,14 @@
 
 // src/shaders.js
 var COMMON = `
-const float cd=1.5707963; float ci(vec2 b){return fract(52.9829189*fract(dot(b,vec2(0.06711056,0.00583715))));} float cT(float ac){return fract(sin(ac*127.1)*43758.5453);} float P(vec2 b,vec2 J,vec4 n){ n.xy=(b.x>0.0)?n.xy:n.zw;n.x=(b.y>0.0)?n.x:n.y; vec2 W=abs(b)- J + n.x;return min(max(W.x,W.y),0.0)+ length(max(W,0.0))- n.x; } float b9(vec2 J,vec4 n){ return 4.0*(J.x + J.y)- 2.0*(n.x + n.y + n.z + n.w)+ cd*(n.x + n.y + n.z + n.w); } float dB(vec2 b,vec2 J,vec4 n){ float dX=2.0*J.x - n.w - n.y,ck=2.0*J.y - n.y - n.x,bP=2.0*J.x - n.x - n.z,bD=2.0*J.y - n.z - n.w; float dD=dX,dE=dD + cd*n.y,eI=dE + ck,eJ=eI + cd*n.x,eK=eJ + bP,eL=eK + cd*n.z,e1=eL + bD; if(b.x>J.x - n.y&&b.y<-J.y + n.y)return dD +(clamp(atan(b.y + J.y - n.y,b.x - J.x + n.y),-cd,0.0)+ cd)*n.y; if(b.x>J.x - n.x&&b.y>J.y - n.x)return eI + clamp(atan(b.y - J.y + n.x,b.x - J.x + n.x),0.0,cd)*n.x; if(b.x<-J.x + n.z&&b.y>J.y - n.z)return eK +(clamp(atan(b.y - J.y + n.z,b.x + J.x - n.z),cd,2.0*cd)- cd)*n.z; if(b.x<-J.x + n.w&&b.y<-J.y + n.w){ float L=atan(b.y + J.y - n.w,b.x + J.x - n.w);if(L>0.0)L -=4.0*cd; return e1 +(clamp(L,-2.0*cd,-cd)+ 2.0*cd)*n.w; } float eT=J.x - abs(b.x),eU=J.y - abs(b.y); if(eU<eT)return b.y<0.0?clamp(b.x + J.x - n.w,0.0,dX):eJ + clamp(J.x - n.x - b.x,0.0,bP); return b.x>0.0?dE + clamp(b.y + J.y - n.y,0.0,ck):eL + clamp(J.y - n.z - b.y,0.0,bD); } float aa(vec3 b){b=fract(b*0.3183099 + vec3(0.1,0.2,0.3));b*=17.0;return fract(b.x*b.y*b.z*(b.x + b.y + b.z));} float cW(vec3 ac){ vec3 E=floor(ac),q=fract(ac);q=q*q*(3.0 - 2.0*q); return mix(mix(mix(aa(E),aa(E + vec3(1,0,0)),q.x),mix(aa(E + vec3(0,1,0)),aa(E + vec3(1,1,0)),q.x),q.y), mix(mix(aa(E + vec3(0,0,1)),aa(E + vec3(1,0,1)),q.x),mix(aa(E + vec3(0,1,1)),aa(E + vec3(1,1,1)),q.x),q.y),q.z); } float cR(vec3 b){float A=0.0,L=0.5;for(int E=0;E<5;E++){A +=L*cW(b);b=b*2.03 + vec3(13.1,7.7,3.3);L*=0.5;}return A/0.96875;} uniform vec3 az[8];uniform int ab; vec3 h(float cy){ float ac=fract(cy)*float(ab);int E=min(int(floor(ac)),ab - 1);int eX=(E + 1)%ab; return mix(az[E],az[eX],smoothstep(0.0,1.0,fract(ac))); } vec3 d(vec3 D){ float a7=D.x + 0.3963377774*D.y + 0.2158037573*D.z,aM=D.x - 0.1055613458*D.y - 0.0638541728*D.z,A=D.x - 0.0894841775*D.y - 1.2914855480*D.z; a7=a7*a7*a7;aM=aM*aM*aM;A=A*A*A; vec3 ba=clamp(vec3(4.0767416621*a7 - 3.3077115913*aM + 0.2309699292*A,-1.2684380046*a7 + 2.6097574011*aM - 0.3413193965*A,-0.0041960863*a7 - 0.7034186147*aM + 1.7076147010*A),0.0,1.0); return mix(12.92*ba,1.055*pow(ba,vec3(1.0/2.4))- 0.055,step(vec3(0.0031308),ba)); } uniform float dh,aI,bd,de,be,bw; vec4 dr(float z,float A,float et,float cm,float ad,float ch){ if(ad<=0.001||abs(z - bw)>aI*6.0 + bd*3.0)return vec4(0.0); float eO=6.2831853*A/et,dR=et/(6.2831853*de); vec3 W=vec3(cos(eO)*dR,sin(eO)*dR,cm*be); float dz=cR(W)- 0.5,el=cR(W*1.9 + vec3(4.1,1.7,cm*be*0.7))- 0.5; float d2=z - bw,bz=d2 + dz*2.4*bd,cM=d2 + el*2.0*bd; float aA=max(dh,0.6); float b2=exp(-(bz*bz)/(aA*aA))+ 0.55*exp(-(cM*cM)/(aA*aA*0.5)); float b5=0.6*exp(-(bz*bz)/(aI*aI))+ 0.28*exp(-abs(d2)/(aI*2.2)); vec3 ae=h(A/et + dz*0.4 + cm*0.03);ae.yz*=1.15; vec3 cJ=d(ae); vec3 eb=mix(cJ,vec3(1.0),0.72 + 0.28*ch); float cw=clamp(b5*ad,0.0,1.0),cL=clamp(b2*ad*(1.0 + ch),0.0,1.0); vec4 m=vec4(cJ*cw,cw); return vec4(eb*cL,cL)+ m*(1.0 - cL); }
+const float cq=1.5707963; float cv(vec2 b){return fract(52.9829189*fract(dot(b,vec2(0.06711056,0.00583715))));} float c6(float ah){return fract(sin(ah*127.1)*43758.5453);} float Q(vec2 b,vec2 M,vec4 s){ s.xy=(b.x>0.0)?s.xy:s.zw;s.x=(b.y>0.0)?s.x:s.y; vec2 Y=abs(b)- M + s.x;return min(max(Y.x,Y.y),0.0)+ length(max(Y,0.0))- s.x; } float ck(vec2 M,vec4 s){ return 4.0*(M.x + M.y)- 2.0*(s.x + s.y + s.z + s.w)+ cq*(s.x + s.y + s.z + s.w); } float dS(vec2 b,vec2 M,vec4 s){ float eb=2.0*M.x - s.w - s.y,cx=2.0*M.y - s.y - s.x,bY=2.0*M.x - s.x - s.z,bP=2.0*M.y - s.z - s.w; float dT=eb,dU=dT + cq*s.y,eY=dU + cx,eZ=eY + cq*s.x,e0=eZ + bY,e1=e0 + cq*s.z,fl=e1 + bP; if(b.x>M.x - s.y&&b.y<-M.y + s.y)return dT +(clamp(atan(b.y + M.y - s.y,b.x - M.x + s.y),-cq,0.0)+ cq)*s.y; if(b.x>M.x - s.x&&b.y>M.y - s.x)return eY + clamp(atan(b.y - M.y + s.x,b.x - M.x + s.x),0.0,cq)*s.x; if(b.x<-M.x + s.z&&b.y>M.y - s.z)return e0 +(clamp(atan(b.y - M.y + s.z,b.x + M.x - s.z),cq,2.0*cq)- cq)*s.z; if(b.x<-M.x + s.w&&b.y<-M.y + s.w){ float H=atan(b.y + M.y - s.w,b.x + M.x - s.w);if(H>0.0)H -=4.0*cq; return fl +(clamp(H,-2.0*cq,-cq)+ 2.0*cq)*s.w; } float fd=M.x - abs(b.x),fe=M.y - abs(b.y); if(fe<fd)return b.y<0.0?clamp(b.x + M.x - s.w,0.0,eb):eZ + clamp(M.x - s.x - b.x,0.0,bY); return b.x>0.0?dU + clamp(b.y + M.y - s.y,0.0,cx):e1 + clamp(M.y - s.z - b.y,0.0,bP); } float ae(vec3 b){b=fract(b*0.3183099 + vec3(0.1,0.2,0.3));b*=17.0;return fract(b.x*b.y*b.z*(b.x + b.y + b.z));} float c9(vec3 ah){ vec3 B=floor(ah),o=fract(ah);o=o*o*(3.0 - 2.0*o); return mix(mix(mix(ae(B),ae(B + vec3(1,0,0)),o.x),mix(ae(B + vec3(0,1,0)),ae(B + vec3(1,1,0)),o.x),o.y), mix(mix(ae(B + vec3(0,0,1)),ae(B + vec3(1,0,1)),o.x),mix(ae(B + vec3(0,1,1)),ae(B + vec3(1,1,1)),o.x),o.y),o.z); } float c4(vec3 b){float z=0.0,H=0.5;for(int B=0;B<5;B++){z +=H*c9(b);b=b*2.03 + vec3(13.1,7.7,3.3);H*=0.5;}return z/0.96875;} uniform vec3 aI[8];uniform int af; vec3 h(float bS){ float ah=fract(bS)*float(af);int B=min(int(floor(ah)),af - 1);int ao=(B + 1)%af; return mix(aI[B],aI[ao],smoothstep(0.0,1.0,fract(ah))); } vec3 d(vec3 E){ float az=E.x + 0.3963377774*E.y + 0.2158037573*E.z,aV=E.x - 0.1055613458*E.y - 0.0638541728*E.z,z=E.x - 0.0894841775*E.y - 1.2914855480*E.z; az=az*az*az;aV=aV*aV*aV;z=z*z*z; vec3 bm=clamp(vec3(4.0767416621*az - 3.3077115913*aV + 0.2309699292*z,-1.2684380046*az + 2.6097574011*aV - 0.3413193965*z,-0.0041960863*az - 0.7034186147*aV + 1.7076147010*z),0.0,1.0); return mix(12.92*bm,1.055*pow(bm,vec3(1.0/2.4))- 0.055,step(vec3(0.0031308),bm)); } uniform float dw,aS,bp,dt,bq,bI; vec4 dG(float A,float z,float eI,float aP,float ai,float cu){ if(ai<=0.001||abs(A - bI)>aS*6.0 + bp*3.0)return vec4(0.0); float e6=6.2831853*z/eI,cX=eI/(6.2831853*dt); vec3 Y=vec3(cos(e6)*cX,sin(e6)*cX,aP*bq); float dQ=c4(Y)- 0.5,ez=c4(Y*1.9 + vec3(4.1,1.7,aP*bq*0.7))- 0.5; float eg=A - bI,bL=eg + dQ*2.4*bp,cd=eg + ez*2.0*bp; float aJ=max(dw,0.6); float cc=exp(-(bL*bL)/(aJ*aJ))+ 0.55*exp(-(cd*cd)/(aJ*aJ*0.5)); float cg=0.6*exp(-(bL*bL)/(aS*aS))+ 0.28*exp(-abs(eg)/(aS*2.2)); vec3 aj=h(z/eI + dQ*0.4 + aP*0.03);aj.yz*=1.15; vec3 aW=d(aj); vec3 eq=mix(aW,vec3(1.0),0.72 + 0.28*cu); float cK=clamp(cg*ai,0.0,1.0),c0=clamp(cc*ai*(1.0 + cu),0.0,1.0); vec4 p=vec4(aW*cK,cK); return vec4(eq*c0,c0)+ p*(1.0 - c0); }
 `;
 var FS_BORDER = `#version 300 es
-precision highp float;precision highp int; uniform vec2 dP; uniform float bf,a,c8; uniform vec4 k,af; out vec4 U;
+precision highp float;precision highp int; uniform vec2 d5; uniform float br,a,dm; uniform vec4 m,ak; out vec4 W;
 ${COMMON}
-void main(){ vec2 b=vec2(gl_FragCoord.x,dP.y*bf - gl_FragCoord.y)/bf; vec2 b7=k.zw*0.5,D=b -(k.xy + b7); float z=P(D,b7,af); float et=b9(b7,af),A=dB(D,b7,af); vec4 cQ=dr(z,A,et,a,c8,0.0); U=vec4(cQ.rgb +(ci(gl_FragCoord.xy)- 0.5)/255.0*cQ.a,cQ.a); }`;
+void main(){ vec2 b=vec2(gl_FragCoord.x,d5.y*br - gl_FragCoord.y)/br; vec2 ci=m.zw*0.5,E=b -(m.xy + ci); float A=Q(E,ci,ak); float eI=ck(ci,ak),z=dS(E,ci,ak); vec4 c3=dG(A,z,eI,a,dm,0.0); W=vec4(c3.rgb +(cv(gl_FragCoord.xy)- 0.5)/255.0*c3.a,c3.a); }`;
 var ELECTRIC_WAVE = `
-uniform float co,aP,ao,cB,r,S,c3,cp,bT; float Z(vec3 b){b=fract(b*0.3183099 + vec3(0.1,0.2,0.3));b*=17.0;return fract(b.x*b.y*b.z*(b.x + b.y + b.z));} float bQ(vec3 ac){ vec3 E=floor(ac),q=fract(ac);q=q*q*(3.0 - 2.0*q); return mix(mix(mix(Z(E),Z(E + vec3(1,0,0)),q.x),mix(Z(E + vec3(0,1,0)),Z(E + vec3(1,1,0)),q.x),q.y), mix(mix(Z(E + vec3(0,0,1)),Z(E + vec3(1,0,1)),q.x),mix(Z(E + vec3(0,1,1)),Z(E + vec3(1,1,1)),q.x),q.y),q.z); } float bA(vec3 b,int eD){ float A=0.0,L=0.5,aN=0.0; for(int E=0;E<5;E++){if(E>=eD)break;A +=L*bQ(b);aN +=L;b=b*2.03 + vec3(13.1,7.7,3.3);L*=0.5;} return A/aN; } float v(vec2 W,vec2 b){ if(!e)return 0.0; return(bA(vec3(W/aP,a*ao),3)- 0.5)*2.0*co; } vec3 ar(float cy,float ch){vec3 ae=h(cy);ae.yz*=1.15;return mix(d(ae),vec3(1.0),ch);} vec4 aW(vec3 bo,float L,vec4 m){L=clamp(L,0.0,1.0);return vec4(bo*L,L)+ m*(1.0 - L);} vec4 C(vec4 m,vec2 b,vec2 D,float z,float i,vec2 N,float a4){ float c=clamp(0.5 - z*(B.x/l.x),0.0,1.0); if(c<=0.0)return m; float cg=0.7 + 0.3*bQ(vec3(a*19.0,3.7,0.0)); float aA=max(cB,0.5); if(e&&j>0.001&&abs(i)<S*3.0 + r*3.0 + co){ vec3 ac=vec3(N/(aP*0.55),a*ao*1.6); float dz=bA(ac,4)- 0.5,el=bA(ac*1.7 + vec3(7.3,2.1,0.0),4)- 0.5; float bz=i + dz*2.0*S,cM=i + 0.7*S + el*1.8*S; float b2=exp(-bz*bz/(aA*aA))+ 0.6*exp(-cM*cM/(aA*aA*0.5)); float b5=0.55*exp(-bz*bz/(r*r))+ 0.22*exp(-abs(i)/(r*2.2)); float ad=c3*j*cg*c; float cy=0.55 +(K?atan(N.y,N.x)/av:N.x*0.004/O)+ a*0.1; m=aW(ar(cy,0.0),b5*ad,m); m=aW(ar(cy,0.8),b2*ad,m); } if(cp>0.0&&V<0.5&&ai>0.0&&z>-(r*2.5 + S*2.0 + aA*3.0)){ float F=1.0 - smoothstep(-w*0.6,w*0.4,i); float ax=smoothstep(-s,s,i +(T - aH)/a4); float ad=cp*min(ai*bT,1.0)*F*ax*cg*c; if(ad>0.001){ float aN=bA(vec3(D/aP,a*ao),4)- 0.5; float dt=z + aA*2.0 + aN*2.0*S*0.7; float cy=atan(D.y/k.w,D.x/k.z)/av + a*0.2; m=aW(ar(cy,0.0),(0.5*exp(-dt*dt/(r*r*0.6))+ 0.2*exp(-abs(z)/(r*2.0)))*ad,m); m=aW(ar(cy,0.75),exp(-dt*dt/(aA*aA*0.8))*ad,m); } } return m; }
+uniform float cB,aY,av,cQ,q,U,dh,cC,b2; float ac(vec3 b){b=fract(b*0.3183099 + vec3(0.1,0.2,0.3));b*=17.0;return fract(b.x*b.y*b.z*(b.x + b.y + b.z));} float bZ(vec3 ah){ vec3 B=floor(ah),o=fract(ah);o=o*o*(3.0 - 2.0*o); return mix(mix(mix(ac(B),ac(B + vec3(1,0,0)),o.x),mix(ac(B + vec3(0,1,0)),ac(B + vec3(1,1,0)),o.x),o.y), mix(mix(ac(B + vec3(0,0,1)),ac(B + vec3(1,0,1)),o.x),mix(ac(B + vec3(0,1,1)),ac(B + vec3(1,1,1)),o.x),o.y),o.z); } float bN(vec3 b,int eU){ float z=0.0,H=0.5,aC=0.0; for(int B=0;B<5;B++){if(B>=eU)break;z +=H*bZ(b);aC +=H;b=b*2.03 + vec3(13.1,7.7,3.3);H*=0.5;} return z/aC; } float v(vec2 Y,vec2 b){ if(!e)return 0.0; return(bN(vec3(Y/aY,a*av),3)- 0.5)*2.0*cB; } vec3 ay(float bS,float cu){vec3 aj=h(bS);aj.yz*=1.15;return mix(d(aj),vec3(1.0),cu);} vec4 a6(vec3 bA,float H,vec4 p){H=clamp(H,0.0,1.0);return vec4(bA*H,H)+ p*(1.0 - H);} vec4 D(vec4 p,vec2 b,vec2 E,float A,float i,vec2 N,float bh){ float c=clamp(0.5 - A*(I.x/t.x),0.0,1.0); if(c<=0.0)return p; float ct=0.7 + 0.3*bZ(vec3(a*19.0,3.7,0.0)); float aJ=max(cQ,0.5); if(e&&j>0.001&&abs(i)<U*3.0 + q*3.0 + cB){ vec3 ah=vec3(N/(aY*0.55),a*av*1.6); float dQ=bN(ah,4)- 0.5,ez=bN(ah*1.7 + vec3(7.3,2.1,0.0),4)- 0.5; float bL=i + dQ*2.0*U,cd=i + 0.7*U + ez*1.8*U; float cc=exp(-bL*bL/(aJ*aJ))+ 0.6*exp(-cd*cd/(aJ*aJ*0.5)); float cg=0.55*exp(-bL*bL/(q*q))+ 0.22*exp(-abs(i)/(q*2.2)); float ai=dh*j*ct*c; float bS=0.55 +(J?atan(N.y,N.x)/an:N.x*0.004/L)+ a*0.1; p=a6(ay(bS,0.0),cg*ai,p); p=a6(ay(bS,0.8),cc*ai,p); } if(cC>0.0&&X<0.5&&am>0.0&&A>-(q*2.5 + U*2.0 + aJ*3.0)){ float F=1.0 - smoothstep(-w*0.6,w*0.4,i); float aG=smoothstep(-r,r,i +(V - aR)/bh); float ai=cC*min(am*b2,1.0)*F*aG*ct*c; if(ai>0.001){ float aC=bN(vec3(E/aY,a*av),4)- 0.5; float dI=A + aJ*2.0 + aC*2.0*U*0.7; float bS=atan(E.y/m.w,E.x/m.z)/an + a*0.2; p=a6(ay(bS,0.0),(0.5*exp(-dI*dI/(q*q*0.6))+ 0.2*exp(-abs(A)/(q*2.0)))*ai,p); p=a6(ay(bS,0.75),exp(-dI*dI/(aJ*aJ*0.8))*ai,p); } } return p; }
 `;
 
 // src/core.js
@@ -127,7 +127,7 @@ var PRESETS = {
 
 // src/gl.js
 var VS_FULL = `#version 300 es
-out vec2 b0; void main(){vec2 b=vec2(float((gl_VertexID<<1)&2),float(gl_VertexID&2));b0=b;gl_Position=vec4(b*2.0 - 1.0,0.0,1.0);}`;
+out vec2 b9; void main(){vec2 b=vec2(float((gl_VertexID<<1)&2),float(gl_VertexID&2));b9=b;gl_Position=vec4(b*2.0 - 1.0,0.0,1.0);}`;
 function program(gl, vs, fs) {
   const sh = (type, src) => {
     const s = gl.createShader(type);
@@ -222,8 +222,8 @@ function frame(now) {
   gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
   gl.useProgram(s.prog.p);
   gl.bindVertexArray(s.vao);
-  gl.uniform2f(u("dP"), vw, vh);
-  gl.uniform1f(u("bf"), dpr);
+  gl.uniform2f(u("d5"), vw, vh);
+  gl.uniform1f(u("br"), dpr);
   const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
   let alive = false;
   for (const it of items) {
@@ -249,14 +249,14 @@ function frame(now) {
     if (x1 <= x0 || y1 <= y0) continue;
     gl.viewport(0, 0, W, H);
     gl.scissor(x0, y0, x1 - x0, y1 - y0);
-    gl.uniform4f(u("k"), b.left, b.top, b.width, b.height);
-    gl.uniform4f(u("af"), it.radii.br, it.radii.tr, it.radii.bl, it.radii.tl);
+    gl.uniform4f(u("m"), b.left, b.top, b.width, b.height);
+    gl.uniform4f(u("ak"), it.radii.br, it.radii.tr, it.radii.bl, it.radii.tl);
     gl.uniform1f(u("a"), it.time);
-    gl.uniform1f(u("c8"), it.level * o.intensity);
-    const f = { dh: o.thickness, aI: o.glow, bd: o.chaos, de: o.scale, be: o.crackle, bw: o.offset };
+    gl.uniform1f(u("dm"), it.level * o.intensity);
+    const f = { dw: o.thickness, aS: o.glow, bp: o.chaos, dt: o.scale, bq: o.crackle, bI: o.offset };
     for (const k in f) gl.uniform1f(u(k), f[k]);
-    gl.uniform3fv(u("az[0]"), it.pal);
-    gl.uniform1i(u("ab"), it.palN);
+    gl.uniform3fv(u("aI[0]"), it.pal);
+    gl.uniform1i(u("af"), it.palN);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }
   gl.disable(gl.SCISSOR_TEST);
@@ -389,15 +389,15 @@ var electric = Object.freeze({
   },
   shader: Object.freeze({ key: "electric", chunk: ELECTRIC_WAVE }),
   uniforms: (c) => ({
-    co: c.jag,
-    aP: c.scale,
-    ao: c.crackle,
-    cB: c.boltWidth,
-    r: c.boltGlow,
-    S: c.chaos,
-    c3: c.bolts,
-    cp: c.rimBolts,
-    bT: 1 / Math.max(c.rimStrength, 0.05)
+    cB: c.jag,
+    aY: c.scale,
+    av: c.crackle,
+    cQ: c.boltWidth,
+    q: c.boltGlow,
+    U: c.chaos,
+    dh: c.bolts,
+    cC: c.rimBolts,
+    b2: 1 / Math.max(c.rimStrength, 0.05)
   })
 });
 export {

@@ -2,7 +2,7 @@
 
 // src/effects/water.js
 var WATER_WAVE = `
-uniform float R,dm,dk,dl,dn; float a2(vec2 b){return fract(sin(dot(b,vec2(127.1,311.7)))*43758.5453);} float bi(vec2 b){ vec2 E=floor(b),q=fract(b);q=q*q*(3.0 - 2.0*q); return mix(mix(a2(E),a2(E + vec2(1,0)),q.x),mix(a2(E + vec2(0,1)),a2(E + vec2(1,1)),q.x),q.y); } float v(vec2 W,vec2 b){ if(!e)return 0.0; return(bi(b/(R*2.5)+ a*0.3)- 0.5)*R*0.5; } vec4 C(vec4 m,vec2 b,vec2 D,float z,float i,vec2 N,float a4){ float c=clamp(0.5 - z*(B.x/l.x),0.0,1.0); if(c<=0.0||!e||j<0.001||i>R*1.5||i<-Q*1.6)return m; vec2 aN=ah(b).n; float ad=min(j*1.5,1.0); float bR=i>0.0?exp(-i/(R*0.35)):exp(i/(Q*0.8)); float eF=av*i/R + a*7.0; vec2 cH=b/R; vec2 cl=vec2(sin(cH.y*1.7 + a*1.6)+ sin(cH.x*1.1 - a*1.2 + cH.y*0.6), cos(cH.x*1.9 - a*1.4)+ cos(cH.y*1.2 + a*1.1 + cH.x*0.7))*0.3; vec2 b3=(aN*cos(eF)+ cl)*dm*bR*ad; vec2 H=b - b3; float cO=i + dot(b3,aN); vec4 A=mix(u(x,f,b,H),u(y,g,b,H),smoothstep(-1.5,1.5,cO)); A +=m*(1.0 - A.a); vec3 bc=d(h(0.4 + i*0.0015/O + a*0.04)); vec3 bo=mix(A.rgb,A.rgb*bc*1.15,dn*bR); vec2 ds=b/(R*0.45)+ cl*2.0; float dQ=sin(ds.x + sin(ds.y*1.3 + a*1.5))+ sin(ds.y*1.1 + sin(ds.x*0.9 - a*1.7)); float dZ=pow(clamp(1.0 - abs(dQ)*0.7,0.0,1.0),5.0); bo +=(dZ*dk*0.4 + smoothstep(0.8,1.0,sin(eF + 0.9))*0.22*bR)*bR*A.a*mix(bc,vec3(1.0),0.5); float eV=bi(b/5.0 + vec2(a*2.0,0.0))*0.6 + bi(b/13.0 - a)*0.4; float d6=smoothstep(0.35,0.7,eV + 0.45 - abs(i + R*0.15)/max(R*0.35,1.0))*dl; bo=mix(bo,vec3(0.97,0.99,1.0)*A.a,clamp(d6,0.0,1.0)); return mix(m,vec4(bo,A.a),clamp(bR*3.0,0.0,1.0)*ad*c); }
+uniform float S,dB,dz,dA,dC; float bd(vec2 b){return fract(sin(dot(b,vec2(127.1,311.7)))*43758.5453);} float bx(vec2 b){ vec2 B=floor(b),o=fract(b);o=o*o*(3.0 - 2.0*o); return mix(mix(bd(B),bd(B + vec2(1,0)),o.x),mix(bd(B + vec2(0,1)),bd(B + vec2(1,1)),o.x),o.y); } float v(vec2 Y,vec2 b){ if(!e)return 0.0; return(bx(b/(S*2.5)+ a*0.3)- 0.5)*S*0.5; } vec4 D(vec4 p,vec2 b,vec2 E,float A,float i,vec2 N,float bh){ float c=clamp(0.5 - A*(I.x/t.x),0.0,1.0); if(c<=0.0||!e||j<0.001||i>S*1.5||i<-R*1.6)return p; vec2 aC=ad(b).n; float ai=min(j*1.5,1.0); float b0=i>0.0?exp(-i/(S*0.35)):exp(i/(R*0.8)); float cM=an*i/S + a*7.0; vec2 cW=b/S; vec2 cz=vec2(sin(cW.y*1.7 + a*1.6)+ sin(cW.x*1.1 - a*1.2 + cW.y*0.6), cos(cW.x*1.9 - a*1.4)+ cos(cW.y*1.2 + a*1.1 + cW.x*0.7))*0.3; vec2 ce=(aC*cos(cM)+ cz)*dB*b0*ai; vec2 C=b - ce; float bM=i + dot(ce,aC); vec4 z=mix(u(x,f,b,C),u(y,g,b,C),smoothstep(-1.5,1.5,bM)); z +=p*(1.0 - z.a); vec3 bo=d(h(0.4 + i*0.0015/L + a*0.04)); vec3 bA=mix(z.rgb,z.rgb*bo*1.15,dC*b0); vec2 dH=b/(S*0.45)+ cz*2.0; float dD=sin(dH.x + sin(dH.y*1.3 + a*1.5))+ sin(dH.y*1.1 + sin(dH.x*0.9 - a*1.7)); float ed=pow(clamp(1.0 - abs(dD)*0.7,0.0,1.0),5.0); bA +=(ed*dz*0.4 + smoothstep(0.8,1.0,sin(cM + 0.9))*0.22*b0)*b0*z.a*mix(bo,vec3(1.0),0.5); float ff=bx(b/5.0 + vec2(a*2.0,0.0))*0.6 + bx(b/13.0 - a)*0.4; float el=smoothstep(0.35,0.7,ff + 0.45 - abs(i + S*0.15)/max(S*0.35,1.0))*dA; bA=mix(bA,vec3(0.97,0.99,1.0)*z.a,clamp(el,0.0,1.0)); return mix(p,vec4(bA,z.a),clamp(b0*3.0,0.0,1.0)*ai*c); }
 `;
 var PRESET = { palette: "ocean", band: 0.4, rimStrength: 0.6 };
 var WATER = {
@@ -31,7 +31,7 @@ var water = Object.freeze({
     c.tint = clamp(v("tint"), 0, 1);
   },
   shader: Object.freeze({ key: "water", chunk: WATER_WAVE }),
-  uniforms: (c) => ({ R: c.wavelength, dm: c.refraction, dk: c.caustics, dl: c.foam, dn: c.tint })
+  uniforms: (c) => ({ S: c.wavelength, dB: c.refraction, dz: c.caustics, dA: c.foam, dC: c.tint })
 });
 export {
   WATER,

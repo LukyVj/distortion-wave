@@ -48,8 +48,8 @@ The wave (the core) is always there. Each other look (see [Effects](#effects)) i
 | `distortion-wave/halftone` | 1.0 kB | `halftone` |
 | `distortion-wave/metal` | 1.1 kB | `metal` |
 | `distortion-wave/water` | 1.2 kB | `water` |
-| `distortion-wave/vine` | 1.9 kB | `vine` |
-| `distortion-wave/all` | 25.9 kB | the core and every look |
+| `distortion-wave/vine` | 2.9 kB | `vine` |
+| `distortion-wave/all` | 26.9 kB | the core and every look |
 
 **Only some looks, with a bundler.** Import the core, then each look from its own entry. Only what you import ships: here 17 + 1.3 + 1.2 kB.
 
@@ -232,7 +232,7 @@ CDN: `https://cdn.jsdelivr.net/npm/distortion-wave@0.3/dist/pixel.js`, or `dist/
 
 ### More looks
 
-Seven more entries, each about 1 to 2 kB gzipped, same pattern: `import { glass } from 'distortion-wave/glass'`, then `effect: glass`. Every wave option still applies; each look adds its own keys (sizes at the 360 × 740 reference scale) and exports their defaults (`GLASS`, `BURN`, `INK`, `HALFTONE`, `METAL`, `WATER`, `VINE`). A key shared by two looks means the same thing in both. A look can also bring its own spark shape (vine's sparks are leaves).
+Seven more entries, each about 1 to 3 kB gzipped, same pattern: `import { glass } from 'distortion-wave/glass'`, then `effect: glass`. Every wave option still applies; each look adds its own keys (sizes at the 360 × 740 reference scale) and exports their defaults (`GLASS`, `BURN`, `INK`, `HALFTONE`, `METAL`, `WATER`, `VINE`). A key shared by two looks means the same thing in both. A look can also bring its own spark shape (vine's sparks are leaves).
 
 **`distortion-wave/glass`** (~1.0 kB gzipped, `window.DistortionWaveGlass` from `dist/glass.iife.min.js`). Behind the front a thick slab of glass bends the content like a lens, splits it into RGB at its slopes and catches the light on its faces. Pale glass palette.
 
@@ -282,7 +282,7 @@ Seven more entries, each about 1 to 2 kB gzipped, same pattern: `import { glass 
 | `caustics`, `foam` | `1`, `1` | light patterns, foam on the front (0 = none) |
 | `tint` | `0.35` | palette tint of the water (0 = clear) |
 
-**`distortion-wave/vine`** (~1.9 kB gzipped, `window.DistortionWaveVine` from `dist/vine.iife.min.js`). Plants. The front is a band of leaves with leafy bumps, green leaves fall behind it, a vine grows around the element as the front passes, and the sparks are leaves. Green palette.
+**`distortion-wave/vine`** (~2.9 kB gzipped, `window.DistortionWaveVine` from `dist/vine.iife.min.js`). Plants. The front is a band of leaves with leafy bumps, green leaves fall behind it, a vine grows around the element as the front passes, and the sparks are leaves. Green palette.
 
 | Key | Default | |
 |---|---|---|
