@@ -57,6 +57,21 @@ await check('mid-transition frames render (screenshots if SHOTS=dir)', async () 
   assert.deepEqual(errors, []);
 });
 
+await check('CSS transitions started by the update are finished before the "after" capture (no snap at the end)', async () => {
+  const { page, errors } = await open();
+  const r = await page.evaluate(async () => {
+    const phone = document.getElementById('phone'), knob = document.createElement('div');
+    knob.style.cssText = 'width:20px;height:20px;background:red;transition:transform 30s linear';
+    phone.appendChild(knob); getComputedStyle(knob).transform;
+    const t = __dw.distortionWave(phone, () => { knob.style.transform = 'translateX(40px)'; }, { source: phone.querySelector('.cta') });
+    await t.finished;
+    const out = { transform: getComputedStyle(knob).transform, running: knob.getAnimations().length };
+    knob.remove(); return out;
+  });
+  assert.equal(r.transform, 'matrix(1, 0, 0, 1, 40, 0)'); assert.equal(r.running, 0);
+  assert.deepEqual(errors, []);
+});
+
 await check('keyboard focus survives an innerHTML update', async () => {
   const { page } = await open();
   await page.focus('#phone .cta'); await page.keyboard.press('Enter');

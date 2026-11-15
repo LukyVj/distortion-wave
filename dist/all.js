@@ -1176,6 +1176,10 @@ var WaveTransition = class {
     this._startLoop();
     await this._runUpdate();
     await nextFrame();
+    for (const a of target.getAnimations?.({ subtree: true }) || []) if (a instanceof CSSTransition) try {
+      a.finish();
+    } catch {
+    }
     await Promise.all([...target.querySelectorAll("img")].map((i) => i.decode?.().catch(() => {
     })));
     if (this._done) return;

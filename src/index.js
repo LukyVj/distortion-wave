@@ -188,6 +188,10 @@ class WaveTransition {
     // 3 · DOM update during the anticipation, then "after" capture
     await this._runUpdate();
     await nextFrame();
+    // CSS transitions the update started (a switch knob, a width, a colour) would be captured at their first
+    // frame, i.e. still looking like "before", and snap into place when the real DOM comes back. The target
+    // is hidden: end them now so the "after" capture is the final state. Infinite animations are left alone.
+    for (const a of target.getAnimations?.({ subtree: true }) || []) if (a instanceof CSSTransition) try { a.finish(); } catch {}
     await Promise.all([...target.querySelectorAll('img')].map((i) => i.decode?.().catch(() => {})));
     if (this._done) return;
     const after = measure(target);
