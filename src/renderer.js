@@ -265,9 +265,10 @@ class Renderer {
     if (this.palKey !== key) { this.palKey = key; this.pal.fill(0); cols.slice(0, 8).forEach((h, i) => this.pal.set(hexToOklab(h), i * 3)); }
     gl.uniform3fv(prog.u('uPal[0]'), this.pal); gl.uniform1i(prog.u('uPalN'), Math.min(cols.length, 8));
   }
-  drawDots(f, square = false) {
+  /** shape: none (round), 'square', or an effect's own fragment shader for the sparks (vA, vR, vPt in, o out). */
+  drawDots(f, shape) {
     if (!(f.dotCount > 0)) return;
-    const gl = this.gl, d = square ? (this.squareDots ||= program(gl, VS_DOTS, FS_DOTS_SQUARE)) : this.dots;
+    const gl = this.gl, d = shape ? ((this.dotShapes ||= {})[shape] ||= program(gl, VS_DOTS, shape === 'square' ? FS_DOTS_SQUARE : shape)) : this.dots;
     gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     gl.useProgram(d.p); gl.uniform2f(d.u('uSize'), f.w, f.h); gl.uniform1f(d.u('uDpr'), f.dpr);
     gl.bindVertexArray(this.dvao); gl.bindBuffer(gl.ARRAY_BUFFER, this.dbuf);
@@ -309,7 +310,7 @@ class Renderer {
       if (variant?.uniforms) for (const k in variant.uniforms) gl.uniform1f(u(k), variant.uniforms[k]);
     }
     gl.bindVertexArray(this.vao); gl.drawArrays(gl.TRIANGLES, 0, 3);
-    this.drawDots(f, variant?.dots === 'square');
+    this.drawDots(f, variant?.dots);
     gl.bindVertexArray(null);
   }
 }

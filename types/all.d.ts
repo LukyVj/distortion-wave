@@ -9,3 +9,4 @@ export * from './ink';
 export * from './halftone';
 export * from './metal';
 export * from './water';
+export * from './vine';

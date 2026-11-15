@@ -2,7 +2,7 @@
 
 // src/effects/halftone.js
 var HALFTONE_WAVE = `
-uniform float ak,bg,cN,cM,dq; float v(vec2 ac,vec2 b){return 0.0;} vec4 y(vec4 p,vec2 b,vec2 E,float w,float j,vec2 I,float bp){ float c=clamp(0.5 - w*(G.x/t.x),0.0,1.0); float x=max(B*cN,ak*3.0); if(c<=0.0||!e||i<0.001||j>x*1.2||j<-x*2.0)return p; vec2 aM=b3(bg)*b/ak,aJ=floor(aM)+ 0.5,aI=b3(-bg)*(aJ*ak); float cw=Z(aI).d; vec4 aA=cw>0.0?n(s,g,aI,aI):n(r,f,aI,aI); if(aA.a<0.01)aA=cw>0.0?n(s,g,b,b):n(r,f,b,b); vec3 q=aA.rgb/max(aA.a,1e-3); float br=dot(q,vec3(0.299,0.587,0.114)); float aH=1.0 - smoothstep(x*0.1,x,cw>0.0?cw:-cw/1.6),ae=min(i*1.5,1.0); bool bP=br>0.5; float m=ak*0.5*cM*sqrt(clamp((bP?1.0 - br:br)*0.9 + 0.1,0.0,1.0))*(0.55 + 0.75*aH); float cp=length((fract(aM)- 0.5)*ak),ep=t.x/G.x; float aU=clamp((m - cp)/ep + 0.5,0.0,1.0); vec3 ea=d(h(aJ.x*0.021 + aJ.y*0.034 + a*0.15)); vec3 dL=mix(bP?q*0.2:q,ea,dq*aH*aH),d8=bP?mix(q,vec3(1.0),0.4):q*0.14; vec4 bI=vec4(mix(d8,dL,aU)*aA.a,aA.a); return mix(p,bI,smoothstep(0.0,0.35,aH)*ae*c); }
+uniform float ap,bt,c5,c4,dJ; float v(vec2 W,vec2 b){return 0.0;} vec4 C(vec4 m,vec2 b,vec2 D,float z,float i,vec2 N,float a4){ float c=clamp(0.5 - z*(B.x/l.x),0.0,1.0); float o=max(w*c5,ap*3.0); if(c<=0.0||!e||j<0.001||i>o*1.2||i<-o*2.0)return m; vec2 aD=bp(bt)*b/ap,au=floor(aD)+ 0.5,aT=bp(-bt)*(au*ap); float cN=ah(aT).d; vec4 aM=cN>0.0?u(y,g,aT,aT):u(x,f,aT,aT); if(aM.a<0.01)aM=cN>0.0?u(y,g,b,b):u(x,f,b,b); vec3 p=aM.rgb/max(aM.a,1e-3); float a7=dot(p,vec3(0.299,0.587,0.114)); float aA=1.0 - smoothstep(o*0.1,o,cN>0.0?cN:-cN/1.6),ad=min(j*1.5,1.0); bool b8=a7>0.5; float n=ap*0.5*c4*sqrt(clamp((b8?1.0 - a7:a7)*0.9 + 0.1,0.0,1.0))*(0.55 + 0.75*aA); float aU=length((fract(aD)- 0.5)*ap),dq=l.x/B.x; float Y=clamp((n - aU)/dq + 0.5,0.0,1.0); vec3 ey=d(h(au.x*0.021 + au.y*0.034 + a*0.15)); vec3 d4=mix(b8?p*0.2:p,ey,dJ*aA*aA),ew=b8?mix(p,vec3(1.0),0.4):p*0.14; vec4 bj=vec4(mix(ew,d4,Y)*aM.a,aM.a); return mix(m,bj,smoothstep(0.0,0.35,aA)*ad*c); }
 `;
 var PRESET = { palette: ["#00AEEF", "#EC008C", "#FFF200", "#FF6A3D"], band: 0.3, rimStrength: 0.55 };
 var HALFTONE = {
@@ -30,7 +30,7 @@ var halftone = Object.freeze({
     c.ink = clamp(v("ink"), 0, 1);
   },
   shader: Object.freeze({ key: "halftone", chunk: HALFTONE_WAVE }),
-  uniforms: (c) => ({ ak: c.cell, bg: c.angle, cN: c.zone, cM: c.size, dq: c.ink })
+  uniforms: (c) => ({ ap: c.cell, bt: c.angle, c5: c.zone, c4: c.size, dJ: c.ink })
 });
 export {
   HALFTONE,

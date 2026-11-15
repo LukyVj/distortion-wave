@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { BASE, resolveConfig } from '../src/core.js';
 
-// The six looks added after electric and pixel: each is the wave with another look, nothing else.
+// The looks added after electric and pixel: each is the wave with another look, nothing else.
 const LOOKS = {
   glass: ['thickness', 'refraction', 'dispersion', 'shine', 'tint'],
   burn: ['roughness', 'scale', 'char', 'heat', 'embers', 'smoke'],
@@ -10,6 +10,7 @@ const LOOKS = {
   halftone: ['cell', 'angle', 'zone', 'size', 'ink'],
   metal: ['thickness', 'wobble', 'ripple', 'shine', 'reflect'],
   water: ['wavelength', 'refraction', 'caustics', 'foam', 'tint'],
+  vine: ['leaf', 'zone', 'bumps', 'fall', 'vine', 'vineWidth'],
 };
 const BEHAVIOUR = ['anticipation', 'travel', 'linger', 'amplitude', 'lensWidth', 'swell', 'aberration', 'blur', 'blurNear', 'blurAhead', 'blurBehind', 'pull', 'inhale', 'lean', 'speed', 'particles'];
 const HEX = /^#[0-9a-f]{6}$/i;

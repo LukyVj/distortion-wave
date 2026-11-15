@@ -22,7 +22,7 @@ await build({ ...common, format: 'esm', outfile: 'dist/distortion-wave.js' });
 await min({ ...common, format: 'esm', outfile: 'dist/distortion-wave.min.js' });
 await min({ ...common, format: 'iife', globalName: 'DistortionWave', outfile: 'dist/distortion-wave.iife.min.js' });
 // Effects ship as their own entries, so the core stays as light when they aren't used.
-const FX = { electric: 'Electric', pixel: 'Pixel', glass: 'Glass', burn: 'Burn', ink: 'Ink', halftone: 'Halftone', metal: 'Metal', water: 'Water' };
+const FX = { electric: 'Electric', pixel: 'Pixel', glass: 'Glass', burn: 'Burn', ink: 'Ink', halftone: 'Halftone', metal: 'Metal', water: 'Water', vine: 'Vine' };
 for (const [name, Global] of Object.entries(FX)) {
   const fx = { ...common, entryPoints: [`src/effects/${name}.js`] };
   await build({ ...fx, format: 'esm', outfile: `dist/${name}.js` });

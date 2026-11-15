@@ -2,7 +2,7 @@
 
 // src/effects/glass.js
 var GLASS_WAVE = `
-uniform float cU,cT,cm,cl,cV; float v(vec2 ac,vec2 b){return 0.0;} vec4 bR(vec2 b,vec2 A,float cp){return mix(n(r,f,b,A),n(s,g,b,A),smoothstep(-1.5,1.5,cp));} vec4 y(vec4 p,vec2 b,vec2 E,float w,float j,vec2 I,float bp){ float c=clamp(0.5 - w*(G.x/t.x),0.0,1.0); float bI=cm*0.5,V=(j + bI)/bI; if(c<=0.0||!e||i<0.001||abs(V)>=1.0)return p; vec2 aB=Z(b).n; float z=sqrt(1.0 - V*V),cs=V/max(z,0.3),ae=min(i*1.5,1.0); vec2 bK=aB*(cU*cs*ae),cy=aB*(cT*cs*ae); float cx=j - dot(bK,aB); vec4 m=bR(b,b - bK - cy,cx - dot(cy,aB)),aM=bR(b,b - bK,cx),H=bR(b,b - bK + cy,cx + dot(cy,aB)); vec4 aV=vec4(m.r,aM.g,H.b,max(max(m.a,aM.a),H.a)); aV +=p*(1.0 - aV.a); float R=(K?atan(I.y,I.x)/aF:I.x*0.003/Q)+ a*0.08; vec3 a2=d(h(R + V*0.15)); aV.rgb=mix(aV.rgb,aV.rgb*a2,cV*z); float cH=exp(-pow((V + 0.42)/0.11,2.0))*(0.75 + 0.25*sin(R*40.0 + a*2.0))+ 0.45*exp(-pow((V - 0.55)/0.08,2.0)); float dO=pow(1.0 - z,3.0); float ew=clamp((cH + dO*0.8)*cl,0.0,1.0)*aV.a; aV=vec4(mix(aV.rgb,mix(a2,vec3(1.0),0.75)*aV.a,ew),aV.a); return mix(p,aV,smoothstep(1.0,0.85,abs(V))*ae*c); }
+uniform float dc,db,cF,cE,dd; float v(vec2 W,vec2 b){return 0.0;} vec4 ca(vec2 b,vec2 H,float aU){return mix(u(x,f,b,H),u(y,g,b,H),smoothstep(-1.5,1.5,aU));} vec4 C(vec4 m,vec2 b,vec2 D,float z,float i,vec2 N,float a4){ float c=clamp(0.5 - z*(B.x/l.x),0.0,1.0); float bj=cF*0.5,ac=(i + bj)/bj; if(c<=0.0||!e||j<0.001||abs(ac)>=1.0)return m; vec2 aN=ah(b).n; float A=sqrt(1.0 - ac*ac),cK=ac/max(A,0.3),ad=min(j*1.5,1.0); vec2 b3=aN*(dc*cK*ad),cQ=aN*(db*cK*ad); float cO=i - dot(b3,aN); vec4 n=ca(b,b - b3 - cQ,cO - dot(cQ,aN)),aD=ca(b,b - b3,cO),J=ca(b,b - b3 + cQ,cO + dot(cQ,aN)); vec4 a5=vec4(n.r,aD.g,J.b,max(max(n.a,aD.a),J.a)); a5 +=m*(1.0 - a5.a); float X=(K?atan(N.y,N.x)/av:N.x*0.003/O)+ a*0.08; vec3 bc=d(h(X + ac*0.15)); a5.rgb=mix(a5.rgb,a5.rgb*bc,dd*A); float cZ=exp(-pow((ac + 0.42)/0.11,2.0))*(0.75 + 0.25*sin(X*40.0 + a*2.0))+ 0.45*exp(-pow((ac - 0.55)/0.08,2.0)); float d7=pow(1.0 - A,3.0); float eZ=clamp((cZ + d7*0.8)*cE,0.0,1.0)*a5.a; a5=vec4(mix(a5.rgb,mix(bc,vec3(1.0),0.75)*a5.a,eZ),a5.a); return mix(m,a5,smoothstep(1.0,0.85,abs(ac))*ad*c); }
 `;
 var PRESET = { palette: ["#DFF6FF", "#9FDCFF", "#C9B8FF", "#FFFFFF", "#B8FFF0"], band: 0.3, rimStrength: 0.55 };
 var GLASS = {
@@ -30,7 +30,7 @@ var glass = Object.freeze({
     c.tint = v("tint");
   },
   shader: Object.freeze({ key: "glass", chunk: GLASS_WAVE }),
-  uniforms: (c) => ({ cU: c.refraction, cT: c.dispersion, cm: c.thickness, cl: c.shine, cV: c.tint })
+  uniforms: (c) => ({ dc: c.refraction, db: c.dispersion, cF: c.thickness, cE: c.shine, dd: c.tint })
 });
 export {
   GLASS,

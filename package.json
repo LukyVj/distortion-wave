@@ -43,6 +43,10 @@
       "types": "./types/water.d.ts",
       "import": "./dist/water.js"
     },
+    "./vine": {
+      "types": "./types/vine.d.ts",
+      "import": "./dist/vine.js"
+    },
     "./all": {
       "types": "./types/all.d.ts",
       "import": "./dist/all.js"

@@ -15,3 +15,4 @@ export * from './effects/ink.js';
 export * from './effects/halftone.js';
 export * from './effects/metal.js';
 export * from './effects/water.js';
+export * from './effects/vine.js';
