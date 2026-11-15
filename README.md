@@ -39,18 +39,19 @@ The wave (the core) is always there. Each other look (see [Effects](#effects)) i
 
 | Entry | Gzipped | What's in it |
 |---|---|---|
-| `distortion-wave` | 16.9 kB | the wave, the API, every option |
+| `distortion-wave` | 17.0 kB | the wave, the API, every option |
 | `distortion-wave/electric` | 5.8 kB | `electric`, `electricBorder` |
-| `distortion-wave/pixel` | 1.1 kB | `pixel` |
+| `distortion-wave/pixel` | 1.2 kB | `pixel` |
 | `distortion-wave/glass` | 1.0 kB | `glass` |
 | `distortion-wave/burn` | 1.3 kB | `burn` |
 | `distortion-wave/ink` | 1.2 kB | `ink` |
 | `distortion-wave/halftone` | 1.0 kB | `halftone` |
 | `distortion-wave/metal` | 1.1 kB | `metal` |
 | `distortion-wave/water` | 1.2 kB | `water` |
-| `distortion-wave/all` | 24.6 kB | the core and every look |
+| `distortion-wave/vine` | 1.9 kB | `vine` |
+| `distortion-wave/all` | 25.9 kB | the core and every look |
 
-**Only some looks, with a bundler.** Import the core, then each look from its own entry. Only what you import ships: here 16.9 + 1.3 + 1.2 kB.
+**Only some looks, with a bundler.** Import the core, then each look from its own entry. Only what you import ships: here 17 + 1.3 + 1.2 kB.
 
 ```js
 import { distortionWave } from 'distortion-wave';
@@ -231,7 +232,7 @@ CDN: `https://cdn.jsdelivr.net/npm/distortion-wave@0.3/dist/pixel.js`, or `dist/
 
 ### More looks
 
-Six more entries, each about 1 to 1.3 kB gzipped, same pattern: `import { glass } from 'distortion-wave/glass'`, then `effect: glass`. Every wave option still applies; each look adds its own keys (sizes at the 360 × 740 reference scale) and exports their defaults (`GLASS`, `BURN`, `INK`, `HALFTONE`, `METAL`, `WATER`). A key shared by two looks means the same thing in both.
+Seven more entries, each about 1 to 2 kB gzipped, same pattern: `import { glass } from 'distortion-wave/glass'`, then `effect: glass`. Every wave option still applies; each look adds its own keys (sizes at the 360 × 740 reference scale) and exports their defaults (`GLASS`, `BURN`, `INK`, `HALFTONE`, `METAL`, `WATER`, `VINE`). A key shared by two looks means the same thing in both. A look can also bring its own spark shape (vine's sparks are leaves).
 
 **`distortion-wave/glass`** (~1.0 kB gzipped, `window.DistortionWaveGlass` from `dist/glass.iife.min.js`). Behind the front a thick slab of glass bends the content like a lens, splits it into RGB at its slopes and catches the light on its faces. Pale glass palette.
 
@@ -280,6 +281,15 @@ Six more entries, each about 1 to 1.3 kB gzipped, same pattern: `import { glass 
 | `wavelength`, `refraction` | `44`, `9` px | distance between ripples, how far they bend the content |
 | `caustics`, `foam` | `1`, `1` | light patterns, foam on the front (0 = none) |
 | `tint` | `0.35` | palette tint of the water (0 = clear) |
+
+**`distortion-wave/vine`** (~1.9 kB gzipped, `window.DistortionWaveVine` from `dist/vine.iife.min.js`). Plants. The front is a band of leaves with leafy bumps, green leaves fall behind it, a vine grows around the element as the front passes, and the sparks are leaves. Green palette.
+
+| Key | Default | |
+|---|---|---|
+| `leaf`, `zone` | `26` px, `0.8` | leaf size, depth of the foliage around the front |
+| `bumps` | `14` | leafy bumps along the front (0 = smooth) |
+| `fall`, `vine` | `1`, `1` | falling leaves, the vine around the element (0 = none) |
+| `vineWidth` | `2.5` px | width of the stem |
 
 ## Examples
 
@@ -365,7 +375,7 @@ The `center` variant has its own values: see `PRESETS.center`.
 - `distortion-wave/electric`: `electric`, `electricBorder`, `ELECTRIC`, `BORDER` (see Effects).
 - `distortion-wave/pixel`: `pixel`, `PIXEL` (see Effects).
 - `distortion-wave/all`: everything above and every effect, in one entry.
-- `distortion-wave/glass`, `/burn`, `/ink`, `/halftone`, `/metal`, `/water`: the look and its defaults, like `glass` and `GLASS` (see More looks).
+- `distortion-wave/glass`, `/burn`, `/ink`, `/halftone`, `/metal`, `/water`, `/vine`: the look and its defaults, like `glass` and `GLASS` (see More looks).
 
 ## How it works
 

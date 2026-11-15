@@ -26,8 +26,9 @@ import { ink } from "distortion-wave/ink";
 import { halftone } from "distortion-wave/halftone";
 import { metal } from "distortion-wave/metal";
 import { water } from "distortion-wave/water";
+import { vine } from "distortion-wave/vine";
 
-export const EFFECTS = { electric, pixel, glass, burn, ink, halftone, metal, water };
+export const EFFECTS = { electric, pixel, glass, burn, ink, halftone, metal, water, vine };
 export type EffectName = "wave" | keyof typeof EFFECTS;
 
 export const TUNING = {
@@ -191,6 +192,17 @@ const FX_TUNING = {
       { key: "caustics", label: "Caustics", min: 0, max: 3, step: 0.05, unit: "" },
       { key: "foam", label: "Foam", min: 0, max: 2, step: 0.05, unit: "" },
       { key: "tint", label: "Tint", min: 0, max: 1, step: 0.05, unit: "" },
+    ],
+  },
+  vine: {
+    label: "Vine",
+    keys: [
+      { key: "leaf", label: "Leaf size", min: 6, max: 60, step: 1, unit: "px" },
+      { key: "zone", label: "Foliage depth", min: 0.2, max: 2, step: 0.05, unit: "×" },
+      { key: "bumps", label: "Leafy bumps", min: 0, max: 40, step: 1, unit: "" },
+      { key: "fall", label: "Falling leaves", min: 0, max: 3, step: 0.05, unit: "" },
+      { key: "vine", label: "Vine around", min: 0, max: 2, step: 0.05, unit: "" },
+      { key: "vineWidth", label: "Stem width", min: 1, max: 8, step: 0.5, unit: "px" },
     ],
   },
 } as const;

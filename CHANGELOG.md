@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- `distortion-wave/vine`, a new look (~1.9 kB gzipped): plants. The front is a band of leaves, green leaves fall behind it, a vine grows around the element and the sparks are leaves. Keys: `leaf`, `zone`, `bumps`, `fall`, `vine`, `vineWidth`. Also in `distortion-wave/all`.
+- An effect can bring its own spark shape (`shader.dots`, a fragment shader). The plain wave draws the same pixels as before.
+
 ## 0.3.0 — 2026-11-15
 
 - Effects: `effect` option on `distortionWave()` and `setWaveDefaults()`. An effect keeps the wave's behaviour (timing, lens, blur, sparks) and changes its look. The plain wave stays the default and the only look in the core bundle.

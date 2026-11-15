@@ -144,6 +144,15 @@ const LOOKS: LookCard[] = [
     meta: ["Last backup 12 days ago.", "Synced to the cloud just now."],
     action: ["Back up", "Back up again"],
   },
+  {
+    effect: "vine",
+    name: "Vine",
+    caption: "The front is a band of leaves, leaves fall behind it, a vine grows around the card and the sparks are leaves.",
+    tag: ["Seedling", "In bloom"],
+    title: ["Garden, week 1", "Garden, week 6"],
+    meta: ["Water every two days.", "Ready to repot."],
+    action: ["Next week", "Back to week 1"],
+  },
 ];
 
 function Look({ effect, paper, tag, title, meta, action }: LookCard) {

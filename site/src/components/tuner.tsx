@@ -11,6 +11,7 @@ import { INK } from "distortion-wave/ink";
 import { HALFTONE } from "distortion-wave/halftone";
 import { METAL } from "distortion-wave/metal";
 import { WATER } from "distortion-wave/water";
+import { VINE } from "distortion-wave/vine";
 import { Button } from "@ui-sdk/react/button";
 import {
   ColorPicker,
@@ -78,10 +79,11 @@ const EFFECT_ITEMS: { value: Settings["effect"]; label: string }[] = [
   { value: "halftone", label: "Halftone" },
   { value: "metal", label: "Liquid metal" },
   { value: "water", label: "Water" },
+  { value: "vine", label: "Vine" },
 ];
 
 const BASE = PRESETS.vertical as Record<string, number>;
-const KEYS = { electric: ELECTRIC, pixel: PIXEL, glass: GLASS, burn: BURN, ink: INK, halftone: HALFTONE, metal: METAL, water: WATER };
+const KEYS = { electric: ELECTRIC, pixel: PIXEL, glass: GLASS, burn: BURN, ink: INK, halftone: HALFTONE, metal: METAL, water: WATER, vine: VINE };
 const preset = (e: keyof typeof EFFECTS) => (EFFECTS[e] as unknown as { preset: Record<string, number> }).preset;
 const BASES = Object.fromEntries([
   ["wave", BASE],
