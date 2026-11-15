@@ -889,6 +889,61 @@ p {
 
 /* Install */
 
+.download {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.download-picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.download-pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.download-pick[data-core] {
+  cursor: default;
+  color: var(--muted);
+}
+
+.download-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+}
+
+.download-bar p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.download .code-panel {
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--bg);
+}
+
+.download .code-panel pre {
+  overflow-x: auto;
+}
+
 .steps {
   margin: 0;
   padding: 0;

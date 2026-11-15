@@ -5,6 +5,7 @@ import { Effects } from "@/components/effects";
 import { Faq } from "@/components/faq";
 import { Hero } from "@/components/hero";
 import { Shell } from "@/components/shell";
+import { Download } from "@/components/download";
 import { FrameworkTabs, InstallTabs } from "@/components/install";
 import { Tuner } from "@/components/tuner";
 import { WaveProvider } from "@/components/wave";
@@ -69,6 +70,15 @@ export default function Home() {
               <li>
                 <h3>Add the package</h3>
                 <InstallTabs />
+              </li>
+              <li>
+                <h3>Or download one file, with only the looks you use</h3>
+                <p className="step-note">
+                  The wave is always in. Each look adds 1 to 1.5 kB gzipped (electric about 6 kB), everything is
+                  about 25 kB. With a bundler you don&apos;t need this: import each look from its own entry and
+                  only what you import ships.
+                </p>
+                <Download />
               </li>
               <li>
                 <h3>Pass the element and the change</h3>
