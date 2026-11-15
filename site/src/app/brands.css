@@ -1,0 +1,452 @@
+/* Branding tracks. Picked with ?brand=<name> (components/brand.tsx).
+   Each block only overrides tokens, type and the hero; everything else follows. */
+
+/* Shared mark in the wordmark */
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.mark { display: block; flex: none; }
+.mark-tile { fill: var(--mark-tile, var(--text)); }
+.mark-wave { stroke: var(--mark-wave, var(--bg)); }
+.mark-wave-2 { stroke: var(--mark-wave-2, transparent); }
+
+/* ───────────────────────── 1. Le front — black & white, aurora only in the wave ─── */
+
+.page[data-brand="front"] {
+  --bg: #0a0a0a;
+  --surface: #141414;
+  --card: #1a1a1a;
+  --chalk: #f2f2f2;
+  --text: #f5f5f5;
+  --muted: #9a9a9a;
+  --rule: #2a2a2a;
+  --wire: #6a6a6a;
+  --hole: #262626;
+  --fill: #222;
+  --inline-code: #222;
+  --code-bg: #000;
+  --code-fg: #eee;
+  --code-edge: #444;
+  --code-hover: #161616;
+  --btn-bg: #fff;
+  --btn-fg: #000;
+  --btn-hover: #d9d9d9;
+  --like-bg: #2a1a22;
+  --like-fg: #ff9db5;
+  --like-edge: #5a2a3a;
+  --ok-bg: #16281c;
+  --ok-fg: #93e8b3;
+  --ring: #bdbdbd;
+  --ring-border: #fff;
+  --aurora: linear-gradient(90deg, #ff4fd8, #a35bff, #5b7cff, #38d9ff, #ffd36b, #ff7a5c);
+  --mark-tile: #fff;
+  --mark-wave: #000;
+  color-scheme: dark;
+}
+.page[data-brand="front"] .wordmark-text {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-stretch: 125%;
+  font-size: 0.85rem;
+}
+.page[data-brand="front"] .top {
+  border-bottom: 1px solid var(--rule);
+  position: relative;
+}
+.page[data-brand="front"] .top::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 160px;
+  height: 2px;
+  background: var(--aurora);
+}
+.page[data-brand="front"] .stage {
+  background: #fff;
+  color: #000;
+  border-radius: 0;
+  border: 1px solid #fff;
+  --note: #555;
+  --line: #ddd;
+  --btn-bg: #000;
+  --btn-fg: #fff;
+  --btn-hover: #333;
+  --wire: #999;
+  --fill: #eee;
+  min-height: min(620px, 82vh);
+}
+.page[data-brand="front"] .hero-title {
+  font-size: clamp(3rem, 9.5vw, 8.5rem);
+  font-weight: 800;
+  font-stretch: 125%;
+  letter-spacing: -0.045em;
+  line-height: 0.9;
+  text-transform: uppercase;
+  max-width: 11ch;
+}
+.page[data-brand="front"] .hero-note {
+  font: 0.9rem/1.6 var(--font-mono), monospace;
+  max-width: 48ch;
+}
+.page[data-brand="front"] .hero-call { border-top: 2px solid #000; color: #000; }
+.page[data-brand="front"] .section-head h2 {
+  text-transform: uppercase;
+  font-stretch: 125%;
+  letter-spacing: -0.02em;
+  font-size: clamp(1.4rem, 2.6vw, 2.1rem);
+}
+.page[data-brand="front"] .section-head h2::before {
+  content: "";
+  display: block;
+  width: 56px;
+  height: 3px;
+  margin-bottom: 18px;
+  background: var(--aurora);
+}
+.page[data-brand="front"] .demo-body,
+.page[data-brand="front"] .stage { border-radius: 2px; }
+
+/* ───────────────────────── 2. Piscine — tiles, chlorine, a serif that floats ─── */
+
+.page[data-brand="piscine"] {
+  --bg: #d9f0f6;
+  --surface: #eaf8fb;
+  --card: #ffffff;
+  --chalk: #bfe6f0;
+  --text: #063a4d;
+  --muted: #3a6f80;
+  --rule: #a9dbe8;
+  --wire: #5fb2c8;
+  --hole: #b6e2ec;
+  --fill: #d2eef5;
+  --inline-code: #cdeaf2;
+  --code-bg: #063a4d;
+  --code-fg: #e4f7fb;
+  --code-edge: #3f8aa0;
+  --code-hover: #0b4d64;
+  --btn-bg: #0b9bbf;
+  --btn-fg: #ffffff;
+  --btn-hover: #0885a4;
+  --like-bg: #ffe9e2;
+  --like-fg: #c6472a;
+  --like-edge: #ffb59f;
+  --ok-bg: #dff6e8;
+  --ok-fg: #166534;
+  --ring: #0b9bbf;
+  --ring-border: #063a4d;
+  --tile: #7fd6ea;
+  --grout: #ffffff;
+  --buoy: #ff7a5c;
+  --mark-tile: var(--tile);
+  --mark-wave: #fff;
+}
+.page[data-brand="piscine"] .wordmark-text {
+  font: italic 400 1.35rem/1 var(--font-piscine), serif;
+  letter-spacing: 0;
+}
+.page[data-brand="piscine"] .stage {
+  color: #063a4d;
+  --note: #1f5d70;
+  --line: rgba(6, 58, 77, 0.25);
+  border-radius: 34px;
+  background:
+    radial-gradient(60% 40% at 70% 20%, rgba(255, 255, 255, 0.55), transparent 70%),
+    repeating-linear-gradient(0deg, var(--grout) 0 2px, transparent 2px 44px),
+    repeating-linear-gradient(90deg, var(--grout) 0 2px, transparent 2px 44px),
+    linear-gradient(180deg, #8fdcee, var(--tile));
+  box-shadow: inset 0 0 0 6px var(--grout), inset 0 0 0 8px var(--tile);
+}
+.page[data-brand="piscine"] .hero-title {
+  font: italic 400 clamp(3.2rem, 9vw, 8rem) / 0.92 var(--font-piscine), serif;
+  letter-spacing: -0.02em;
+  max-width: 14ch;
+  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.5);
+}
+.page[data-brand="piscine"] .hero-note { color: #0b4d64; }
+.page[data-brand="piscine"] .stage .btn-primary {
+  background: var(--buoy);
+  border-color: var(--buoy);
+  border-radius: 999px;
+}
+.page[data-brand="piscine"] .stage .btn-primary:hover:not([data-disabled]) { background: #f0664a; }
+.page[data-brand="piscine"] .stage .install-chip { border-radius: 999px; background-color: rgba(255, 255, 255, 0.6); }
+.page[data-brand="piscine"] .section-head h2 {
+  font: italic 400 clamp(2rem, 3.8vw, 3rem) / 1.02 var(--font-piscine), serif;
+  letter-spacing: -0.01em;
+}
+.page[data-brand="piscine"] .demo-body {
+  background-image:
+    repeating-linear-gradient(0deg, var(--grout) 0 1px, transparent 1px 22px),
+    repeating-linear-gradient(90deg, var(--grout) 0 1px, transparent 1px 22px);
+  background-color: #cfeef5;
+  background-position: 0 0;
+}
+.page[data-brand="piscine"] .btn,
+.page[data-brand="piscine"] .install-chip { border-radius: 999px; }
+
+/* ───────────────────────── 3. Riso — paper, fluo pink + blue, slightly off register ─── */
+
+.page[data-brand="riso"] {
+  --paper: #f3eee2;
+  --pink: #ff48b0;
+  --blue: #0078bf;
+  --ink: #1c1a19;
+  --bg: var(--paper);
+  --surface: #ebe4d3;
+  --card: #f8f4ea;
+  --chalk: #e3dbc6;
+  --text: var(--ink);
+  --muted: #5a554f;
+  --rule: #cdc3aa;
+  --wire: #8c8371;
+  --hole: #d6ccb2;
+  --fill: #e6dfcc;
+  --inline-code: #e6dfcc;
+  --code-bg: var(--ink);
+  --code-fg: #f3eee2;
+  --code-edge: #6a635a;
+  --code-hover: #2a2725;
+  --btn-bg: var(--pink);
+  --btn-fg: var(--ink);
+  --btn-hover: #ff2fa3;
+  --like-bg: #ffd6ec;
+  --like-fg: #b4126f;
+  --like-edge: var(--pink);
+  --ok-bg: #d7ebf8;
+  --ok-fg: #004f80;
+  --ring: var(--blue);
+  --ring-border: var(--ink);
+  --mark-tile: var(--pink);
+  --mark-wave: var(--ink);
+  --mark-wave-2: var(--blue);
+  position: relative;
+}
+.page[data-brand="riso"]::after {
+  /* paper grain */
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.35;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0.5 0'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
+  z-index: 10;
+}
+.page[data-brand="riso"] .mark-wave-2 { mix-blend-mode: multiply; }
+.page[data-brand="riso"] .wordmark-text {
+  font: 800 1rem/1 var(--font-riso), sans-serif;
+  font-stretch: 72%;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.page[data-brand="riso"] .stage {
+  background: var(--blue);
+  color: var(--paper);
+  border-radius: 6px;
+  --note: #d7ebf8;
+  --line: rgba(243, 238, 226, 0.4);
+  --btn-bg: var(--pink);
+  --btn-fg: var(--ink);
+  --wire: #9cc9e6;
+  --fill: #1f8ccb;
+  outline: 3px solid var(--pink);
+  outline-offset: 6px;
+}
+.page[data-brand="riso"] .hero-title {
+  font: 900 clamp(3.4rem, 11vw, 10rem) / 0.86 var(--font-riso), sans-serif;
+  font-stretch: 65%;
+  text-transform: uppercase;
+  letter-spacing: -0.015em;
+  max-width: 12ch;
+  color: var(--paper);
+  text-shadow: 4px 3px 0 var(--pink);
+}
+.page[data-brand="riso"] .hero-note { font-weight: 500; }
+.page[data-brand="riso"] .section-head h2 {
+  font: 900 clamp(1.9rem, 4vw, 3.2rem) / 0.9 var(--font-riso), sans-serif;
+  font-stretch: 68%;
+  text-transform: uppercase;
+  color: var(--blue);
+  text-shadow: 2px 2px 0 var(--pink);
+}
+.page[data-brand="riso"] .btn,
+.page[data-brand="riso"] .install-chip,
+.page[data-brand="riso"] .demo-body,
+.page[data-brand="riso"] .price-card,
+.page[data-brand="riso"] .project,
+.page[data-brand="riso"] .setting,
+.page[data-brand="riso"] .review,
+.page[data-brand="riso"] .product,
+.page[data-brand="riso"] .checklist,
+.page[data-brand="riso"] .shipping,
+.page[data-brand="riso"] .quantity,
+.page[data-brand="riso"] .releases,
+.page[data-brand="riso"] .align { border-radius: 4px; }
+.page[data-brand="riso"] .demo-body {
+  background-image: radial-gradient(circle, var(--blue) 1px, transparent 1.4px);
+  background-size: 8px 8px;
+  background-position: 0 0;
+  background-color: #f8f4ea;
+}
+
+/* ───────────────────────── 4. Chrome — dark anodised, silver type, electric accent ─── */
+
+.page[data-brand="chrome"] {
+  --bg: #0b0c10;
+  --surface: #13151b;
+  --card: #1a1d25;
+  --chalk: #e8e9ee;
+  --text: #e8e9ee;
+  --muted: #9298a8;
+  --rule: #272a35;
+  --wire: #5d6377;
+  --hole: #22252f;
+  --fill: #22252f;
+  --inline-code: #22252f;
+  --code-bg: #05060a;
+  --code-fg: #e8e9ee;
+  --code-edge: #3b4050;
+  --code-hover: #11131a;
+  --btn-bg: #e8e9ee;
+  --btn-fg: #0b0c10;
+  --btn-hover: #fff;
+  --like-bg: #2a1620;
+  --like-fg: #ff9db5;
+  --like-edge: #5a2a3a;
+  --ok-bg: #0f2a24;
+  --ok-fg: #8ff7ff;
+  --ring: #8ff7ff;
+  --ring-border: #c6fbff;
+  --electric: #8ff7ff;
+  --chrome: linear-gradient(180deg, #ffffff 0%, #c9ccd6 38%, #6d7282 50%, #e5e7ee 62%, #8b90a0 100%);
+  --mark-tile: #e8e9ee;
+  --mark-wave: #0b0c10;
+  color-scheme: dark;
+}
+.page[data-brand="chrome"] .mark-tile { fill: #c9ccd6; }
+.page[data-brand="chrome"] .wordmark-text {
+  font: 500 0.82rem/1 var(--font-chrome), sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
+}
+.page[data-brand="chrome"] .stage {
+  color: var(--text);
+  --note: #a7acbb;
+  --line: #2f3340;
+  --btn-bg: var(--electric);
+  --btn-fg: #06151a;
+  --btn-hover: #c6fbff;
+  border-radius: 24px;
+  border: 1px solid #2a2e3a;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, #1b1e27, #0e1015);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 40px 80px -40px rgba(143, 247, 255, 0.25);
+}
+.page[data-brand="chrome"] .hero-title {
+  font: 800 clamp(2.4rem, 7vw, 6rem) / 0.95 var(--font-chrome), sans-serif;
+  letter-spacing: -0.03em;
+  max-width: 12ch;
+  background: var(--chrome);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.page[data-brand="chrome"] .hero-call { color: var(--electric); }
+.page[data-brand="chrome"] .section-head h2 {
+  font: 700 clamp(1.5rem, 2.8vw, 2.3rem) / 1 var(--font-chrome), sans-serif;
+  letter-spacing: -0.02em;
+  background: var(--chrome);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.page[data-brand="chrome"] .demo-body {
+  border: 1px solid #23262f;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+.page[data-brand="chrome"] .wordmark { gap: 12px; }
+
+/* ───────────────────────── 5. Journal — newsprint, halftone, one spot red ─── */
+
+.page[data-brand="journal"] {
+  --bg: #f4f1ea;
+  --surface: #eceae1;
+  --card: #faf8f3;
+  --chalk: #e4e1d6;
+  --text: #141414;
+  --muted: #5c5a55;
+  --rule: #141414;
+  --wire: #8c8a84;
+  --hole: #c8c5bb;
+  --fill: #e8e5dc;
+  --inline-code: #e8e5dc;
+  --code-bg: #141414;
+  --code-fg: #f4f1ea;
+  --code-edge: #555;
+  --code-hover: #262626;
+  --btn-bg: #141414;
+  --btn-fg: #f4f1ea;
+  --btn-hover: #e4442a;
+  --like-bg: #fde3dd;
+  --like-fg: #b3331c;
+  --like-edge: #e4442a;
+  --ok-bg: #e4e1d6;
+  --ok-fg: #141414;
+  --ring: #e4442a;
+  --ring-border: #141414;
+  --spot: #e4442a;
+  --mark-tile: #141414;
+  --mark-wave: var(--spot);
+}
+.page[data-brand="journal"] .wordmark-text {
+  font: 900 1.2rem/1 var(--font-journal), serif;
+  font-variation-settings: "SOFT" 30, "WONK" 1, "opsz" 144;
+  letter-spacing: -0.02em;
+}
+.page[data-brand="journal"] .top {
+  border-bottom: 3px double var(--text);
+}
+.page[data-brand="journal"] .stage {
+  border-radius: 0;
+  background-color: var(--surface);
+  background-image: radial-gradient(circle, rgba(20, 20, 20, 0.22) 1.6px, transparent 2px);
+  background-size: 7px 7px;
+  --note: #2b2a27;
+  --line: var(--text);
+  border-top: 1px solid var(--text);
+  border-bottom: 1px solid var(--text);
+}
+.page[data-brand="journal"] .hero-title {
+  font: 900 clamp(3rem, 9vw, 8rem) / 0.9 var(--font-journal), serif;
+  font-variation-settings: "SOFT" 40, "WONK" 1, "opsz" 144;
+  letter-spacing: -0.035em;
+  max-width: 13ch;
+}
+.page[data-brand="journal"] .hero-title::first-letter { color: var(--spot); }
+.page[data-brand="journal"] .hero-note {
+  font: 0.86rem/1.6 var(--font-mono), monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  max-width: 60ch;
+}
+.page[data-brand="journal"] .stage .btn-primary { background: var(--spot); border-color: var(--spot); color: #fff; border-radius: 0; }
+.page[data-brand="journal"] .stage .btn-primary:hover:not([data-disabled]) { background: #141414; }
+.page[data-brand="journal"] .section-head h2 {
+  font: 900 clamp(1.9rem, 3.6vw, 2.9rem) / 0.95 var(--font-journal), serif;
+  font-variation-settings: "SOFT" 40, "WONK" 1, "opsz" 144;
+  letter-spacing: -0.03em;
+  padding-top: 14px;
+  border-top: 3px double var(--text);
+}
+.page[data-brand="journal"] .btn,
+.page[data-brand="journal"] .install-chip,
+.page[data-brand="journal"] .demo-body { border-radius: 0; }
+.page[data-brand="journal"] .demo-body {
+  border: 1px solid var(--text);
+  background-image: radial-gradient(circle, rgba(20, 20, 20, 0.16) 1.2px, transparent 1.6px);
+  background-size: 6px 6px;
+}
