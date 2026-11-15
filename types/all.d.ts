@@ -10,3 +10,4 @@ export * from './halftone';
 export * from './metal';
 export * from './water';
 export * from './vine';
+export * from './christmas';

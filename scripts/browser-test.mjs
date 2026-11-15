@@ -219,7 +219,7 @@ await check('pixel: the same wave with a pixel look, square sparks, DOM restored
   assert.deepEqual(errors, []);
 });
 
-for (const [name, Global] of [['glass', 'Glass'], ['burn', 'Burn'], ['ink', 'Ink'], ['halftone', 'Halftone'], ['metal', 'Metal'], ['water', 'Water'], ['vine', 'Vine']]) {
+for (const [name, Global] of [['glass', 'Glass'], ['burn', 'Burn'], ['ink', 'Ink'], ['halftone', 'Halftone'], ['metal', 'Metal'], ['water', 'Water'], ['vine', 'Vine'], ['christmas', 'Christmas']]) {
   await check(`${name}: the same wave with the ${name} look, its shader compiles minified, DOM restored`, async () => {
     const { page, errors } = await open();
     await page.addScriptTag({ path: resolve(`dist/${name}.iife.min.js`) });
@@ -240,11 +240,11 @@ await check('all: one script puts the core and every effect on window.Distortion
   await page.addScriptTag({ path: resolve('dist/all.iife.min.js') });
   const r = await page.evaluate(async () => {
     const DW = window.DistortionWave, phone = document.getElementById('phone');
-    const names = ['electric', 'pixel', 'glass', 'burn', 'ink', 'halftone', 'metal', 'water', 'vine'].filter((n) => DW[n]?.shader);
+    const names = ['electric', 'pixel', 'glass', 'burn', 'ink', 'halftone', 'metal', 'water', 'vine', 'christmas'].filter((n) => DW[n]?.shader);
     await DW.distortionWave(phone, () => { phone.dataset.all = '1'; }, { effect: DW.water }).finished;
     return { names: names.length, border: typeof DW.electricBorder, done: phone.dataset.all, canvases: document.querySelectorAll('canvas').length };
   });
-  assert.deepEqual(r, { names: 9, border: 'function', done: '1', canvases: 0 });
+  assert.deepEqual(r, { names: 10, border: 'function', done: '1', canvases: 0 });
   assert.deepEqual(errors, []);
 });
 

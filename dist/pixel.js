@@ -2,7 +2,7 @@
 
 // src/effects/pixel.js
 var PIXEL_WAVE = `
-uniform float G,d2,dp,a0,dn,cD,cE,b5; float cw(vec2 E){return fract(sin(dot(E,vec2(127.1,311.7)))*43758.5453);} float v(vec2 Y,vec2 b){return 0.0;} vec4 D(vec4 p,vec2 b,vec2 E,float A,float i,vec2 N,float bh){ float c=clamp(0.5 - A*(I.x/t.x),0.0,1.0); if(c<=0.0)return p; vec2 Z=floor(b/G),a2=(Z + 0.5)*G,dK=fract(b/G)*G; float aF=d2*0.5; float dc=step(aF,dK.x)*step(dK.x,G - aF)*step(aF,dK.y)*step(dK.y,G - aF); vec2 ci=m.zw*0.5; float ea=Q(a2 -(m.xy + ci),ci,ak); if(ea>0.0)return p; float df=floor(a*dn); float aN=cw(Z + vec2(df*0.371,df*0.137)),a3=cw(Z*1.731 + 3.1); aK aE=ad(a2); float k=max(w*dp,G*3.0); vec3 c8=d(h(0.5 + Z.x*0.021 + Z.y*0.013 + a*0.2)); if(e&&j>0.001){ if(aE.d<k&&aE.d>-k*1.8){ bool dL=aE.d +(a3 - 0.5)*G*3.0>0.0; vec4 aV=dL?u(y,g,a2,a2):u(x,f,a2,a2); float aJ=(1.0 - smoothstep(k*0.25,k,abs(aE.d)))*smoothstep(0.0,0.3,j); float eA=step(1.0 - a0*(0.35 + 0.65*aJ),aN)*cD*min(j*1.5,1.0); vec4 cl=mix(aV,vec4(c8,1.0),eA); cl=vec4(cl.rgb*mix(0.55,1.0,dc),cl.a); p=mix(p,cl,aJ*c); }else if(aE.d<=-k*1.8&&aE.d>-R*1.3){ float fm=1.0 - clamp(-aE.d/(R*1.3),0.0,1.0); float eA=step(1.0 - a0*0.3*fm,aN)*cD*j; p=mix(p,vec4(c8,1.0),eA*dc*c); } } if(cE>0.0&&X<0.5&&am>0.0&&ea>-G*1.2){ float F=1.0 - smoothstep(-w*0.6,w*0.4,aE.d); float aG=smoothstep(-r,r,aE.d +(V - aR)/aE.g); float ai=cE*min(am*b5,1.0)*F*aG; p=mix(p,vec4(c8,1.0),step(aN,ai)*dc*c); } return p; }
+uniform float O,ex,dR,bf,dQ,cX,cY,cl; float cQ(vec2 D){return fract(sin(dot(D,vec2(127.1,311.7)))*43758.5453);} float v(vec2 S,vec2 b){return 0.0;} vec4 F(vec4 m,vec2 b,vec2 D,float x,float f,vec2 M,float a8){ float c=clamp(0.5 - x*(P.x/u.x),0.0,1.0); if(c<=0.0)return m; vec2 T=floor(b/O),bh=(T + 0.5)*O,cz=fract(b/O)*O; float az=ex*0.5; float dF=step(az,cz.x)*step(cz.x,O - az)*step(az,cz.y)*step(cz.y,O - az); vec2 cB=g.zw*0.5; float eF=Y(bh -(g.xy + cB),cB,an); if(eF>0.0)return m; float dI=floor(a*dQ); float as=cQ(T + vec2(dI*0.371,dI*0.137)),aK=cQ(T*1.731 + 3.1); aX aP=ai(bh); float n=max(r*dR,O*3.0); vec3 dA=d(j(0.5 + T.x*0.021 + T.y*0.013 + a*0.2)); if(e&&k>0.001){ if(aP.d<n&&aP.d>-n*1.8){ bool ee=aP.d +(aK - 0.5)*O*3.0>0.0; vec4 a6=ee?y(B,i,bh,bh):y(A,h,bh,bh); float aW=(1.0 - smoothstep(n*0.25,n,abs(aP.d)))*smoothstep(0.0,0.3,k); float fa=step(1.0 - bf*(0.35 + 0.65*aW),as)*cX*min(k*1.5,1.0); vec4 av=mix(a6,vec4(dA,1.0),fa); av=vec4(av.rgb*mix(0.55,1.0,dF),av.a); m=mix(m,av,aW*c); }else if(aP.d<=-n*1.8&&aP.d>-R*1.3){ float f7=1.0 - clamp(-aP.d/(R*1.3),0.0,1.0); float fa=step(1.0 - bf*0.3*f7,as)*cX*k; m=mix(m,vec4(dA,1.0),fa*dF*c); } } if(cY>0.0&&U<0.5&&ae>0.0&&eF>-O*1.2){ float z=1.0 - smoothstep(-r*0.6,r*0.4,aP.d); float aq=smoothstep(-o,o,aP.d +(K - aE)/aP.g); float X=cY*min(ae*cl,1.0)*z*aq; m=mix(m,vec4(dA,1.0),step(as,X)*dF*c); } return m; }
 `;
 var PRESET = { palette: "pixel", band: 0.35, rimStrength: 0.4, hairWidth: 0 };
 var PIXEL = {
@@ -37,14 +37,14 @@ var pixel = Object.freeze({
   },
   shader: Object.freeze({ key: "pixel", chunk: PIXEL_WAVE, dots: "square" }),
   uniforms: (c) => ({
-    G: c.cell,
-    d2: c.gap,
-    dp: c.zone,
-    a0: c.density,
-    dn: c.rate,
-    cD: c.lit,
-    cE: c.rimPixels,
-    b5: 1 / Math.max(c.rimStrength, 0.05)
+    O: c.cell,
+    ex: c.gap,
+    dR: c.zone,
+    bf: c.density,
+    dQ: c.rate,
+    cX: c.lit,
+    cY: c.rimPixels,
+    cl: 1 / Math.max(c.rimStrength, 0.05)
   })
 });
 export {

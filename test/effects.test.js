@@ -11,6 +11,7 @@ const LOOKS = {
   metal: ['thickness', 'wobble', 'ripple', 'shine', 'reflect'],
   water: ['wavelength', 'refraction', 'caustics', 'foam', 'tint'],
   vine: ['leaf', 'zone', 'bumps', 'fall', 'vine', 'vineWidth'],
+  christmas: ['cane', 'stripe', 'snow', 'flake', 'lights', 'bulbs', 'cap', 'frost'],
 };
 const BEHAVIOUR = ['anticipation', 'travel', 'linger', 'amplitude', 'lensWidth', 'swell', 'aberration', 'blur', 'blurNear', 'blurAhead', 'blurBehind', 'pull', 'inhale', 'lean', 'speed', 'particles'];
 const HEX = /^#[0-9a-f]{6}$/i;

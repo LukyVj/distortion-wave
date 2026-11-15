@@ -16,3 +16,4 @@ export * from './effects/halftone.js';
 export * from './effects/metal.js';
 export * from './effects/water.js';
 export * from './effects/vine.js';
+export * from './effects/christmas.js';

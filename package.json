@@ -47,6 +47,10 @@
       "types": "./types/vine.d.ts",
       "import": "./dist/vine.js"
     },
+    "./christmas": {
+      "types": "./types/christmas.d.ts",
+      "import": "./dist/christmas.js"
+    },
     "./all": {
       "types": "./types/all.d.ts",
       "import": "./dist/all.js"
