@@ -1,4 +1,3 @@
-import { Code } from "@/components/code";
 import { Toasts } from "@/components/copy";
 import { Demos } from "@/components/demos";
 import { Effects } from "@/components/effects";
@@ -6,17 +5,10 @@ import { Faq } from "@/components/faq";
 import { Hero } from "@/components/hero";
 import { Shell } from "@/components/shell";
 import { Download } from "@/components/download";
-import { FrameworkTabs, InstallTabs } from "@/components/install";
+import { FirstCall, FrameworkTabs, InstallTabs } from "@/components/install";
+import { LooksProvider } from "@/components/looks";
 import { Tuner } from "@/components/tuner";
 import { WaveProvider } from "@/components/wave";
-
-const FIRST_CALL = `import { distortionWave } from 'distortion-wave'
-
-button.addEventListener('click', (e) => {
-  distortionWave(card, () => {
-    card.classList.toggle('done')
-  }, { source: button, focus: e })
-})`;
 
 export default function Home() {
   return (
@@ -61,46 +53,49 @@ export default function Home() {
             <Tuner />
           </section>
 
-          <section className="section" aria-labelledby="install">
-            <div className="section-head">
-              <h2 id="install">Install</h2>
-              <p>No dependencies. Works with a bundler or straight from a CDN.</p>
-            </div>
-            <ol className="steps">
-              <li>
-                <h3>Add the package</h3>
-                <InstallTabs />
-              </li>
-              <li>
-                <h3>Or download one file, with only the looks you use</h3>
-                <p className="step-note">
-                  The wave is always in. Each look adds 1 to 1.5 kB gzipped (electric about 6 kB), everything is
-                  about 25 kB. With a bundler you don&apos;t need this: import each look from its own entry and
-                  only what you import ships.
-                </p>
-                <Download />
-              </li>
-              <li>
-                <h3>Pass the element and the change</h3>
-                <Code label="A first call">{FIRST_CALL}</Code>
-                <p className="step-note">
-                  <code>source</code> is where the wave leaves from. <code>focus</code> makes the front
-                  lean toward the touch point. Both are optional.
-                </p>
-              </li>
-            </ol>
-          </section>
+          <LooksProvider>
+            <section className="section" aria-labelledby="install">
+              <div className="section-head">
+                <h2 id="install">Install</h2>
+                <p>No dependencies. Works with a bundler or straight from a CDN.</p>
+              </div>
+              <ol className="steps">
+                <li>
+                  <h3>Add the package</h3>
+                  <InstallTabs />
+                </li>
+                <li>
+                  <h3>Or download one file, with only the looks you use</h3>
+                  <p className="step-note">
+                    The wave is always in. Each look adds 1 to 1.5 kB gzipped (electric about 6 kB), everything is
+                    about 25 kB. With a bundler you don&apos;t need this: import each look from its own entry and
+                    only what you import ships.
+                  </p>
+                  <Download />
+                </li>
+                <li>
+                  <h3>Pass the element and the change</h3>
+                  <FirstCall />
+                  <p className="step-note">
+                    The looks ticked above show up in every example from here on. <code>source</code> is where
+                  the wave leaves from. <code>focus</code> makes the front
+                    lean toward the touch point. Both are optional.
+                  </p>
+                </li>
+              </ol>
+            </section>
 
-          <section className="section" aria-labelledby="frameworks">
-            <div className="section-head">
-              <h2 id="frameworks">In your framework</h2>
-              <p>
-                The second capture has to see the new DOM, so render before the update returns. Each
-                framework has one line for that.
-              </p>
-            </div>
-            <FrameworkTabs />
-          </section>
+            <section className="section" aria-labelledby="frameworks">
+              <div className="section-head">
+                <h2 id="frameworks">In your framework</h2>
+                <p>
+                  The second capture has to see the new DOM, so render before the update returns. Each
+                  framework has one line for that.
+                </p>
+              </div>
+              <FrameworkTabs />
+            </section>
+          </LooksProvider>
 
           <section className="section" aria-labelledby="faq">
             <div className="section-head">

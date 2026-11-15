@@ -1,23 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@ui-sdk/react/button";
 import { Checkbox, CheckboxIndicator } from "@ui-sdk/react/checkbox";
 import { highlight } from "./code";
 import { CopyButton } from "./copy";
-
-// The looks, as their entry name and the global their <script> build sets.
-const LOOKS = [
-  { name: "electric", label: "Electric", global: "DistortionWaveElectric" },
-  { name: "pixel", label: "Pixel", global: "DistortionWavePixel" },
-  { name: "glass", label: "Glass", global: "DistortionWaveGlass" },
-  { name: "burn", label: "Burn", global: "DistortionWaveBurn" },
-  { name: "ink", label: "Ink", global: "DistortionWaveInk" },
-  { name: "halftone", label: "Halftone", global: "DistortionWaveHalftone" },
-  { name: "metal", label: "Liquid metal", global: "DistortionWaveMetal" },
-  { name: "water", label: "Water", global: "DistortionWaveWater" },
-] as const;
-type Look = (typeof LOOKS)[number]["name"];
+import { LOOKS, useLooks, type Look } from "./looks";
 
 const load = (f: string) => fetch(`/dist/${f}.iife.min.js`).then((r) => r.text());
 const BANNER = /^\/\*![^\n]*\*\/\n/;
@@ -40,9 +28,8 @@ async function gzipped(text: string) {
 const kb = (n: number) => `${(n / 1024).toFixed(1)} kB`;
 
 export function Download() {
-  const [picked, setPicked] = useState<Look[]>(["burn"]);
+  const { picked, setPicked, full, effect, others } = useLooks();
   const [size, setSize] = useState<{ raw: number; gz: number | null } | null>(null);
-  const full = picked.length === LOOKS.length;
   const file = full ? "distortion-wave.all.min.js" : picked.length ? `distortion-wave.${picked.join("-")}.min.js` : "distortion-wave.min.js";
 
   useEffect(() => {
@@ -64,20 +51,20 @@ export function Download() {
   }
 
   const toggle = (n: Look, on: boolean) =>
-    setPicked((p) => LOOKS.map((l) => l.name).filter((x) => (x === n ? on : p.includes(x))));
+    setPicked((p: Look[]) => LOOKS.map((l) => l.name).filter((x) => (x === n ? on : p.includes(x))));
 
-  const example = picked[0] ?? null;
-  const npm = useMemo(
-    () =>
-      full
-        ? `// everything in one import\nimport { distortionWave, ${LOOKS.map((l) => l.name).join(", ")} } from 'distortion-wave/all'`
-        : [
-            "import { distortionWave } from 'distortion-wave'",
-            ...picked.map((n) => `import { ${n} } from 'distortion-wave/${n}'`),
-          ].join("\n"),
-    [picked, full],
-  );
-  const tag = `<script src="${file}"></script>\n<script>\n  const { distortionWave${example ? `, ${example}` : ""} } = DistortionWave\n  distortionWave(card, update${example ? `, { effect: ${example} }` : ""})\n</script>`;
+  const names = ["distortionWave", ...picked].join(", ");
+  const tag = `<script src="${file}"></script>
+<script>
+  // the file puts everything on window.DistortionWave
+  const { ${names} } = DistortionWave
+
+  button.addEventListener('click', (e) => {
+    distortionWave(card, () => {
+      card.classList.toggle('done')
+    }, { ${effect}source: button, focus: e })${others ? `\n    ${others}` : ""}
+  })
+</script>`;
 
   return (
     <div className="download">
@@ -120,12 +107,6 @@ export function Download() {
           <code>{highlight(tag)}</code>
         </pre>
         <CopyButton text={tag} />
-      </div>
-      <div className="code-panel">
-        <pre>
-          <code>{highlight(npm)}</code>
-        </pre>
-        <CopyButton text={npm} />
       </div>
     </div>
   );

@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { Tabs, TabsList, TabsPanel, TabsTab } from "@ui-sdk/react/tabs";
 import { highlight } from "./code";
 import { CopyButton } from "./copy";
+import { useLooks } from "./looks";
 import { origin, useWave } from "./wave";
 
 type Snippet = { value: string; label: string; code: string };
@@ -44,6 +45,11 @@ function CodeTabs({ label, items }: { label: string; items: Snippet[] }) {
 }
 
 export function InstallTabs() {
+  const { picked } = useLooks();
+  const cdn = [
+    picked.length ? "import { distortionWave } from 'https://cdn.jsdelivr.net/npm/distortion-wave@0.3/+esm'" : "import { distortionWave } from 'https://cdn.jsdelivr.net/npm/distortion-wave@0.2/+esm'",
+    ...picked.map((n) => `import { ${n} } from 'https://cdn.jsdelivr.net/npm/distortion-wave@0.3/dist/${n}.js'`),
+  ].join("\n");
   return (
     <CodeTabs
       label="Package manager"
@@ -55,17 +61,17 @@ export function InstallTabs() {
         {
           value: "cdn",
           label: "No build step",
-          code: "import { distortionWave } from 'https://cdn.jsdelivr.net/npm/distortion-wave@0.2/+esm'",
+          code: cdn,
         },
       ]}
     />
   );
 }
 
-const REACT = `'use client'
+const REACT = (L: Looks) => `'use client'
 import { useCallback } from 'react'
 import { flushSync } from 'react-dom'
-import { distortionWave } from 'distortion-wave'
+${L.imports()}
 
 // setState renders later: flushSync makes the DOM current
 // before the "after" capture
@@ -75,21 +81,21 @@ export function useWave() {
 }
 
 // <button onClick={(e) => wave(card.current, () => setPlan('yearly'),
-//   { source: e.currentTarget, focus: e })}>`;
+//   { ${L.effect}source: e.currentTarget, focus: e })}>${L.others ? `\n${L.others}` : ""}`;
 
-const VUE = `import { nextTick } from 'vue'
-import { distortionWave } from 'distortion-wave'
+const VUE = (L: Looks) => `import { nextTick } from 'vue'
+${L.imports()}
 
 function pick(e, next) {
   distortionWave(panel.value, () => {
     plan.value = next
     return nextTick()
-  }, { source: e.currentTarget, focus: e })
+  }, { ${L.effect}source: e.currentTarget, focus: e })${L.others ? `\n  ${L.others}` : ""}
 }`;
 
-const SVELTE = `<script>
+const SVELTE = (L: Looks) => `<script>
   import { tick } from 'svelte'
-  import { distortionWave } from 'distortion-wave'
+  ${L.imports().split('\n').join('\n  ')}
 
   let plan = $state('monthly')
   let panel
@@ -98,31 +104,51 @@ const SVELTE = `<script>
     distortionWave(panel, async () => {
       plan = next
       await tick()
-    }, { source: e.currentTarget, focus: e })
+    }, { ${L.effect}source: e.currentTarget, focus: e })${L.others ? `\n    ${L.others}` : ""}
   }
 </script>`;
 
-const VANILLA = `import { distortionWave } from 'distortion-wave'
+const VANILLA = (L: Looks) => `${L.imports()}
 
 list.addEventListener('click', (e) => {
   const remove = e.target.closest('[data-remove]')
   if (!remove) return
   distortionWave(list, () => remove.closest('li').remove(), {
-    source: remove,
+    ${L.effect}source: remove,
     focus: e,
-  })
+  })${L.others ? `\n  ${L.others}` : ""}
 })`;
 
+type Looks = ReturnType<typeof useLooks>;
+
 export function FrameworkTabs() {
+  const L = useLooks();
   return (
     <CodeTabs
       label="Framework"
       items={[
-        { value: "react", label: "React", code: REACT },
-        { value: "vue", label: "Vue", code: VUE },
-        { value: "svelte", label: "Svelte", code: SVELTE },
-        { value: "vanilla", label: "Plain JS", code: VANILLA },
+        { value: "react", label: "React", code: REACT(L) },
+        { value: "vue", label: "Vue", code: VUE(L) },
+        { value: "svelte", label: "Svelte", code: SVELTE(L) },
+        { value: "vanilla", label: "Plain JS", code: VANILLA(L) },
       ]}
     />
+  );
+}
+
+/** Step 3: the first call, with the looks picked above. */
+export function FirstCall() {
+  const L = useLooks();
+  const code = `${L.imports()}
+
+button.addEventListener('click', (e) => {
+  distortionWave(card, () => {
+    card.classList.toggle('done')
+  }, { ${L.effect}source: button, focus: e })${L.others ? `\n  ${L.others}` : ""}
+})`;
+  return (
+    <pre className="code" aria-label="A first call" tabIndex={0}>
+      <code>{highlight(code)}</code>
+    </pre>
   );
 }
