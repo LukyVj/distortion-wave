@@ -1,4 +1,4 @@
-import { distortionWave as runWave, waveOnClick, warmupWave, setWaveDefaults } from 'https://cdn.jsdelivr.net/npm/distortion-wave@0.3/+esm';
+import { distortionWave as runWave, waveOnClick, warmupWave, setWaveDefaults } from 'https://cdn.jsdelivr.net/npm/distortion-wave@0.4/+esm';
 
 // The Options panel (bottom right) can force one palette on every component.
 let forcedPalette = '';

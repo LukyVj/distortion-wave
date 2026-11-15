@@ -47,8 +47,8 @@ function CodeTabs({ label, items }: { label: string; items: Snippet[] }) {
 export function InstallTabs() {
   const { picked } = useLooks();
   const cdn = [
-    "import { distortionWave } from 'https://cdn.jsdelivr.net/npm/distortion-wave@0.3/+esm'",
-    ...picked.map((n) => `import { ${n} } from 'https://cdn.jsdelivr.net/npm/distortion-wave@0.3/dist/${n}.js'`),
+    "import { distortionWave } from 'https://cdn.jsdelivr.net/npm/distortion-wave@0.4/+esm'",
+    ...picked.map((n) => `import { ${n} } from 'https://cdn.jsdelivr.net/npm/distortion-wave@0.4/dist/${n}.js'`),
   ].join("\n");
   return (
     <CodeTabs

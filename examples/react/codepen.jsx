@@ -2,7 +2,7 @@
 import React, { useCallback, useMemo, useRef, useState } from 'https://esm.sh/react@19';
 import { flushSync } from 'https://esm.sh/react-dom@19';
 import { createRoot } from 'https://esm.sh/react-dom@19/client';
-import { distortionWave } from 'https://cdn.jsdelivr.net/npm/distortion-wave@0.3/+esm';
+import { distortionWave } from 'https://cdn.jsdelivr.net/npm/distortion-wave@0.4/+esm';
 
 // distortionWave() captures the element right after your update returns, so React has to render
 // synchronously: flushSync does that (same as with document.startViewTransition).

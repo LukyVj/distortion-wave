@@ -23,14 +23,14 @@ From a CDN, no build step (CodePen, a plain HTML page…):
 
 ```html
 <script type="module">
-  import { distortionWave } from 'https://cdn.jsdelivr.net/npm/distortion-wave@0.3/+esm';
+  import { distortionWave } from 'https://cdn.jsdelivr.net/npm/distortion-wave@0.4/+esm';
 </script>
 ```
 
 Or the IIFE build, which exposes `window.DistortionWave`:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/distortion-wave@0.3/dist/distortion-wave.iife.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/distortion-wave@0.4/dist/distortion-wave.iife.min.js"></script>
 ```
 
 ### Everything, or only the looks you use
@@ -71,8 +71,8 @@ import { distortionWave, burn, glass, water } from 'distortion-wave/all';
 **Only some looks, without a bundler.** Load the core's IIFE, then the IIFE of each look. Each look sets its own global (`DistortionWaveBurn`, `DistortionWaveGlass`…):
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/distortion-wave@0.3/dist/distortion-wave.iife.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/distortion-wave@0.3/dist/burn.iife.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/distortion-wave@0.4/dist/distortion-wave.iife.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/distortion-wave@0.4/dist/burn.iife.min.js"></script>
 <script>
   DistortionWave.distortionWave(card, update, { effect: DistortionWaveBurn.burn });
 </script>
@@ -81,7 +81,7 @@ import { distortionWave, burn, glass, water } from 'distortion-wave/all';
 **Everything, without a bundler.** `all.iife.min.js` puts the core and every look on `window.DistortionWave`:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/distortion-wave@0.3/dist/all.iife.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/distortion-wave@0.4/dist/all.iife.min.js"></script>
 <script>
   const { distortionWave, burn } = DistortionWave;
   distortionWave(card, update, { effect: burn });
@@ -195,7 +195,7 @@ const border = electricBorder(card, { trigger: 'hover', color: '#7df9ff' });
 border.destroy();   // fades out, removes the listeners
 ```
 
-Without a bundler: `https://cdn.jsdelivr.net/npm/distortion-wave@0.3/dist/electric.js` (ES module, no imports of its own), or `dist/electric.iife.min.js` for `window.DistortionWaveElectric`.
+Without a bundler: `https://cdn.jsdelivr.net/npm/distortion-wave@0.4/dist/electric.js` (ES module, no imports of its own), or `dist/electric.iife.min.js` for `window.DistortionWaveElectric`.
 
 **With `effect: electric`** every wave option works the same (`source`, `focus`, `variant`, `duration`, `easing`, `palette`, `particles`, the fine-tuning keys…). The default palette becomes `'electric'`. Its own keys, at the same reference scale:
 
@@ -229,7 +229,7 @@ distortionWave(card, update, { effect: pixel, source: button, focus: event });
 | `rate` | `14` | flicker, changes per second |
 | `lit`, `rimPixels` | `1`, `1` | strength of the lit pixels, of the pixels on the outline (0 = none) |
 
-CDN: `https://cdn.jsdelivr.net/npm/distortion-wave@0.3/dist/pixel.js`, or `dist/pixel.iife.min.js` for `window.DistortionWavePixel`.
+CDN: `https://cdn.jsdelivr.net/npm/distortion-wave@0.4/dist/pixel.js`, or `dist/pixel.iife.min.js` for `window.DistortionWavePixel`.
 
 ### More looks
 

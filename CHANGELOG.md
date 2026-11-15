@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.4.0 — 2026-11-15
 
 - `distortion-wave/vine`, a new look (~2.9 kB gzipped): plants. The front is a band of leaves, green leaves fall behind it, a vine grows around the element and the sparks are leaves. Keys: `leaf`, `zone`, `bumps`, `fall`, `vine`, `vineWidth`. Also in `distortion-wave/all`.
 - Fix: elements with a CSS `transition` (a switch knob, a width, a colour) no longer snap into place at the end of the wave. The update's transitions are finished before the "after" capture, so it shows the final state.
