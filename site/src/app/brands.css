@@ -450,3 +450,178 @@
   background-image: radial-gradient(circle, rgba(20, 20, 20, 0.16) 1.2px, transparent 1.6px);
   background-size: 6px 6px;
 }
+
+/* ───────────────────────── 6. Verre — frosted light, caustics, duotone ─── */
+
+.page[data-brand="verre"] {
+  --duo-deep: #0e2a47;
+  --duo-light: #5fe3d6;
+  --bg: #edf1f4;
+  --surface: #f6f8fa;
+  --card: #ffffff;
+  --chalk: #dfe6ec;
+  --text: var(--duo-deep);
+  --muted: color-mix(in oklab, var(--duo-deep) 62%, #ffffff);
+  --rule: color-mix(in oklab, var(--duo-deep) 14%, #ffffff);
+  --wire: color-mix(in oklab, var(--duo-deep) 40%, #ffffff);
+  --hole: color-mix(in oklab, var(--duo-deep) 12%, #ffffff);
+  --fill: color-mix(in oklab, var(--duo-deep) 7%, #ffffff);
+  --inline-code: color-mix(in oklab, var(--duo-light) 28%, #ffffff);
+  --code-bg: var(--duo-deep);
+  --code-fg: #eef4f8;
+  --code-edge: color-mix(in oklab, var(--duo-deep) 70%, #ffffff);
+  --code-hover: color-mix(in oklab, var(--duo-deep) 88%, #ffffff);
+  --btn-bg: var(--duo-deep);
+  --btn-fg: #ffffff;
+  --btn-hover: color-mix(in oklab, var(--duo-deep) 85%, var(--duo-light));
+  --like-bg: #ffe9ee;
+  --like-fg: #a3123a;
+  --like-edge: #f3a3b6;
+  --ok-bg: color-mix(in oklab, var(--duo-light) 30%, #ffffff);
+  --ok-fg: var(--duo-deep);
+  --ring: var(--duo-light);
+  --ring-border: var(--duo-deep);
+  --glass: rgba(255, 255, 255, 0.58);
+  --glass-edge: rgba(255, 255, 255, 0.9);
+}
+
+.page[data-brand="verre"][data-duo="prune"] { --duo-deep: #2a1446; --duo-light: #ff9ecb; }
+.page[data-brand="verre"][data-duo="ambre"] { --duo-deep: #1f2a1d; --duo-light: #ffc857; }
+
+/* Mark: a line that becomes a wave, on a glass tile */
+.page[data-brand="verre"] .mark-glass {
+  fill: color-mix(in oklab, var(--duo-light) 55%, #ffffff);
+  stroke: #fff;
+  stroke-width: 1.5;
+}
+.page[data-brand="verre"] .mark-line { stroke: var(--duo-deep); }
+.page[data-brand="verre"] .wordmark { gap: 11px; }
+.page[data-brand="verre"] .wordmark-text {
+  font: 600 1.08rem/1 var(--font-verre), sans-serif;
+  font-variation-settings: "wdth" 100, "opsz" 40;
+  letter-spacing: -0.015em;
+}
+.page[data-brand="verre"] .wordmark-tilde {
+  color: var(--duo-deep);
+  opacity: 0.55;
+  margin: 0 0.04em;
+  font-weight: 400;
+}
+.page[data-brand="verre"] .top nav { font-weight: 500; }
+
+/* Hero: a duotone light field, caustics, and a frosted plate on top */
+.page[data-brand="verre"] .hero { position: relative; }
+.page[data-brand="verre"] .hero::before {
+  content: "";
+  position: absolute;
+  inset: -40px -12vw -80px;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(42% 55% at 18% 30%, var(--duo-light) 0%, transparent 70%),
+    radial-gradient(38% 50% at 85% 20%, color-mix(in oklab, var(--duo-light) 60%, #fff) 0%, transparent 70%),
+    radial-gradient(50% 60% at 65% 95%, var(--duo-deep) 0%, transparent 72%),
+    radial-gradient(30% 40% at 40% 80%, color-mix(in oklab, var(--duo-deep) 55%, var(--duo-light)) 0%, transparent 70%);
+  filter: blur(36px) saturate(1.15);
+  opacity: 0.9;
+}
+.page[data-brand="verre"] .hero::after {
+  /* caustics */
+  content: "";
+  position: absolute;
+  inset: -40px -12vw -80px;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='420' height='420'><filter id='c'><feTurbulence type='turbulence' baseFrequency='0.012' numOctaves='2' seed='7' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 9 -4'/><feGaussianBlur stdDeviation='0.8'/></filter><rect width='420' height='420' filter='url(%23c)'/></svg>");
+  background-size: 420px 420px;
+}
+.page[data-brand="verre"] .stage {
+  position: relative;
+  z-index: 1;
+  border-radius: 30px;
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(28px) saturate(1.3);
+  backdrop-filter: blur(28px) saturate(1.3);
+  border: 1px solid var(--glass-edge);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    inset 0 -1px 0 rgba(255, 255, 255, 0.4),
+    0 30px 60px -30px color-mix(in oklab, var(--duo-deep) 45%, transparent);
+  color: var(--duo-deep);
+  --note: color-mix(in oklab, var(--duo-deep) 72%, #fff);
+  --line: color-mix(in oklab, var(--duo-deep) 20%, #fff);
+  --btn-bg: var(--duo-deep);
+  --btn-fg: #fff;
+  --btn-hover: color-mix(in oklab, var(--duo-deep) 85%, var(--duo-light));
+  --wire: color-mix(in oklab, var(--duo-deep) 35%, #fff);
+  --fill: rgba(255, 255, 255, 0.5);
+}
+.page[data-brand="verre"] .stage[data-tone="ink"] {
+  background: color-mix(in oklab, var(--duo-deep) 88%, transparent);
+  color: #fff;
+  --note: color-mix(in oklab, #fff 78%, var(--duo-light));
+  --line: rgba(255, 255, 255, 0.25);
+  --btn-bg: var(--duo-light);
+  --btn-fg: var(--duo-deep);
+  --btn-hover: #fff;
+  --wire: rgba(255, 255, 255, 0.5);
+  --fill: rgba(255, 255, 255, 0.12);
+}
+.page[data-brand="verre"] .hero-title {
+  font: 500 clamp(2.8rem, 8vw, 7rem) / 0.95 var(--font-verre), sans-serif;
+  font-variation-settings: "wdth" 100, "opsz" 96;
+  letter-spacing: -0.04em;
+  max-width: 12ch;
+}
+.page[data-brand="verre"] .hero-note { font-size: clamp(1rem, 1.3vw, 1.12rem); }
+.page[data-brand="verre"] .hero-call { color: var(--note); }
+.page[data-brand="verre"] .stage .install-chip { background: rgba(255, 255, 255, 0.55); }
+.page[data-brand="verre"] .btn,
+.page[data-brand="verre"] .install-chip { border-radius: 12px; }
+
+/* Lockup: the mark in both states */
+.page[data-brand="verre"] .lockup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: auto;
+  font: 500 0.8rem/1 var(--font-mono), monospace;
+  color: var(--note);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.page[data-brand="verre"] .lockup .mark { width: 40px; height: 40px; }
+.page[data-brand="verre"] .lockup-arrow { font-size: 1rem; opacity: 0.6; }
+.page[data-brand="verre"] .lockup-note { margin-left: 6px; }
+.page[data-brand="verre"] .stage { align-content: stretch; grid-template-rows: auto 1fr auto auto auto; }
+.page[data-brand="verre"] .stage .hero-title { align-self: end; }
+
+/* Sections */
+.page[data-brand="verre"] .section-head h2 {
+  font: 500 clamp(1.7rem, 3.2vw, 2.6rem) / 1.02 var(--font-verre), sans-serif;
+  font-variation-settings: "wdth" 100, "opsz" 60;
+  letter-spacing: -0.03em;
+}
+.page[data-brand="verre"] .demo-body {
+  background-color: rgba(255, 255, 255, 0.55);
+  border: 1px solid #fff;
+  box-shadow: inset 0 1px 0 #fff;
+  background-image: radial-gradient(circle, var(--hole) 1.2px, transparent 1.6px);
+}
+.page[data-brand="verre"] .demos {
+  position: relative;
+}
+.page[data-brand="verre"] .demos::before {
+  content: "";
+  position: absolute;
+  inset: -30px -6vw;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(40% 40% at 10% 10%, color-mix(in oklab, var(--duo-light) 45%, transparent), transparent 70%),
+    radial-gradient(40% 40% at 90% 90%, color-mix(in oklab, var(--duo-deep) 25%, transparent), transparent 70%);
+  filter: blur(40px);
+}
+.page[data-brand="verre"] .foot { border-top-color: var(--rule); }

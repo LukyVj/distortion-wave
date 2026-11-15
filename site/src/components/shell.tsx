@@ -4,7 +4,7 @@ import { useRef, useState, type ReactNode } from "react";
 import { Switch, SwitchThumb } from "@ui-sdk/react/switch";
 import { version } from "../../../package.json";
 import { origin, useWave } from "./wave";
-import { Mark, useBrand } from "./brand";
+import { Mark, MarkVerre, useBrand } from "./brand";
 
 export function Shell({ children }: { children: ReactNode }) {
   const page = useRef<HTMLDivElement>(null);
@@ -17,8 +17,16 @@ export function Shell({ children }: { children: ReactNode }) {
     <div ref={page} className="page" data-theme={dark ? "dark" : "light"} data-brand={brand ?? undefined}>
       <header className="top">
         <a className="wordmark" href="#hero-title">
-          <Mark />
-          <span className="wordmark-text">distortion-wave</span> <span className="version">{version}</span>
+          {brand === "verre" ? <MarkVerre /> : <Mark />}
+          <span className="wordmark-text">
+            {brand === "verre" ? (
+              <>
+                distortion<span className="wordmark-tilde">∿</span>wave
+              </>
+            ) : (
+              "distortion-wave"
+            )}
+          </span> <span className="version">{version}</span>
         </a>
         <nav aria-label="Links">
           <label className="theme">

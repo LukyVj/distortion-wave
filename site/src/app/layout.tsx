@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Archivo, Fraunces, Instrument_Serif, JetBrains_Mono, Mona_Sans, Unbounded } from "next/font/google";
+import { Archivo, Bricolage_Grotesque, Fraunces, Instrument_Serif, JetBrains_Mono, Mona_Sans, Unbounded } from "next/font/google";
 import "@ui-sdk/core/web.css";
 import "./globals.css";
 import "./brands.css";
@@ -19,6 +19,7 @@ const mono = JetBrains_Mono({
 const serifItalic = Instrument_Serif({ variable: "--font-piscine", subsets: ["latin"], weight: "400", style: ["normal", "italic"] });
 const condensed = Archivo({ variable: "--font-riso", subsets: ["latin"], axes: ["wdth"] });
 const wide = Unbounded({ variable: "--font-chrome", subsets: ["latin"] });
+const display = Bricolage_Grotesque({ variable: "--font-verre", subsets: ["latin"], axes: ["wdth", "opsz"] });
 const serif = Fraunces({ variable: "--font-journal", subsets: ["latin"], axes: ["opsz", "SOFT", "WONK"] });
 
 export const metadata: Metadata = {
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${sans.variable} ${mono.variable} ${serifItalic.variable} ${condensed.variable} ${wide.variable} ${serif.variable}`}>
+    <html lang="en" className={`${sans.variable} ${mono.variable} ${serifItalic.variable} ${condensed.variable} ${wide.variable} ${serif.variable} ${display.variable}`}>
       <body>{children}</body>
     </html>
   );
