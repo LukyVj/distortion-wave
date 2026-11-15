@@ -30,6 +30,12 @@ for (const [name, Global] of Object.entries(FX)) {
   await min({ ...fx, format: 'iife', globalName: `DistortionWave${Global}`, outfile: `dist/${name}.iife.min.js` });
 }
 
+// Everything in one entry, for a single <script> tag or file: window.DistortionWave gets the core and every effect.
+const all = { ...common, entryPoints: ['src/all.js'] };
+await build({ ...all, format: 'esm', outfile: 'dist/all.js' });
+await min({ ...all, format: 'esm', outfile: 'dist/all.min.js' });
+await min({ ...all, format: 'iife', globalName: 'DistortionWave', outfile: 'dist/all.iife.min.js' });
+
 // Standalone demo: inline the IIFE build and turn the module import into a destructure.
 const html = await readFile('demo/index.html', 'utf8');
 const iife = await readFile('dist/distortion-wave.iife.min.js', 'utf8');
@@ -62,7 +68,7 @@ ${kitJs}document.body.dataset.ready = '1';
 </html>
 `);
 
-const sizes = await Promise.all(['dist/distortion-wave.js', 'dist/distortion-wave.min.js', 'dist/distortion-wave.iife.min.js', ...Object.keys(FX).map((n) => `dist/${n}.min.js`)].map(async (f) => `${f} ${((await readFile(f)).length / 1024).toFixed(1)} kB`));
+const sizes = await Promise.all(['dist/distortion-wave.js', 'dist/distortion-wave.min.js', 'dist/distortion-wave.iife.min.js', ...Object.keys(FX).map((n) => `dist/${n}.min.js`), 'dist/all.min.js'].map(async (f) => `${f} ${((await readFile(f)).length / 1024).toFixed(1)} kB`));
 console.log(sizes.join('\n'));
 
 // CodePen copy of the React example (examples/react): JSX through CodePen's Babel, React from esm.sh.

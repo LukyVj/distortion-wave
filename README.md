@@ -33,6 +33,8 @@ Or the IIFE build, which exposes `window.DistortionWave`:
 <script src="https://cdn.jsdelivr.net/npm/distortion-wave@0.1/dist/distortion-wave.iife.min.js"></script>
 ```
 
+Only the looks you use: each effect is its own entry (`import { burn } from 'distortion-wave/burn'`), and with a bundler only what you import ships. Everything at once: `distortion-wave/all` (~25 kB gzipped), or `dist/all.iife.min.js`, which puts the core and every effect on `window.DistortionWave`. The site's Install section also builds one file with the core and the looks you tick.
+
 ## Usage
 
 ```js
@@ -309,6 +311,7 @@ The `center` variant has its own values: see `PRESETS.center`.
 - `PALETTES`, `PRESETS`, `scaleConfig`, `totalDuration`, `frameState`: the pure core, if you want to drive your own renderer.
 - `distortion-wave/electric`: `electric`, `electricBorder`, `ELECTRIC`, `BORDER` (see Effects).
 - `distortion-wave/pixel`: `pixel`, `PIXEL` (see Effects).
+- `distortion-wave/all`: everything above and every effect, in one entry.
 - `distortion-wave/glass`, `/burn`, `/ink`, `/halftone`, `/metal`, `/water`: the look and its defaults, like `glass` and `GLASS` (see More looks).
 
 ## How it works

@@ -14,6 +14,7 @@
   - `distortion-wave/halftone`: near the front the content becomes a dot screen sized by its tone. Keys: `cell`, `angle`, `zone`, `size`, `ink`.
   - `distortion-wave/metal`: the front is a rolling bead of liquid chrome. Keys: `thickness`, `wobble`, `ripple`, `shine`, `reflect`.
   - `distortion-wave/water`: ripples, refraction, caustics and foam. Keys: `wavelength`, `refraction`, `caustics`, `foam`, `tint`.
+- `distortion-wave/all`: the core and every effect in one entry (~25 kB gzipped); `dist/all.iife.min.js` puts them all on `window.DistortionWave`.
 - `electric` and `pixel` palettes.
 - Smaller bundle, with the same pixels. The core goes from 18.7 to 17.3 kB gzipped (15.6 kB brotli):
   - the shaders are minified at build time (comments and indentation out);

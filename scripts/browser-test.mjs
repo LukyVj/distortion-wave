@@ -220,6 +220,19 @@ for (const [name, Global] of [['glass', 'Glass'], ['burn', 'Burn'], ['ink', 'Ink
   });
 }
 
+await check('all: one script puts the core and every effect on window.DistortionWave', async () => {
+  const { page, errors } = await open();
+  await page.addScriptTag({ path: resolve('dist/all.iife.min.js') });
+  const r = await page.evaluate(async () => {
+    const DW = window.DistortionWave, phone = document.getElementById('phone');
+    const names = ['electric', 'pixel', 'glass', 'burn', 'ink', 'halftone', 'metal', 'water'].filter((n) => DW[n]?.shader);
+    await DW.distortionWave(phone, () => { phone.dataset.all = '1'; }, { effect: DW.water }).finished;
+    return { names: names.length, border: typeof DW.electricBorder, done: phone.dataset.all, canvases: document.querySelectorAll('canvas').length };
+  });
+  assert.deepEqual(r, { names: 8, border: 'function', done: '1', canvases: 0 });
+  assert.deepEqual(errors, []);
+});
+
 await check('unknown effect name: warns, then waves as usual', async () => {
   const { page } = await open();
   const r = await page.evaluate(async () => {

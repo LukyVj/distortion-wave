@@ -43,6 +43,10 @@
       "types": "./types/water.d.ts",
       "import": "./dist/water.js"
     },
+    "./all": {
+      "types": "./types/all.d.ts",
+      "import": "./dist/all.js"
+    },
     "./src/*": "./src/*"
   },
   "unpkg": "./dist/distortion-wave.iife.min.js",
