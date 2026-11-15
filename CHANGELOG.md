@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.0 — unreleased
+## 0.3.0 — 2026-11-15
 
 - Effects: `effect` option on `distortionWave()` and `setWaveDefaults()`. An effect keeps the wave's behaviour (timing, lens, blur, sparks) and changes its look. The plain wave stays the default and the only look in the core bundle.
 - `distortion-wave/electric`, a new entry (~6 kB gzipped):

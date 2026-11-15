@@ -23,14 +23,14 @@ From a CDN, no build step (CodePen, a plain HTML page…):
 
 ```html
 <script type="module">
-  import { distortionWave } from 'https://cdn.jsdelivr.net/npm/distortion-wave@0.1/+esm';
+  import { distortionWave } from 'https://cdn.jsdelivr.net/npm/distortion-wave@0.3/+esm';
 </script>
 ```
 
 Or the IIFE build, which exposes `window.DistortionWave`:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/distortion-wave@0.1/dist/distortion-wave.iife.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/distortion-wave@0.3/dist/distortion-wave.iife.min.js"></script>
 ```
 
 ### Everything, or only the looks you use
