@@ -72,6 +72,30 @@ await check('CSS transitions started by the update are finished before the "afte
   assert.deepEqual(errors, []);
 });
 
+await check('rounded corners stay filled while the wave pulls and bends the content (no hole, no fringe)', async () => {
+  const ctx = await browser.newContext({ viewport: { width: 700, height: 500 } });
+  const page = await ctx.newPage();
+  await page.clock.install({ time: 0 });
+  await page.goto(url); await page.waitForSelector('body[data-ready="1"]');
+  await page.evaluate(() => {
+    document.body.innerHTML = '<div id="cs" style="position:fixed;left:40px;top:40px;width:600px;height:400px;border-radius:28px;background:#1a1f36"><button id="cb" style="margin:30px">go</button></div>';
+    document.body.style.background = '#e8ebf2';
+  });
+  await page.clock.pauseAt(10000);
+  await page.evaluate(() => { const s = document.getElementById('cs'); __dw.distortionWave(s, () => { s.style.background = '#1b2038'; }, { source: document.getElementById('cb') }); });
+  let worst = 0;
+  for (let i = 0; i < 40; i++) {
+    await page.clock.runFor(16); await page.waitForTimeout(15);
+    if (i < 8) continue;
+    // just inside the bottom-right rounded corner, a few px inside the arc
+    const px = await page.screenshot({ clip: { x: 626, y: 426, width: 4, height: 4 } });
+    const lum = await page.evaluate(async (b64) => { const i = new Image(); i.src = 'data:image/png;base64,' + b64; await i.decode(); const c = document.createElement('canvas'); c.width = c.height = 4; const g = c.getContext('2d'); g.drawImage(i, 0, 0); const d = g.getImageData(0, 0, 4, 4).data; let m = 0; for (let k = 0; k < d.length; k += 4) m = Math.max(m, (d[k] + d[k + 1] + d[k + 2]) / 3); return m; }, px.toString('base64'));
+    worst = Math.max(worst, lum);
+  }
+  await ctx.close();
+  assert.ok(worst < 120, `a light hole shows in the corner (brightest ${Math.round(worst)})`);
+});
+
 await check('keyboard focus survives an innerHTML update', async () => {
   const { page } = await open();
   await page.focus('#phone .cta'); await page.keyboard.press('Enter');

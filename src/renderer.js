@@ -63,9 +63,20 @@ Front front(vec2 p) {
 }
 // The silhouette is decided by p (undisplaced); the sample by sp (displaced, clamped to the rect).
 // → content bends INSIDE the element, never revealing transparency or bleeding outside.
+// A displaced sample that lands outside the rounded shape (a corner of the rect) would read the capture's
+// transparent corner: a hole showing the page, ringed by colour-split fringes. Pull it back inside the shape.
+vec2 inShape(vec2 sp) {
+  vec2 hb = uShape.zw * 0.5, c = sp - (uShape.xy + hb);
+  float d = sdRoundBox(c, hb, uRadii);
+  if (d < -2.0) return sp;
+  vec2 g = vec2(sdRoundBox(c + vec2(0.5, 0.0), hb, uRadii) - sdRoundBox(c - vec2(0.5, 0.0), hb, uRadii),
+                sdRoundBox(c + vec2(0.0, 0.5), hb, uRadii) - sdRoundBox(c - vec2(0.0, 0.5), hb, uRadii));
+  return sp - g / max(length(g), 1e-4) * (d + 2.0);
+}
 vec4 tap(sampler2D s, vec4 rect, vec2 p, vec2 sp) {
   vec2 q = (p - rect.xy) / rect.zw;
   if (q.x < 0.0 || q.y < 0.0 || q.x > 1.0 || q.y > 1.0) return vec4(0.0);
+  if (sp != p && uBoxless < 0.5) sp = inShape(sp);
   return textureLod(s, clamp((sp - rect.xy) / rect.zw, 0.0, 1.0), 0.0);
 }
 vec4 fetch3(sampler2D s0, sampler2D s1, sampler2D s2, vec4 rect, vec2 p, vec2 sp, float tn, float tf) {
