@@ -27,8 +27,9 @@ import { halftone } from "distortion-wave/halftone";
 import { metal } from "distortion-wave/metal";
 import { water } from "distortion-wave/water";
 import { vine } from "distortion-wave/vine";
+import { christmas } from "distortion-wave/christmas";
 
-export const EFFECTS = { electric, pixel, glass, burn, ink, halftone, metal, water, vine };
+export const EFFECTS = { electric, pixel, glass, burn, ink, halftone, metal, water, vine, christmas };
 export type EffectName = "wave" | keyof typeof EFFECTS;
 
 export const TUNING = {
@@ -203,6 +204,19 @@ const FX_TUNING = {
       { key: "fall", label: "Falling leaves", min: 0, max: 3, step: 0.05, unit: "" },
       { key: "vine", label: "Vine around", min: 0, max: 2, step: 0.05, unit: "" },
       { key: "vineWidth", label: "Stem width", min: 1, max: 8, step: 0.5, unit: "px" },
+    ],
+  },
+  christmas: {
+    label: "Christmas",
+    keys: [
+      { key: "cane", label: "Candy cane", min: 2, max: 20, step: 0.5, unit: "px" },
+      { key: "stripe", label: "Stripes", min: 4, max: 40, step: 1, unit: "px" },
+      { key: "snow", label: "Snowfall", min: 0, max: 3, step: 0.05, unit: "" },
+      { key: "flake", label: "Flake size", min: 1, max: 8, step: 0.5, unit: "px" },
+      { key: "lights", label: "String of lights", min: 0, max: 2, step: 0.05, unit: "" },
+      { key: "bulbs", label: "Bulb spacing", min: 14, max: 80, step: 1, unit: "px" },
+      { key: "cap", label: "Snow on top", min: 0, max: 30, step: 1, unit: "px" },
+      { key: "frost", label: "Frost", min: 0, max: 2, step: 0.05, unit: "" },
     ],
   },
 } as const;

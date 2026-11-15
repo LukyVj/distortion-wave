@@ -14,6 +14,7 @@ export const LOOKS = [
   { name: "metal", label: "Liquid metal", global: "DistortionWaveMetal" },
   { name: "water", label: "Water", global: "DistortionWaveWater" },
   { name: "vine", label: "Vine", global: "DistortionWaveVine" },
+  { name: "christmas", label: "Christmas", global: "DistortionWaveChristmas" },
 ] as const;
 export type Look = (typeof LOOKS)[number]["name"];
 

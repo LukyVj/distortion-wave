@@ -35,8 +35,8 @@ export default function Home() {
                 An effect keeps the wave&apos;s behaviour and changes its look. Each one is its own import:{" "}
                 <code>distortion-wave/electric</code> (about 7 kB, with the border), then{" "}
                 <code>pixel</code>, <code>glass</code>, <code>burn</code>, <code>ink</code>,{" "}
-                <code>halftone</code>, <code>metal</code>, <code>water</code> and{" "}
-                <code>vine</code> (1 to 3 kB each). To switch
+                <code>halftone</code>, <code>metal</code>, <code>water</code>,{" "}
+                <code>vine</code> and <code>christmas</code> (1 to 3 kB each). To switch
                 every demo on this page, pick an effect in the settings below.
               </p>
             </div>

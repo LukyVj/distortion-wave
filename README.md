@@ -49,7 +49,8 @@ The wave (the core) is always there. Each other look (see [Effects](#effects)) i
 | `distortion-wave/metal` | 1.1 kB | `metal` |
 | `distortion-wave/water` | 1.2 kB | `water` |
 | `distortion-wave/vine` | 2.9 kB | `vine` |
-| `distortion-wave/all` | 26.9 kB | the core and every look |
+| `distortion-wave/christmas` | 2.6 kB | `christmas` |
+| `distortion-wave/all` | 28.7 kB | the core and every look |
 
 **Only some looks, with a bundler.** Import the core, then each look from its own entry. Only what you import ships: here 17 + 1.3 + 1.2 kB.
 
@@ -232,7 +233,7 @@ CDN: `https://cdn.jsdelivr.net/npm/distortion-wave@0.3/dist/pixel.js`, or `dist/
 
 ### More looks
 
-Seven more entries, each about 1 to 3 kB gzipped, same pattern: `import { glass } from 'distortion-wave/glass'`, then `effect: glass`. Every wave option still applies; each look adds its own keys (sizes at the 360 × 740 reference scale) and exports their defaults (`GLASS`, `BURN`, `INK`, `HALFTONE`, `METAL`, `WATER`, `VINE`). A key shared by two looks means the same thing in both. A look can also bring its own spark shape (vine's sparks are leaves).
+Eight more entries, each about 1 to 3 kB gzipped, same pattern: `import { glass } from 'distortion-wave/glass'`, then `effect: glass`. Every wave option still applies; each look adds its own keys (sizes at the 360 × 740 reference scale) and exports their defaults (`GLASS`, `BURN`, `INK`, `HALFTONE`, `METAL`, `WATER`, `VINE`, `CHRISTMAS`). A key shared by two looks means the same thing in both. A look can also bring its own spark shape (vine's sparks are leaves, christmas's are snowflakes).
 
 **`distortion-wave/glass`** (~1.0 kB gzipped, `window.DistortionWaveGlass` from `dist/glass.iife.min.js`). Behind the front a thick slab of glass bends the content like a lens, splits it into RGB at its slopes and catches the light on its faces. Pale glass palette.
 
@@ -290,6 +291,16 @@ Seven more entries, each about 1 to 3 kB gzipped, same pattern: `import { glass 
 | `bumps` | `14` | leafy bumps along the front (0 = smooth) |
 | `fall`, `vine` | `1`, `1` | falling leaves, the vine around the element (0 = none) |
 | `vineWidth` | `2.5` px | width of the stem |
+
+**`distortion-wave/christmas`** (~2.6 kB gzipped, `window.DistortionWaveChristmas` from `dist/christmas.iife.min.js`). The front is a twisted candy cane with frost and glints ahead of it, snow falls behind it, a string of lights hangs along the outline and twinkles, snow and icicles settle on the top edge, and the sparks are snowflakes. Red, white, green and gold palette.
+
+| Key | Default | |
+|---|---|---|
+| `cane`, `stripe` | `7`, `16` px | radius of the candy cane, width of its stripes |
+| `snow`, `flake` | `1`, `3` px | snowfall behind the front (0 = none), size of a flake |
+| `lights`, `bulbs` | `1`, `30` px | the string of lights (0 = none), distance between bulbs |
+| `cap` | `11` px | snow on the top edge, with icicles (0 = none) |
+| `frost` | `0.6` | frost and glints ahead of the front |
 
 ## Examples
 
@@ -375,7 +386,7 @@ The `center` variant has its own values: see `PRESETS.center`.
 - `distortion-wave/electric`: `electric`, `electricBorder`, `ELECTRIC`, `BORDER` (see Effects).
 - `distortion-wave/pixel`: `pixel`, `PIXEL` (see Effects).
 - `distortion-wave/all`: everything above and every effect, in one entry.
-- `distortion-wave/glass`, `/burn`, `/ink`, `/halftone`, `/metal`, `/water`, `/vine`: the look and its defaults, like `glass` and `GLASS` (see More looks).
+- `distortion-wave/glass`, `/burn`, `/ink`, `/halftone`, `/metal`, `/water`, `/vine`, `/christmas`: the look and its defaults, like `glass` and `GLASS` (see More looks).
 
 ## How it works
 

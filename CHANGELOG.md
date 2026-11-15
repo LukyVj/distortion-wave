@@ -4,6 +4,7 @@
 
 - `distortion-wave/vine`, a new look (~2.9 kB gzipped): plants. The front is a band of leaves, green leaves fall behind it, a vine grows around the element and the sparks are leaves. Keys: `leaf`, `zone`, `bumps`, `fall`, `vine`, `vineWidth`. Also in `distortion-wave/all`.
 - Fix: elements with a CSS `transition` (a switch knob, a width, a colour) no longer snap into place at the end of the wave. The update's transitions are finished before the "after" capture, so it shows the final state.
+- `distortion-wave/christmas`, a new look (~2.6 kB gzipped): the front is a candy cane, snow falls behind it, a string of lights hangs along the outline, snow and icicles settle on the top edge, and the sparks are snowflakes. Keys: `cane`, `stripe`, `snow`, `flake`, `lights`, `bulbs`, `cap`, `frost`. Also in `distortion-wave/all`.
 - An effect can bring its own spark shape (`shader.dots`, a fragment shader). The plain wave draws the same pixels as before.
 
 ## 0.3.0 — 2026-11-15

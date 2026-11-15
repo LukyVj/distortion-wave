@@ -153,6 +153,15 @@ const LOOKS: LookCard[] = [
     meta: ["Water every two days.", "Ready to repot."],
     action: ["Next week", "Back to week 1"],
   },
+  {
+    effect: "christmas",
+    name: "Christmas",
+    caption: "The front is a candy cane, snow falls behind it, lights go up around the card and snow settles on top.",
+    tag: ["Dec 1", "Dec 24"],
+    title: ["24 days to go", "It's Christmas Eve"],
+    meta: ["The calendar is still closed.", "Every door is open."],
+    action: ["Open the calendar", "Start again"],
+  },
 ];
 
 function Look({ effect, paper, tag, title, meta, action }: LookCard) {
