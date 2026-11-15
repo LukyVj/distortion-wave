@@ -33,7 +33,60 @@ Or the IIFE build, which exposes `window.DistortionWave`:
 <script src="https://cdn.jsdelivr.net/npm/distortion-wave@0.1/dist/distortion-wave.iife.min.js"></script>
 ```
 
-Only the looks you use: each effect is its own entry (`import { burn } from 'distortion-wave/burn'`), and with a bundler only what you import ships. Everything at once: `distortion-wave/all` (~25 kB gzipped), or `dist/all.iife.min.js`, which puts the core and every effect on `window.DistortionWave`. The site's Install section also builds one file with the core and the looks you tick.
+### Everything, or only the looks you use
+
+The wave (the core) is always there. Each other look (see [Effects](#effects)) is its own entry, so you only pay for the ones you use.
+
+| Entry | Gzipped | What's in it |
+|---|---|---|
+| `distortion-wave` | 16.9 kB | the wave, the API, every option |
+| `distortion-wave/electric` | 5.8 kB | `electric`, `electricBorder` |
+| `distortion-wave/pixel` | 1.1 kB | `pixel` |
+| `distortion-wave/glass` | 1.0 kB | `glass` |
+| `distortion-wave/burn` | 1.3 kB | `burn` |
+| `distortion-wave/ink` | 1.2 kB | `ink` |
+| `distortion-wave/halftone` | 1.0 kB | `halftone` |
+| `distortion-wave/metal` | 1.1 kB | `metal` |
+| `distortion-wave/water` | 1.2 kB | `water` |
+| `distortion-wave/all` | 24.6 kB | the core and every look |
+
+**Only some looks, with a bundler.** Import the core, then each look from its own entry. Only what you import ships: here 16.9 + 1.3 + 1.2 kB.
+
+```js
+import { distortionWave } from 'distortion-wave';
+import { burn } from 'distortion-wave/burn';
+import { water } from 'distortion-wave/water';
+
+distortionWave(card, update, { effect: burn });
+```
+
+**Everything, with a bundler.** One import, every look:
+
+```js
+import { distortionWave, burn, glass, water } from 'distortion-wave/all';
+```
+
+**Only some looks, without a bundler.** Load the core's IIFE, then the IIFE of each look. Each look sets its own global (`DistortionWaveBurn`, `DistortionWaveGlass`…):
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/distortion-wave@0.3/dist/distortion-wave.iife.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/distortion-wave@0.3/dist/burn.iife.min.js"></script>
+<script>
+  DistortionWave.distortionWave(card, update, { effect: DistortionWaveBurn.burn });
+</script>
+```
+
+**Everything, without a bundler.** `all.iife.min.js` puts the core and every look on `window.DistortionWave`:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/distortion-wave@0.3/dist/all.iife.min.js"></script>
+<script>
+  const { distortionWave, burn } = DistortionWave;
+  distortionWave(card, update, { effect: burn });
+</script>
+```
+
+**One file to host yourself.** On the site, the Install section has a download builder: tick the looks you want, and it gives you a single file with the core and those looks, all on `window.DistortionWave`, with its size. Ticking every look gives the `all` build.
 
 ## Usage
 
@@ -332,7 +385,7 @@ The rendering cost is one full-screen pass per frame (up to ~18 texture reads pe
 
 ### Bundle size
 
-The core is ~17 kB gzipped, shaders included (`distortion-wave/electric` adds ~6 kB, `distortion-wave/pixel` ~1.2 kB, the other looks 1 to 1.3 kB each). If the wave only plays on a few interactions, keep it out of the initial bundle and load it on the first one:
+The core is ~17 kB gzipped, shaders included; each look adds 1 to 6 kB (see [Everything, or only the looks you use](#everything-or-only-the-looks-you-use)). If the wave only plays on a few interactions, keep it out of the initial bundle and load it on the first one:
 
 ```js
 let lib;
