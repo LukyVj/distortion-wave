@@ -445,6 +445,7 @@ function Align() {
 }
 
 const RELEASES = [
+  ["0.3.0", "Eight looks, one file or only what you use"],
   ["0.2.1", "Thin rows of text keep their letters"],
   ["0.2.0", "Duration, easing, intensity, app-wide defaults"],
   ["0.1.2", "Rounded corners from clipping parents"],
@@ -469,7 +470,7 @@ function Releases() {
       </div>
       <Pagination
         aria-label="Releases"
-        pageCount={3}
+        pageCount={Math.ceil(RELEASES.length / 2)}
         page={page}
         onPageChange={(next) => {
           if (next === page) return;

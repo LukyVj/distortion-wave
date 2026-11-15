@@ -2,6 +2,7 @@
 
 import { useRef, useState, type ReactNode } from "react";
 import { Switch, SwitchThumb } from "@ui-sdk/react/switch";
+import { version } from "../../../package.json";
 import { origin, useWave } from "./wave";
 
 export function Shell({ children }: { children: ReactNode }) {
@@ -14,7 +15,7 @@ export function Shell({ children }: { children: ReactNode }) {
     <div ref={page} className="page" data-theme={dark ? "dark" : "light"}>
       <header className="top">
         <a className="wordmark" href="#hero-title">
-          distortion-wave <span className="version">0.2.1</span>
+          distortion-wave <span className="version">{version}</span>
         </a>
         <nav aria-label="Links">
           <label className="theme">
