@@ -1,3 +1,5 @@
+![distortion-wave](docs/brand/banner.png)
+
 # distortion-wave
 
 A distortion-wave transition for **any DOM element**. A button, a card, a tab panel, the whole page.

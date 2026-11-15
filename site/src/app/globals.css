@@ -22,45 +22,51 @@ html {
 
 body {
   margin: 0;
-  background: #e9edf2;
+  background: #edf1f4;
   font: 400 1rem/1.55 var(--font-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
 body:has(.page[data-theme="dark"]) {
-  background: #0e1220;
+  background: #0b1727;
 }
 
 /* Theme: the page wrapper carries every colour, so the theme switch can wave it */
 
 .page {
   color-scheme: light;
-  --bg: #e9edf2;
-  --surface: #f8fafc;
+  --duo-deep: #0e2a47;
+  --duo-light: #5fe3d6;
+  --ink: var(--duo-deep);
+  --bg: #edf1f4;
+  --surface: #f6f8fa;
   --card: #ffffff;
-  --chalk: #dbe2ec;
-  --text: #1a1f36;
-  --muted: #535a6f;
-  --rule: #cdd3dd;
-  --wire: #7e879c;
-  --hole: #c3cad6;
-  --fill: #e6eaf0;
-  --inline-code: #dde3ec;
-  --code-bg: #1a1f36;
-  --code-fg: #e6e9f2;
-  --code-edge: #6e789a;
-  --code-hover: #2a3150;
-  --btn-bg: #1a1f36;
+  --chalk: #dfe6ec;
+  --text: var(--ink);
+  --muted: color-mix(in oklab, var(--ink) 62%, var(--bg));
+  --rule: color-mix(in oklab, var(--ink) 14%, var(--bg));
+  --wire: color-mix(in oklab, var(--ink) 40%, var(--bg));
+  --hole: color-mix(in oklab, var(--ink) 12%, var(--bg));
+  --fill: color-mix(in oklab, var(--ink) 7%, var(--bg));
+  --inline-code: color-mix(in oklab, var(--duo-light) 28%, #ffffff);
+  --code-bg: var(--duo-deep);
+  --code-fg: #eef4f8;
+  --code-edge: color-mix(in oklab, var(--duo-deep) 70%, #ffffff);
+  --code-hover: color-mix(in oklab, var(--duo-deep) 88%, #ffffff);
+  --btn-bg: var(--duo-deep);
   --btn-fg: #ffffff;
-  --btn-hover: #2c3354;
+  --btn-hover: color-mix(in oklab, var(--duo-deep) 85%, var(--duo-light));
   --like-bg: #ffe9ee;
   --like-fg: #a3123a;
   --like-edge: #f3a3b6;
-  --ok-bg: #e5f6ec;
-  --ok-fg: #14532d;
-  --ring: #7584bf;
-  --ring-border: #4a5aa8;
-
+  --ok-bg: color-mix(in oklab, var(--duo-light) 30%, #ffffff);
+  --ok-fg: var(--duo-deep);
+  --ring: var(--duo-light);
+  --ring-border: var(--duo-deep);
+  --glass: rgba(255, 255, 255, 0.58);
+  --glass-edge: rgba(255, 255, 255, 0.9);
+  --glass-top: #ffffff;
+  --caustic-blend: soft-light;
 
   --width: min(1200px, 100% - 2 * clamp(16px, 4vw, 40px));
 
@@ -74,30 +80,36 @@ body:has(.page[data-theme="dark"]) {
 .dark-scope,
 .dark-bench {
   color-scheme: dark;
-  --bg: #0e1220;
-  --surface: #161b2c;
-  --card: #1e2438;
-  --chalk: #232b45;
-  --text: #e7eaf3;
-  --muted: #a3abc1;
-  --rule: #2e3653;
-  --wire: #7d87a6;
-  --hole: #2c3450;
-  --fill: #262d45;
-  --inline-code: #262d45;
-  --code-bg: #0a0d18;
-  --code-edge: #646e90;
-  --code-hover: #1c2236;
-  --btn-bg: #e7eaf3;
-  --btn-fg: #121628;
-  --btn-hover: #cfd5e3;
+  --ink: #e9f3f6;
+  --bg: #0b1727;
+  --surface: #10213a;
+  --card: #142a45;
+  --chalk: #1b3350;
+  --text: var(--ink);
+  --muted: color-mix(in oklab, var(--ink) 66%, var(--bg));
+  --rule: color-mix(in oklab, var(--ink) 16%, var(--bg));
+  --wire: color-mix(in oklab, var(--ink) 42%, var(--bg));
+  --hole: color-mix(in oklab, var(--ink) 14%, var(--bg));
+  --fill: color-mix(in oklab, var(--ink) 9%, var(--bg));
+  --inline-code: color-mix(in oklab, var(--duo-light) 22%, var(--bg));
+  --code-bg: #071020;
+  --code-fg: #e9f3f6;
+  --code-edge: #3a5673;
+  --code-hover: #0f1d33;
+  --btn-bg: var(--duo-light);
+  --btn-fg: var(--duo-deep);
+  --btn-hover: #8af0e6;
   --like-bg: #3a1626;
   --like-fg: #ff9db5;
   --like-edge: #7a2a46;
-  --ok-bg: #12301f;
-  --ok-fg: #93e8b3;
-  --ring: #8c9ad6;
-  --ring-border: #a9b5ec;
+  --ok-bg: color-mix(in oklab, var(--duo-light) 22%, var(--bg));
+  --ok-fg: var(--duo-light);
+  --ring: var(--duo-light);
+  --ring-border: #bff6f0;
+  --glass: rgba(16, 33, 58, 0.55);
+  --glass-edge: rgba(255, 255, 255, 0.22);
+  --glass-top: rgba(255, 255, 255, 0.35);
+  --caustic-blend: overlay;
 }
 
 /* ui-sdk tokens follow the theme tokens wherever they change */
@@ -168,13 +180,13 @@ p {
 }
 
 .wordmark {
-  font-weight: 700;
-  font-stretch: 112%;
-  font-size: 1.05rem;
-  letter-spacing: -0.01em;
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
   text-decoration: none;
   white-space: nowrap;
 }
+.mark { display: block; flex: none; }
 
 .version {
   margin-left: 6px;
@@ -226,33 +238,8 @@ p {
   --line: var(--rule);
 }
 
-.stage[data-tone="ink"] {
-  background: #1a1f36;
-  color: #eef1f6;
-  --note: #b4bbcc;
-  --line: #4b5371;
-  --btn-bg: #ffffff;
-  --btn-fg: #1a1f36;
-  --btn-hover: #e3e7ef;
-  --wire: #7d87a6;
-  --fill: #2a3150;
-}
 
-.page[data-theme="dark"] .stage[data-tone="ink"] {
-  background: #e7eaf3;
-  color: #1a1f36;
-  --note: #4a5168;
-  --line: #b6bdcc;
-  --btn-bg: #1a1f36;
-  --btn-fg: #ffffff;
-  --btn-hover: #2c3354;
-  --wire: #6b7490;
-  --fill: #d3d9e5;
-}
 
-.stage[data-tone="chalk"] {
-  background: var(--chalk);
-}
 
 .hero-title {
   max-width: 13ch;
@@ -1645,3 +1632,151 @@ code {
 .build .btn {
   justify-self: start;
 }
+
+/* Mark: a line that becomes a wave, on a glass tile */
+.page .mark-glass {
+  fill: color-mix(in oklab, var(--duo-light) 55%, #ffffff);
+  stroke: #fff;
+  stroke-width: 1.5;
+}
+.page .mark-line { stroke: var(--duo-deep); }
+.page[data-theme="dark"] .mark-glass { fill: var(--duo-light); stroke: rgba(255, 255, 255, 0.5); }
+.page .wordmark { gap: 11px; }
+.page .wordmark-text {
+  font: 600 1.08rem/1 var(--font-display), sans-serif;
+  font-variation-settings: "wdth" 100, "opsz" 40;
+  letter-spacing: -0.015em;
+}
+.page .wordmark-tilde {
+  color: var(--ink);
+  opacity: 0.55;
+  margin: 0 0.04em;
+  font-weight: 400;
+}
+.page .top nav { font-weight: 500; }
+
+/* Hero: a duotone light field, caustics, and a frosted plate on top */
+.page .hero { position: relative; }
+.page .hero::before {
+  content: "";
+  position: absolute;
+  inset: -40px -12vw -80px;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(42% 55% at 18% 30%, var(--duo-light) 0%, transparent 70%),
+    radial-gradient(38% 50% at 85% 20%, color-mix(in oklab, var(--duo-light) 60%, #fff) 0%, transparent 70%),
+    radial-gradient(50% 60% at 65% 95%, var(--duo-deep) 0%, transparent 72%),
+    radial-gradient(30% 40% at 40% 80%, color-mix(in oklab, var(--duo-deep) 55%, var(--duo-light)) 0%, transparent 70%);
+  filter: blur(36px) saturate(1.15);
+  opacity: 0.9;
+}
+.page .hero::after {
+  /* caustics */
+  content: "";
+  position: absolute;
+  inset: -40px -12vw -80px;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  mix-blend-mode: var(--caustic-blend);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='420' height='420'><filter id='c'><feTurbulence type='turbulence' baseFrequency='0.012' numOctaves='2' seed='7' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 9 -4'/><feGaussianBlur stdDeviation='0.8'/></filter><rect width='420' height='420' filter='url(%23c)'/></svg>");
+  background-size: 420px 420px;
+}
+.page .stage {
+  position: relative;
+  z-index: 1;
+  border-radius: 30px;
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(28px) saturate(1.3);
+  backdrop-filter: blur(28px) saturate(1.3);
+  border: 1px solid var(--glass-edge);
+  box-shadow:
+    inset 0 1px 0 var(--glass-top),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.25),
+    0 30px 60px -30px color-mix(in oklab, var(--duo-deep) 45%, transparent);
+  color: var(--ink);
+  --note: color-mix(in oklab, var(--ink) 72%, var(--bg));
+  --line: color-mix(in oklab, var(--ink) 20%, var(--bg));
+  --fill: rgba(255, 255, 255, 0.5);
+}
+.page[data-theme="dark"] .stage { --fill: rgba(255, 255, 255, 0.1); }
+.page .stage[data-tone="ink"] {
+  background: color-mix(in oklab, var(--duo-deep) 88%, transparent);
+  color: #fff;
+  --note: color-mix(in oklab, #fff 78%, var(--duo-light));
+  --line: rgba(255, 255, 255, 0.25);
+  --btn-bg: var(--duo-light);
+  --btn-fg: var(--duo-deep);
+  --btn-hover: #fff;
+  --wire: rgba(255, 255, 255, 0.5);
+  --fill: rgba(255, 255, 255, 0.12);
+}
+.page[data-theme="dark"] .stage[data-tone="ink"] {
+  background: color-mix(in oklab, var(--duo-light) 82%, #fff);
+  color: var(--duo-deep);
+  --note: color-mix(in oklab, var(--duo-deep) 75%, #fff);
+  --line: color-mix(in oklab, var(--duo-deep) 25%, transparent);
+  --btn-bg: var(--duo-deep);
+  --btn-fg: #fff;
+  --btn-hover: #1b3d63;
+  --wire: color-mix(in oklab, var(--duo-deep) 45%, transparent);
+  --fill: rgba(255, 255, 255, 0.35);
+}
+.page .stage[data-tone="chalk"] { background: var(--glass); }
+.page .hero-title {
+  font: 500 clamp(2.8rem, 8vw, 7rem) / 0.95 var(--font-display), sans-serif;
+  font-variation-settings: "wdth" 100, "opsz" 96;
+  letter-spacing: -0.04em;
+  max-width: 12ch;
+}
+.page .hero-note { font-size: clamp(1rem, 1.3vw, 1.12rem); }
+.page .hero-call { color: var(--note); }
+.page .stage .install-chip { background: var(--fill); }
+.page .btn,
+.page .install-chip { border-radius: 12px; }
+
+/* Lockup: the mark in both states */
+.page .lockup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: auto;
+  font: 500 0.8rem/1 var(--font-mono), monospace;
+  color: var(--note);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.page .lockup .mark { width: 40px; height: 40px; }
+.page .lockup-arrow { font-size: 1rem; opacity: 0.6; }
+.page .lockup-note { margin-left: 6px; }
+.page .stage { align-content: stretch; grid-template-rows: auto 1fr auto auto auto; }
+.page .stage .hero-title { align-self: end; }
+
+/* Sections */
+.page .section-head h2 {
+  font: 500 clamp(1.7rem, 3.2vw, 2.6rem) / 1.02 var(--font-display), sans-serif;
+  font-variation-settings: "wdth" 100, "opsz" 60;
+  letter-spacing: -0.03em;
+}
+.page .demo-body {
+  background-color: var(--glass);
+  border: 1px solid var(--glass-edge);
+  box-shadow: inset 0 1px 0 var(--glass-top);
+  background-image: radial-gradient(circle, var(--hole) 1.2px, transparent 1.6px);
+}
+.page .demos {
+  position: relative;
+}
+.page .demos::before {
+  content: "";
+  position: absolute;
+  inset: -30px -6vw;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(40% 40% at 10% 10%, color-mix(in oklab, var(--duo-light) 45%, transparent), transparent 70%),
+    radial-gradient(40% 40% at 90% 90%, color-mix(in oklab, var(--duo-deep) 25%, transparent), transparent 70%);
+  filter: blur(40px);
+}
+.page .foot { border-top-color: var(--rule); }

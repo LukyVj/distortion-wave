@@ -5,7 +5,7 @@ import { Button } from "@ui-sdk/react/button";
 import { highlight } from "./code";
 import { CopyInstall } from "./copy";
 import { useWave } from "./wave";
-import { MarkVerre, useBrandName } from "./brand";
+import { Mark } from "./brand";
 
 const STATES = [
   {
@@ -29,7 +29,6 @@ export function Hero() {
   const stage = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
   const wave = useWave();
-  const brand = useBrandName();
   const state = STATES[index];
 
   function next(e: MouseEvent<HTMLElement>) {
@@ -42,14 +41,12 @@ export function Hero() {
   return (
     <section className="hero" aria-labelledby="hero-title">
       <div ref={stage} className="stage target" data-tone={state.tone}>
-        {brand === "verre" && (
-          <div className="lockup" aria-hidden="true">
-            <MarkVerre state="before" />
-            <span className="lockup-arrow">→</span>
-            <MarkVerre state="after" />
-            <span className="lockup-note">before / after</span>
-          </div>
-        )}
+        <div className="lockup" aria-hidden="true">
+          <Mark state="before" size={40} />
+          <span className="lockup-arrow">→</span>
+          <Mark state="after" size={40} />
+          <span className="lockup-note">before / after</span>
+        </div>
         <h1 id="hero-title" className="hero-title">
           {state.title}
         </h1>
