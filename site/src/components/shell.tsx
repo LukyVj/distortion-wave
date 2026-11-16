@@ -21,9 +21,15 @@ export function Shell({ children }: { children: ReactNode }) {
             distortion<span className="wordmark-tilde">∿</span>wave
           </span> <span className="version">{version}</span>
         </a>
-        <nav aria-label="Links">
+        <nav className="top-sections" aria-label="Sections">
+          <a href="#try">Demos</a>
+          <a href="#effects">Looks</a>
+          <a href="#tune">Playground</a>
+          <a href="#install">Install</a>
+        </nav>
+        <nav className="top-links" aria-label="Links">
           <label className="theme">
-            <span>Dark page</span>
+            <span>Dark</span>
             <Switch
               ref={toggle}
               checked={dark}
@@ -38,7 +44,7 @@ export function Shell({ children }: { children: ReactNode }) {
               <SwitchThumb />
             </Switch>
           </label>
-          <a href="https://www.npmjs.com/package/distortion-wave">npm</a>
+          <a className="top-pill" href="https://www.npmjs.com/package/distortion-wave">npm</a>
           <a href="https://codepen.io/LukyVj/pen/jEBJpLp">CodePen</a>
         </nav>
       </header>

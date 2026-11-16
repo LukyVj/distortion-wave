@@ -1,70 +1,177 @@
 "use client";
 
-import { useRef, useState, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { Button } from "@ui-sdk/react/button";
-import { highlight } from "./code";
+import { Mark } from "./brand";
 import { CopyInstall } from "./copy";
 import { useWave } from "./wave";
-import { Mark } from "./brand";
 
-const STATES = [
-  {
-    tone: "plate",
-    title: "Wave any element into its next state.",
-    note: "Give it an element and a function that changes the DOM. It captures both states and carries the old pixels into the new ones in one WebGL2 pass.",
-  },
-  {
-    tone: "ink",
-    title: "A button, a card, or the whole page.",
-    note: "Same model as document.startViewTransition(), scoped to the element you pass. The wave leaves from where you pressed and follows the element's shape.",
-  },
-  {
-    tone: "chalk",
-    title: "Your update always runs.",
-    note: "No WebGL2, reduced motion, an element off screen: you get the change without the wave. Keyboard focus stays where it was.",
-  },
-] as const;
+// The hero is the product: a small app on a glass device that waves from one screen to the
+// next on its own, every few seconds, and on every press.
+const STEPS = ["checkout", "paid", "ticket"] as const;
+type Step = (typeof STEPS)[number];
+
+function Screen({ step, onNext }: { step: Step; onNext: (e: MouseEvent<HTMLElement>) => void }) {
+  if (step === "checkout")
+    return (
+      <div className="app app-checkout">
+        <p className="app-kicker">Checkout</p>
+        <div className="app-art" aria-hidden="true">
+          <Mark state="before" size={56} />
+        </div>
+        <p className="app-title">Lagune, live in Paris</p>
+        <p className="app-sub">Sat 12 Dec · La Cigale · 2 seats</p>
+        <dl className="app-rows">
+          <div><dt>Seats</dt><dd>Balcony B 14–15</dd></div>
+          <div><dt>Fees</dt><dd>€4.00</dd></div>
+          <div className="app-total"><dt>Total</dt><dd>€84.00</dd></div>
+        </dl>
+        <button className="app-btn" data-wave-source onClick={onNext}>
+          Pay €84.00
+        </button>
+      </div>
+    );
+  if (step === "paid")
+    return (
+      <div className="app app-paid">
+        <p className="app-kicker">Payment</p>
+        <div className="app-check" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="34" height="34">
+            <path d="M5 12.5l4.2 4.2L19 7" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
+        <p className="app-big">€84.00</p>
+        <p className="app-sub">Paid with Visa ···· 4242</p>
+        <dl className="app-rows">
+          <div><dt>Order</dt><dd>#DW-0412</dd></div>
+          <div><dt>Sent to</dt><dd>maya@lagune.fm</dd></div>
+        </dl>
+        <button className="app-btn" data-wave-source onClick={onNext}>
+          Show tickets
+        </button>
+      </div>
+    );
+  return (
+    <div className="app app-ticket">
+      <p className="app-kicker">Your tickets</p>
+      <div className="ticket">
+        <div className="ticket-top">
+          <p className="ticket-title">Lagune</p>
+          <p className="ticket-sub">La Cigale, Paris</p>
+        </div>
+        <div className="ticket-grid">
+          <div><span>Date</span>Sat 12 Dec</div>
+          <div><span>Doors</span>19:30</div>
+          <div><span>Row</span>B</div>
+          <div><span>Seats</span>14–15</div>
+        </div>
+        <div className="ticket-code" aria-hidden="true" />
+      </div>
+      <button className="app-btn app-btn-quiet" data-wave-source onClick={onNext}>
+        Done
+      </button>
+    </div>
+  );
+}
 
 export function Hero() {
-  const stage = useRef<HTMLDivElement>(null);
+  const screen = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
+  const busy = useRef(false);
+  const paused = useRef(false);
   const wave = useWave();
-  const state = STATES[index];
 
-  function next(e: MouseEvent<HTMLElement>) {
-    wave(stage, () => setIndex((i) => (i + 1) % STATES.length), {
-      source: e.currentTarget,
-      focus: e.nativeEvent,
+  function next(source: Element | null, focus?: MouseEvent["nativeEvent"]) {
+    if (busy.current) return;
+    busy.current = true;
+    const t = wave(screen, () => setIndex((i) => (i + 1) % STEPS.length), {
+      source,
+      focus: focus ?? null,
     });
+    const done = () => {
+      busy.current = false;
+    };
+    if (t) t.finished.then(done, done);
+    else done();
   }
+
+  // Autoplay while the device is on screen and nobody is touching it.
+  useEffect(() => {
+    const el = screen.current;
+    if (!el) return;
+    let visible = false;
+    const io = new IntersectionObserver(([e]) => (visible = e.isIntersecting), { threshold: 0.5 });
+    io.observe(el);
+    const id = window.setInterval(() => {
+      if (!visible || paused.current || busy.current || document.hidden) return;
+      next(el.querySelector("[data-wave-source]"));
+    }, 3600);
+    return () => {
+      io.disconnect();
+      window.clearInterval(id);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <section className="hero" aria-labelledby="hero-title">
-      <div ref={stage} className="stage target" data-tone={state.tone}>
-        <div className="lockup" aria-hidden="true">
-          <Mark state="before" size={40} />
-          <span className="lockup-arrow">→</span>
-          <Mark state="after" size={40} />
-          <span className="lockup-note">before / after</span>
-        </div>
+      <div className="hero-copy">
+        <p className="eyebrow">
+          <span className="eyebrow-dot" aria-hidden="true" /> WebGL2 · zero dependencies · ~17 kB
+        </p>
         <h1 id="hero-title" className="hero-title">
-          {state.title}
+          Wave any element into its next state.
         </h1>
-        <p className="hero-note">{state.note}</p>
+        <p className="hero-note">
+          Pass an element and the function that changes it. distortion-wave captures both states and
+          carries the old pixels into the new ones, like <code>startViewTransition()</code> with a
+          material.
+        </p>
         <div className="hero-actions">
-          <Button className="btn btn-primary" onClick={next}>
+          <Button className="btn btn-primary btn-lg" onClick={(e) => next(screen.current?.querySelector("[data-wave-source]") ?? e.currentTarget, e.nativeEvent)}>
             Make a wave
           </Button>
           <CopyInstall />
         </div>
-        <pre className="hero-call" aria-label="The call behind this button">
-          <code>
-            {highlight(
-              "distortionWave(stage, () => setState(next), { source: button, focus: event })",
-            )}
-          </code>
-        </pre>
+      </div>
+
+      <div
+        className="device-wrap"
+        onPointerEnter={() => (paused.current = true)}
+        onPointerLeave={() => (paused.current = false)}
+      >
+        <div className="device">
+          <div ref={screen} className="device-screen target" data-step={STEPS[index]}>
+            <Screen step={STEPS[index]} onNext={(e) => next(e.currentTarget, e.nativeEvent)} />
+          </div>
+        </div>
+        <p className="device-caption">
+          <code>distortionWave(screen, () =&gt; setStep(next), {"{ source: button }"})</code>
+        </p>
       </div>
     </section>
+  );
+}
+
+export function Facts() {
+  return (
+    <ul className="facts" aria-label="At a glance">
+      <li>
+        <strong>~17 kB</strong>
+        <span>gzipped core</span>
+      </li>
+      <li>
+        <strong>0</strong>
+        <span>dependencies</span>
+      </li>
+      <li>
+        <strong>10</strong>
+        <span>looks: ink, glass, metal…</span>
+      </li>
+      <li>
+        <strong>1 call</strong>
+        <span>same model as View Transitions</span>
+      </li>
+    </ul>
   );
 }
