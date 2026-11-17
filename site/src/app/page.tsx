@@ -2,7 +2,7 @@ import { Toasts } from "@/components/copy";
 import { Demos } from "@/components/demos";
 import { Effects } from "@/components/effects";
 import { Faq } from "@/components/faq";
-import { Hero } from "@/components/hero";
+import { Facts, Hero } from "@/components/hero";
 import { Shell } from "@/components/shell";
 import { Download } from "@/components/download";
 import { FirstCall, FrameworkTabs, InstallTabs } from "@/components/install";
@@ -16,9 +16,10 @@ export default function Home() {
       <Shell>
         <main>
           <Hero />
+          <Facts />
 
           <section className="section" aria-labelledby="try">
-            <div className="section-head">
+            <div className="section-head" data-eyebrow="Live demos">
               <h2 id="try">Try it on real controls</h2>
               <p>
                 Each control runs its change inside <code>distortionWave()</code>. The line under it
@@ -29,7 +30,7 @@ export default function Home() {
           </section>
 
           <section className="section" aria-labelledby="effects">
-            <div className="section-head">
+            <div className="section-head" data-eyebrow="Looks">
               <h2 id="effects">Other looks, same wave</h2>
               <p>
                 An effect keeps the wave&apos;s behaviour and changes its look. Each one is its own import:{" "}
@@ -44,7 +45,7 @@ export default function Home() {
           </section>
 
           <section className="section" aria-labelledby="tune">
-            <div className="section-head">
+            <div className="section-head" data-eyebrow="Playground">
               <h2 id="tune">Tune every wave on this page</h2>
               <p>
                 Every option of the library, live. They go through <code>setWaveDefaults()</code>, so
@@ -56,7 +57,7 @@ export default function Home() {
 
           <LooksProvider>
             <section className="section" aria-labelledby="install">
-              <div className="section-head">
+              <div className="section-head" data-eyebrow="Install">
                 <h2 id="install">Install</h2>
                 <p>No dependencies. Works with a bundler or straight from a CDN.</p>
               </div>
@@ -87,7 +88,7 @@ export default function Home() {
             </section>
 
             <section className="section" aria-labelledby="frameworks">
-              <div className="section-head">
+              <div className="section-head" data-eyebrow="Frameworks">
                 <h2 id="frameworks">In your framework</h2>
                 <p>
                   The second capture has to see the new DOM, so render before the update returns. Each
@@ -99,7 +100,7 @@ export default function Home() {
           </LooksProvider>
 
           <section className="section" aria-labelledby="faq">
-            <div className="section-head">
+            <div className="section-head" data-eyebrow="FAQ">
               <h2 id="faq">Questions</h2>
             </div>
             <Faq />
@@ -112,8 +113,11 @@ export default function Home() {
             <a href="https://libraries.dev/waves">Distortion Waves</a> for SwiftUI. This is an
             independent web implementation.
           </p>
+          <p className="foot-sign">
+            Made by <a href="https://codepen.io/LukyVj">LukyVj</a> in Paris.
+          </p>
           <p>
-            MIT licence. Made by <a href="https://codepen.io/LukyVj">LukyVj</a>. Controls built with{" "}
+            MIT licence. Controls built with{" "}
             <a href="https://ui-sdk.dev">ui-sdk</a>.
           </p>
         </footer>

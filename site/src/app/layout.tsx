@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono, Mona_Sans } from "next/font/google";
+import { Bricolage_Grotesque, JetBrains_Mono, Mona_Sans } from "next/font/google";
 import "@ui-sdk/core/web.css";
 import "./globals.css";
 
@@ -14,6 +14,12 @@ const mono = JetBrains_Mono({
   subsets: ["latin"],
 });
 
+const display = Bricolage_Grotesque({
+  variable: "--font-display",
+  subsets: ["latin"],
+  axes: ["wdth", "opsz"],
+});
+
 export const metadata: Metadata = {
   title: "distortion-wave",
   description:
@@ -22,7 +28,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${sans.variable} ${mono.variable}`}>
+    <html lang="en" className={`${sans.variable} ${mono.variable} ${display.variable}`}>
       <body>{children}</body>
     </html>
   );
