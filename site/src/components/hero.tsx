@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { Button } from "@ui-sdk/react/button";
 import { Mark } from "./brand";
-import { CopyInstall } from "./copy";
+import { GITHUB, GitHubIcon } from "./links";
 import { useWave } from "./wave";
 
 // The hero is the product: a small app on a glass device that waves from one screen to the
@@ -21,6 +21,14 @@ function Screen({ step, onNext }: { step: Step; onNext: (e: MouseEvent<HTMLEleme
         </div>
         <p className="app-title">Lagune, live in Paris</p>
         <p className="app-sub">Sat 12 Dec · La Cigale · 2 seats</p>
+        <div className="seats" aria-hidden="true">
+          <span className="seats-stage">Stage</span>
+          <div className="seats-grid">
+            {Array.from({ length: 36 }, (_, i) => (
+              <i key={i} data-s={i === 15 || i === 16 ? "mine" : [2, 7, 9, 20, 23, 28, 31, 33].includes(i) ? "taken" : undefined} />
+            ))}
+          </div>
+        </div>
         <dl className="app-rows">
           <div><dt>Seats</dt><dd>Balcony B 14–15</dd></div>
           <div><dt>Fees</dt><dd>€4.00</dd></div>
@@ -131,8 +139,17 @@ export function Hero() {
           <Button className="btn btn-primary btn-lg" onClick={(e) => next(screen.current?.querySelector("[data-wave-source]") ?? e.currentTarget, e.nativeEvent)}>
             Make a wave
           </Button>
-          <CopyInstall />
+          <a className="btn btn-quiet btn-outline btn-lg" href="#install">
+            Set it up with your agent
+          </a>
         </div>
+        <p className="hero-alt">
+          <a className="gh-link" href={GITHUB}>
+            <GitHubIcon /> LukyVj/distortion-wave
+          </a>
+          <span aria-hidden="true">·</span>
+          <code>npm i distortion-wave</code>
+        </p>
       </div>
 
       <div

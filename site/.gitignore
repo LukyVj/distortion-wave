@@ -42,3 +42,4 @@ next-env.d.ts
 
 # copied from ../dist by scripts/copy-dist.mjs
 /public/dist/
+/public/llms.txt

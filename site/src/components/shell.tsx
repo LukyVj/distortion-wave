@@ -5,6 +5,7 @@ import { Switch, SwitchThumb } from "@ui-sdk/react/switch";
 import { version } from "../../../package.json";
 import { origin, useWave } from "./wave";
 import { Mark } from "./brand";
+import { GITHUB, GitHubIcon, NPM } from "./links";
 
 export function Shell({ children }: { children: ReactNode }) {
   const page = useRef<HTMLDivElement>(null);
@@ -44,8 +45,10 @@ export function Shell({ children }: { children: ReactNode }) {
               <SwitchThumb />
             </Switch>
           </label>
-          <a className="top-pill" href="https://www.npmjs.com/package/distortion-wave">npm</a>
-          <a href="https://codepen.io/LukyVj/pen/jEBJpLp">CodePen</a>
+          <a href={NPM}>npm</a>
+          <a className="top-pill" href={GITHUB}>
+            <GitHubIcon size={15} /> GitHub
+          </a>
         </nav>
       </header>
       {children}
