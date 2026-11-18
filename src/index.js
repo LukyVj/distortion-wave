@@ -51,6 +51,17 @@ function clippedShape(el, rect, radii) {
   const f = Math.min(1, fit(w, r.tl, r.tr), fit(w, r.bl, r.br), fit(h, r.tl, r.bl), fit(h, r.tr, r.br));
   return { x: x0, y: y0, w, h, radii: { tl: r.tl * f, tr: r.tr * f, br: r.br * f, bl: r.bl * f }, clipped: changed };
 }
+// A modal <dialog>, an open popover or a fullscreen element is painted in the top layer, above every z-index.
+// The canvas joins that layer too (as a manual popover), or the wave is drawn under the modal.
+const TOP_LAYER = [':modal', ':popover-open', ':fullscreen'];
+function inTopLayer(el) { return TOP_LAYER.some((q) => { try { return !!el.closest(q); } catch { return false; } }); }
+// Images to wait for before the "after" capture. A lazy image off screen may never load (decode() would hang
+// forever) and a slow one must not stall the wave: the capture fetches every image itself anyway.
+function settleImages(root, cap = 500) {
+  const imgs = [...root.querySelectorAll('img')].filter((i) => i.complete || i.loading !== 'lazy');
+  if (!imgs.length) return Promise.resolve();
+  return Promise.race([Promise.all(imgs.map((i) => i.decode?.().catch(() => {}))), new Promise((r) => setTimeout(r, cap))]);
+}
 function isFixed(el) { for (let n = el; n && n !== document.documentElement; n = n.parentElement) if (getComputedStyle(n).position === 'fixed') return true; return false; }
 function measure(el) {
   const rect = el.getBoundingClientRect(), cs = getComputedStyle(el);
@@ -192,7 +203,7 @@ class WaveTransition {
     // frame, i.e. still looking like "before", and snap into place when the real DOM comes back. The target
     // is hidden: end them now so the "after" capture is the final state. Infinite animations are left alone.
     for (const a of target.getAnimations?.({ subtree: true }) || []) if (a instanceof CSSTransition) try { a.finish(); } catch {}
-    await Promise.all([...target.querySelectorAll('img')].map((i) => i.decode?.().catch(() => {})));
+    await settleImages(target);
     if (this._done) return;
     const after = measure(target);
     t0 = performance.now();
@@ -238,6 +249,7 @@ class WaveTransition {
   _mount() {
     const c = this.r.canvas;
     document.body.appendChild(c);
+    if (c.showPopover && inTopLayer(this.target)) try { c.popover = 'manual'; c.showPopover(); } catch {}
     this._resizeCanvas();
   }
   _resizeCanvas() {

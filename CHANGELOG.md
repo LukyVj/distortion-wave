@@ -3,6 +3,8 @@
 ## Unreleased
 
 - Fix: rounded corners no longer open a hole (the page showing through, ringed by colour fringes) while the wave pulls and bends the content. Displaced samples stay inside the element's shape.
+- Fix: inside an open modal `<dialog>` (or an open popover, or a fullscreen element) the wave was drawn under it. The canvas now joins the top layer as a manual popover while the target sits there.
+- Fix: a `loading="lazy"` image far off screen inside the target no longer stalls the wave. Images are awaited for at most 500 ms before the "after" capture, lazy ones that have not loaded are skipped (the capture fetches them itself).
 
 ## 0.4.0 — 2026-11-15
 

@@ -272,6 +272,46 @@ await check('all: one script puts the core and every effect on window.Distortion
   assert.deepEqual(errors, []);
 });
 
+await check('inside an open modal <dialog>: the canvas joins the top layer, then leaves it', async () => {
+  const { page, errors } = await open();
+  const r = await page.evaluate(async () => {
+    const d = document.createElement('dialog');
+    d.innerHTML = '<div id="dlg" style="width:240px;padding:20px;border-radius:12px;background:#24c">Before</div>';
+    document.body.appendChild(d); d.showModal();
+    const box = document.getElementById('dlg');
+    const t = __dw.distortionWave(box, () => { box.textContent = 'After'; }, { source: box });
+    await t.ready;
+    const c = document.querySelector('canvas[data-dw-ignore]');
+    const during = { top: c.matches(':popover-open'), border: getComputedStyle(c).borderTopWidth, bg: getComputedStyle(c).backgroundColor };
+    await t.finished;
+    const plain = __dw.distortionWave(document.getElementById('phone'), () => {});   // pooled canvas, outside the dialog
+    await plain.ready;
+    const outside = document.querySelector('canvas[data-dw-ignore]').hasAttribute('popover');
+    await plain.finished; d.close();
+    return { during, outside, text: box.textContent, canvases: document.querySelectorAll('canvas').length };
+  });
+  assert.deepEqual(r, { during: { top: true, border: '0px', bg: 'rgba(0, 0, 0, 0)' }, outside: false, text: 'After', canvases: 0 });
+  assert.deepEqual(errors, []);
+});
+
+await check('a lazy image far below the fold does not stall the wave', async () => {
+  const { page, errors } = await open();
+  const r = await page.evaluate(async () => {
+    const box = document.createElement('div');
+    box.style.cssText = 'width:240px;height:60px;overflow:hidden;background:#2a4;border-radius:10px';
+    box.innerHTML = '<p>Before</p><div style="height:20000px"></div><img loading="lazy" src="never-loaded.png" width="40" height="40">';
+    document.body.prepend(box);
+    const img = box.querySelector('img'), t0 = performance.now(), ev = [];
+    const t = __dw.distortionWave(box, () => { box.querySelector('p').textContent = 'After'; }, { timeout: 10000, onCovered: () => ev.push('covered') });
+    await t.finished; box.remove();
+    return { complete: img.complete, ms: performance.now() - t0, ev, text: box.querySelector('p').textContent };
+  });
+  assert.equal(r.complete, false, 'the lazy image never started loading');
+  assert.deepEqual(r.ev, ['covered']); assert.equal(r.text, 'After');
+  assert.ok(r.ms < 5000, `finished in ${Math.round(r.ms)} ms`);
+  assert.deepEqual(errors.filter((e) => !/never-loaded|ERR_FILE_NOT_FOUND|Failed to load/.test(e)), []);
+});
+
 await check('unknown effect name: warns, then waves as usual', async () => {
   const { page } = await open();
   const r = await page.evaluate(async () => {
