@@ -667,7 +667,7 @@ var Renderer = class {
     this.canvas = document.createElement("canvas");
     this.canvas.setAttribute("data-dw-ignore", "");
     this.canvas.setAttribute("aria-hidden", "true");
-    this.canvas.style.cssText = "position:fixed;left:0;top:0;pointer-events:none;z-index:2147483000;contain:strict;";
+    this.canvas.style.cssText = "position:fixed;left:0;top:0;right:auto;bottom:auto;margin:0;padding:0;border:0;background:transparent;overflow:visible;pointer-events:none;z-index:2147483000;contain:strict;";
     this.layers = {};
     this.pal = new Float32Array(24);
     this.palKey = "";
@@ -897,6 +897,13 @@ function acquire() {
 }
 function release(r) {
   r.clear();
+  if (r.canvas.popover) {
+    try {
+      r.canvas.hidePopover();
+    } catch {
+    }
+    r.canvas.removeAttribute("popover");
+  }
   r.canvas.remove();
   if (r.ok) pool.push(r);
   else alive--;
@@ -1002,6 +1009,22 @@ function clippedShape(el, rect, radii) {
   const w = Math.max(x1 - x0, 0), h = Math.max(y1 - y0, 0);
   const f = Math.min(1, fit(w, r.tl, r.tr), fit(w, r.bl, r.br), fit(h, r.tl, r.bl), fit(h, r.tr, r.br));
   return { x: x0, y: y0, w, h, radii: { tl: r.tl * f, tr: r.tr * f, br: r.br * f, bl: r.bl * f }, clipped: changed };
+}
+var TOP_LAYER = [":modal", ":popover-open", ":fullscreen"];
+function inTopLayer(el) {
+  return TOP_LAYER.some((q) => {
+    try {
+      return !!el.closest(q);
+    } catch {
+      return false;
+    }
+  });
+}
+function settleImages(root, cap = 500) {
+  const imgs = [...root.querySelectorAll("img")].filter((i) => i.complete || i.loading !== "lazy");
+  if (!imgs.length) return Promise.resolve();
+  return Promise.race([Promise.all(imgs.map((i) => i.decode?.().catch(() => {
+  }))), new Promise((r) => setTimeout(r, cap))]);
 }
 function isFixed(el) {
   for (let n = el; n && n !== document.documentElement; n = n.parentElement) if (getComputedStyle(n).position === "fixed") return true;
@@ -1180,8 +1203,7 @@ var WaveTransition = class {
       a.finish();
     } catch {
     }
-    await Promise.all([...target.querySelectorAll("img")].map((i) => i.decode?.().catch(() => {
-    })));
+    await settleImages(target);
     if (this._done) return;
     const after = measure(target);
     t0 = performance.now();
@@ -1235,6 +1257,11 @@ var WaveTransition = class {
   _mount() {
     const c = this.r.canvas;
     document.body.appendChild(c);
+    if (c.showPopover && inTopLayer(this.target)) try {
+      c.popover = "manual";
+      c.showPopover();
+    } catch {
+    }
     this._resizeCanvas();
   }
   _resizeCanvas() {

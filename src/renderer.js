@@ -211,7 +211,7 @@ class Renderer {
     this.canvas = document.createElement('canvas');
     this.canvas.setAttribute('data-dw-ignore', '');
     this.canvas.setAttribute('aria-hidden', 'true');
-    this.canvas.style.cssText = 'position:fixed;left:0;top:0;pointer-events:none;z-index:2147483000;contain:strict;';
+    this.canvas.style.cssText = 'position:fixed;left:0;top:0;right:auto;bottom:auto;margin:0;padding:0;border:0;background:transparent;overflow:visible;pointer-events:none;z-index:2147483000;contain:strict;';
     this.layers = {}; this.pal = new Float32Array(24); this.palKey = ''; this.ok = false;
     this.canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); this.ok = false; });
     const gl = this.canvas.getContext('webgl2', { alpha: true, premultipliedAlpha: true, antialias: false, depth: false, stencil: false, preserveDrawingBuffer: false });
@@ -332,7 +332,10 @@ export function acquire() {
   if (alive >= MAX_CONTEXTS) return null;
   try { const r = new Renderer(); if (!r.ok) return null; alive++; return r; } catch (e) { console.warn('[distortion-wave]', e); return null; }
 }
-export function release(r) { r.clear(); r.canvas.remove(); if (r.ok) pool.push(r); else alive--; }
+export function release(r) {
+  r.clear();
+  if (r.canvas.popover) { try { r.canvas.hidePopover(); } catch {} r.canvas.removeAttribute('popover'); }
+  r.canvas.remove(); if (r.ok) pool.push(r); else alive--; }
 /** Call at load/idle time: compiles the shaders before the first interaction. */
 export function warmupWave() { const r = acquire(); if (r) release(r); return !!r; }
 
